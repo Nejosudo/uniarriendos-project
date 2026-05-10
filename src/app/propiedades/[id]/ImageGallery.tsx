@@ -40,7 +40,9 @@ export default function ImageGallery({ fotos }: Props) {
     };
 
     const renderGallery = () => {
-        if (fotos.length === 1) {
+        const count = fotos.length;
+
+        if (count === 1) {
             return (
                 <div className={styles.singleImage} onClick={() => openLightbox(0)}>
                     <img src={fotos[0]} alt="Propiedad" />
@@ -48,33 +50,19 @@ export default function ImageGallery({ fotos }: Props) {
             );
         }
 
-        if (fotos.length >= 5) {
-            return (
-                <div className={styles.mosaic}>
-                    <div className={styles.mainPhoto} onClick={() => openLightbox(0)}>
-                        <img src={fotos[0]} alt="Principal" />
-                    </div>
-                    <div className={styles.sidePhotos}>
-                        {fotos.slice(1, 5).map((foto, idx) => (
-                            <div key={idx} className={styles.smallPhoto} onClick={() => openLightbox(idx + 1)}>
-                                <img src={foto} alt={`Foto ${idx + 1}`} />
-                                {idx === 3 && fotos.length > 5 && (
-                                    <div className={styles.morePhotosOverlay}>+{fotos.length - 5} fotos</div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        }
-
-        // Si son de 2 a 4 fotos -> Carrusel simple
+        // Layout Mosaico adaptativo (2 a 5+ fotos)
         return (
-            <div className={styles.carouselContainer}>
-                <div className={styles.carouselScroll}>
-                    {fotos.map((foto, idx) => (
-                        <div key={idx} className={styles.carouselSlide} onClick={() => openLightbox(idx)}>
-                            <img src={foto} alt={`Foto ${idx}`} />
+            <div className={`${styles.mosaic} ${styles[`mosaic${Math.min(count, 5)}`]}`}>
+                <div className={styles.mainPhoto} onClick={() => openLightbox(0)}>
+                    <img src={fotos[0]} alt="Principal" />
+                </div>
+                <div className={styles.sidePhotos}>
+                    {fotos.slice(1, 5).map((foto, idx) => (
+                        <div key={idx} className={styles.smallPhoto} onClick={() => openLightbox(idx + 1)}>
+                            <img src={foto} alt={`Foto ${idx + 1}`} />
+                            {idx === 3 && count > 5 && (
+                                <div className={styles.morePhotosOverlay}>+{count - 5} fotos</div>
+                            )}
                         </div>
                     ))}
                 </div>

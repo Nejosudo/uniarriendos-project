@@ -8,7 +8,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     const supabase = await createClient();
     const { id } = await params;
 
-    // Obtener propiedad con relaciones
+    // Obtener propiedad con relaciones, incluyendo reseñas
     const { data: propiedad, error } = await supabase
         .from('propiedades')
         .select(`
@@ -17,6 +17,10 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
             propiedades_fotos(url, orden),
             servicios_rel:propiedades_servicios(
                 servicio:servicios(nombre, icono)
+            ),
+            resenas(
+                *,
+                usuario:perfiles(nombre_completo, avatar_url)
             )
         `)
         .eq('id', id)
@@ -34,6 +38,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     const fotos = propiedad.propiedades_fotos?.sort((a: any, b: any) => a.orden - b.orden).map((f: any) => f.url) || [];
     const servicios = propiedad.servicios_rel?.map((s: any) => s.servicio) || [];
     const anfitrion = propiedad.anfitrion;
+    const resenas = propiedad.resenas || [];
 
     const formatPrecio = (valor: number) => {
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
@@ -85,6 +90,52 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                         )}
                     </section>
 
+                    {/* Sección de Reseñas */}
+                    <section className={styles.section}>
+                        <h2>Reseñas de otros usuarios</h2>
+                        <div className={styles.reviewsContainer}>
+                            {resenas.length > 0 ? (
+                                <div className={styles.reviewsList}>
+                                    {resenas.map((res: any) => (
+                                        <div key={res.id} className={styles.reviewItem}>
+                                            <div className={styles.reviewHeader}>
+                                                {res.usuario?.avatar_url ? (
+                                                    <img src={res.usuario.avatar_url} alt={res.usuario.nombre_completo} className={styles.reviewAvatar} />
+                                                ) : (
+                                                    <div className={styles.reviewAvatarDefault}>{res.usuario?.nombre_completo?.charAt(0)}</div>
+                                                )}
+                                                <div>
+                                                    <p className={styles.reviewUser}>{res.usuario?.nombre_completo}</p>
+                                                    <p className={styles.reviewDate}>{new Date(res.created_at).toLocaleDateString()}</p>
+                                                </div>
+                                                <div className={styles.stars}>
+                                                    {'★'.repeat(res.calificacion)}{'☆'.repeat(5 - res.calificacion)}
+                                                </div>
+                                            </div>
+                                            <p className={styles.reviewComment}>{res.comentario}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className={styles.emptyMsg}>Aún no hay reseñas para esta propiedad.</p>
+                            )}
+
+                            {isLoggedIn ? (
+                                <div className={styles.addReview}>
+                                    <h3>Añadir una reseña</h3>
+                                    <textarea placeholder="Cuéntanos tu experiencia..." className={styles.textarea}></textarea>
+                                    <button className={styles.btnPrimary}>Publicar Reseña</button>
+                                </div>
+                            ) : (
+                                <div className={styles.authPrompt}>
+                                    <p>Inicia sesión para dejar una reseña.</p>
+                                    <Link href="/login" className={styles.btnOutline}>Iniciar Sesión</Link>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* Sección de Preguntas */}
                     <section className={styles.section}>
                         <h2>Preguntas al Anfitrión</h2>
                         <div className={styles.qaContainer}>
@@ -97,7 +148,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                 </div>
                             ) : (
                                 <div className={styles.authPrompt}>
-                                    <p>Para hacer una pregunta o reseña necesitas iniciar sesión.</p>
+                                    <p>Inicia sesión para hacer una pregunta.</p>
                                     <div className={styles.authButtons}>
                                         <Link href="/login" className={styles.btnOutline}>Iniciar Sesión</Link>
                                         <Link href="/registro" className={styles.btnPrimary}>Registrarse</Link>

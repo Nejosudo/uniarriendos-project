@@ -19,7 +19,6 @@
     border-radius: 16px;
 }
 
-/* 1 Foto */
 .singleImage {
     width: 100%;
     height: 100%;
@@ -34,10 +33,9 @@
 }
 .singleImage:hover img { transform: scale(1.02); }
 
-/* Mosaico (5 fotos) */
+/* Mosaico Base */
 .mosaic {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 8px;
     height: 100%;
 }
@@ -58,8 +56,6 @@
 
 .sidePhotos {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
     gap: 8px;
     height: 100%;
 }
@@ -91,39 +87,46 @@
     font-weight: bold;
 }
 
-/* Carrusel (2 a 4 fotos) */
-.carouselContainer {
-    width: 100%;
-    height: 100%;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none; /* Firefox */
-}
-.carouselContainer::-webkit-scrollbar { display: none; } /* Chrome */
+/* Variantes de Mosaico */
 
-.carouselScroll {
-    display: flex;
-    height: 100%;
-    gap: 8px;
+/* 2 Fotos: 50/50 */
+.mosaic2 {
+    grid-template-columns: 1fr 1fr;
+}
+.mosaic2 .sidePhotos {
+    grid-template-columns: 1fr;
 }
 
-.carouselSlide {
-    flex: 0 0 80%;
-    height: 100%;
-    scroll-snap-align: center;
-    cursor: pointer;
+/* 3 Fotos: 1 Grande, 2 Pequeñas verticales */
+.mosaic3 {
+    grid-template-columns: 2fr 1fr;
 }
-.carouselSlide:first-child { flex: 0 0 100%; }
+.mosaic3 .sidePhotos {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+}
 
-.carouselSlide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+/* 4 Fotos: 1 Grande, 3 Pequeñas verticales/grid */
+.mosaic4 {
+    grid-template-columns: 2fr 1fr;
+}
+.mosaic4 .sidePhotos {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3, 1fr);
+}
+
+/* 5 Fotos: El mosaico clásico de Airbnb */
+.mosaic5 {
+    grid-template-columns: 1fr 1fr;
+}
+.mosaic5 .sidePhotos {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
 }
 
 @media (max-width: 768px) {
     .galleryWrapper { height: 300px; }
-    .mosaic { grid-template-columns: 1fr; }
+    .mosaic { grid-template-columns: 1fr !important; }
     .sidePhotos { display: none; }
 }
 
