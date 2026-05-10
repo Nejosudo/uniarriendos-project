@@ -1,19 +1,26 @@
+import Link from 'next/link';
 import styles from './PropertyCard.module.css';
 
 interface PropertyProps {
+    id: number;
     titulo: string;
     precio: number;
-    ubicacion: string;
+    ubicacion_texto: string;
     imagen_url?: string;
-    // Incorporar después
-    // anfitrion?: {nombre: string; avatar: string; verificado: boolean};
-    // estado?: 'Disponible' | 'Ocupado';
-    // calificacion?: number;
-    // caracteristicas?: string[]; // wifi, parqueadero, aire...
+    vivienda_compartida?: boolean;
+    estado?: string;
+    prioridad?: string;
+    perfil_arriendo?: string;
+    anfitrion_nombre?: string;
+    anfitrion_avatar?: string;
 }
 
-export default function PropertyCard({ titulo, precio, ubicacion, imagen_url }: PropertyProps) {
-    // Función para formato de precio
+export default function PropertyCard(props: PropertyProps) {
+    const {
+        id, titulo, precio, ubicacion_texto, imagen_url, 
+        vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar
+    } = props;
+
     const formatPrecio = (valor: number) => {
         return new Intl.NumberFormat('es-CO', {
             style: 'currency',
@@ -24,27 +31,66 @@ export default function PropertyCard({ titulo, precio, ubicacion, imagen_url }: 
 
     return (
         <div className={styles.card}>
-
-            <div className={styles.header}>
-                {/* Avatar, nombre, verificación e icono favorito */}
+            <div className={styles.cardHeader}>
+                <div className={styles.hostInfo}>
+                    {anfitrion_avatar ? (
+                        <img src={anfitrion_avatar} alt={anfitrion_nombre} className={styles.hostAvatar} />
+                    ) : (
+                        <div className={styles.defaultHostAvatar}>
+                            {anfitrion_nombre ? anfitrion_nombre.charAt(0).toUpperCase() : 'H'}
+                        </div>
+                    )}
+                    <span className={styles.hostName}>{anfitrion_nombre || 'Anfitrión'}</span>
+                </div>
             </div>
 
-            <div className={styles.imageContainer}>
+            <div className={styles.imageWrapper}>
                 {imagen_url ? (
-                    <img src={imagen_url} alt={titulo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={imagen_url} alt={titulo} className={styles.image} />
                 ) : (
-                    <span>Sin imagen</span>
+                    <div className={styles.noImage}>Sin Imagen</div>
                 )}
+                
+                <div className={styles.badges}>
+                    {estado === 'disponible' && <span className={styles.badgeSuccess}>Disponible</span>}
+                    {estado === 'ocupado' && <span className={styles.badgeError}>Ocupado</span>}
+                    {prioridad === 'verificada' && <span className={styles.badgeVerified}>✓ Verificada</span>}
+                    {prioridad === 'recomendada' && <span className={styles.badgeRecommended}>★ Recomendada</span>}
+                </div>
+
+                <button className={styles.favoriteBtn} aria-label="Añadir a favoritos">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
             </div>
 
             <div className={styles.content}>
-                <p className={styles.price}>{formatPrecio(precio)}</p>
+                <div className={styles.priceRow}>
+                    <p className={styles.price}>{formatPrecio(precio)}<span className={styles.pricePerMonth}>/mes</span></p>
+                </div>
+                
                 <h3 className={styles.title}>{titulo}</h3>
-                <p className={styles.location}>📍 {ubicacion}</p>
+                <p className={styles.location}>
+                    <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    {ubicacion_texto}
+                </p>
+
+                <div className={styles.tags}>
+                    {vivienda_compartida && <span className={styles.tag}>Compartida</span>}
+                    {perfil_arriendo && perfil_arriendo !== 'ambos' && (
+                        <span className={styles.tag}>Solo {perfil_arriendo}</span>
+                    )}
+                </div>
             </div>
 
             <div className={styles.footer}>
-                <button className={styles.viewButton}>Ver detalles</button>
+                <Link href={`/propiedades/${id}`} className={styles.viewButton}>
+                    Ver detalles
+                </Link>
             </div>
         </div>
     );

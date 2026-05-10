@@ -6,7 +6,7 @@ export default function Footer() {
         <footer className={styles.footer}>
             <div className={styles.container}>
                 <div className={styles.copyright}>
-                    UniArriendos ©2026 Todos los derechos reservados
+                    Uniarriendos ©2026 Todos los derechos reservados
                 </div>
                 <div className={styles.links}>
                     <Link href="/privacidad">Privacidad</Link>

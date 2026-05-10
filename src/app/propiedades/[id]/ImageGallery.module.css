@@ -1,0 +1,192 @@
+.galleryWrapper {
+    width: 100%;
+    margin-bottom: 2rem;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    height: 450px;
+}
+
+.noPhotos {
+    width: 100%;
+    height: 450px;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+    border-radius: 16px;
+}
+
+/* 1 Foto */
+.singleImage {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.singleImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.singleImage:hover img { transform: scale(1.02); }
+
+/* Mosaico (5 fotos) */
+.mosaic {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    height: 100%;
+}
+
+.mainPhoto {
+    height: 100%;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.mainPhoto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.mainPhoto:hover img { transform: scale(1.02); }
+
+.sidePhotos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: 100%;
+}
+
+.smallPhoto {
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.smallPhoto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.smallPhoto:hover img { transform: scale(1.05); }
+
+.morePhotosOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Carrusel (2 a 4 fotos) */
+.carouselContainer {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+}
+.carouselContainer::-webkit-scrollbar { display: none; } /* Chrome */
+
+.carouselScroll {
+    display: flex;
+    height: 100%;
+    gap: 8px;
+}
+
+.carouselSlide {
+    flex: 0 0 80%;
+    height: 100%;
+    scroll-snap-align: center;
+    cursor: pointer;
+}
+.carouselSlide:first-child { flex: 0 0 100%; }
+
+.carouselSlide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .galleryWrapper { height: 300px; }
+    .mosaic { grid-template-columns: 1fr; }
+    .sidePhotos { display: none; }
+}
+
+/* Lightbox Modal */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightboxImage {
+    max-width: 90%;
+    max-height: 90vh;
+    object-fit: contain;
+    animation: zoomIn 0.3s ease-out;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.closeBtn {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 2.5rem;
+    cursor: pointer;
+    z-index: 10000;
+}
+
+.navBtnLeft, .navBtnRight {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: none;
+    font-size: 3rem;
+    padding: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.navBtnLeft:hover, .navBtnRight:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.navBtnLeft { left: 2rem; }
+.navBtnRight { right: 2rem; }
+
+.counter {
+    position: absolute;
+    bottom: 2rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 500;
+}

@@ -1,0 +1,327 @@
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.header {
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    margin-bottom: 0.5rem;
+}
+
+.location {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 900px) {
+    .contentGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tagsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.tagSuccess,
+.tagError,
+.tagDefault {
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.tagSuccess {
+    background: rgba(28, 198, 91, 0.15);
+    color: #15803d;
+}
+
+.tagError {
+    background: rgba(239, 68, 68, 0.15);
+    color: #b91c1c;
+}
+
+.tagDefault {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-main);
+}
+
+.section {
+    margin-bottom: 2.5rem;
+}
+
+.section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--color-text-main);
+}
+
+.description {
+    line-height: 1.7;
+    color: var(--color-text-main);
+    white-space: pre-wrap;
+}
+
+.servicesList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+}
+
+.serviceItem {
+    color: var(--color-text-main);
+    font-size: 1.05rem;
+}
+
+.qaContainer {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.emptyMsg {
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.textarea {
+    width: 100%;
+    padding: 1rem;
+    color: black;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 1rem;
+    font-family: inherit;
+    font-size: 1rem;
+    background: var(--background);
+    outline: none;
+}
+
+.textarea:focus {
+    border-color: var(--color-primary);
+}
+
+.btnPrimary {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btnPrimary:hover {
+    background: var(--color-primary-hover);
+}
+
+.btnPrimaryFull {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+
+.btnPrimaryFull:hover {
+    background: var(--color-primary-hover);
+}
+
+.btnOutline {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.authPrompt {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: var(--background);
+    border-radius: 8px;
+}
+
+.authPrompt p {
+    margin-bottom: 1rem;
+    color: var(--color-text-main);
+    font-weight: 500;
+}
+
+.authButtons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Sidebar & Price Card */
+.sidebar {
+    position: relative;
+}
+
+.priceCard {
+    position: sticky;
+    top: 2rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.priceHeader {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.price {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.perMonth {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+.hostCard {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.hostHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.hostAvatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.defaultAvatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.hostName {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+.hostSubtitle {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.contactInfo {
+    background: var(--background);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.contactLabel {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.2rem;
+}
+
+.contactPhone {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: 1rem;
+}
+
+.btnWhatsapp {
+    display: block;
+    text-align: center;
+    background: #25D366;
+    color: white;
+    text-decoration: none;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+.btnWhatsapp:hover {
+    opacity: 0.9;
+}
+
+.authPromptSidebar {
+    background: var(--background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.authPromptSidebar p {
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+    margin-bottom: 1rem;
+}
