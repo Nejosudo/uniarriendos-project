@@ -1,13 +1,17 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /* Colores Globales de Uniarriendos (Modificables) */
+  --color-primary: #1cc65b; /* Verde principal (Botones, logos) */
+  --color-primary-hover: #17a54b;
+  --color-secondary: #3b82f6; /* Azul (Mapa, selección) */
+  --color-background: #f4f7fb; /* Fondo general de la app */
+  --color-surface: #ffffff; /* Fondo de tarjetas y formularios */
+  --color-text-main: #1e293b; /* Texto oscuro principal */
+  --color-text-muted: #64748b; /* Texto gris/secundario */
+  --color-border: #e2e8f0; /* Bordes sutiles */
+  --color-error: #ef4444; /* Mensajes de error */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #f2f2f2;
-    --foreground: #ededed;
-  }
+  --background: var(--color-background);
+  --foreground: var(--color-text-main);
 }
 
 html {

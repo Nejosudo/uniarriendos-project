@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
 import styles from './page.module.css';
 
 export default async function Home() {
   // lógica del Backend
+  const supabase = await createClient();
   const { data: propiedades, error } = await supabase.from('propiedades').select('*');
 
   if (error) {
