@@ -7,7 +7,9 @@ export default function ShareButton() {
 
     const handleShare = async () => {
         const url = window.location.href;
-        if (navigator.share) {
+        
+        // Si es móvil y soporta Share API
+        if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
             try {
                 await navigator.share({
                     title: '¡Mira esta propiedad en UniArriendos!',
@@ -15,12 +17,41 @@ export default function ShareButton() {
                 });
             } catch (error) {
                 console.log('Compartir cancelado o no soportado', error);
+                await copyToClipboard(url);
             }
         } else {
-            navigator.clipboard.writeText(url);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            // Si es PC
+            await copyToClipboard(url);
         }
+    };
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            showCopied();
+        } catch (e) {
+            // Fallback agresivo para navegadores que bloquean el portapapeles
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showCopied();
+            } catch (err) {
+                console.error('Fallback falló', err);
+                alert("Enlace: " + text); // Último recurso
+            }
+            document.body.removeChild(textArea);
+        }
+    };
+
+    const showCopied = () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     return (

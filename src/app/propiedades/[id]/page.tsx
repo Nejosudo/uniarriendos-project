@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import styles from './page.module.css';
 import ImageGallery from './ImageGallery';
 import ShareButton from '@/componentes/ui/ShareButton/ShareButton';
+import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import Link from 'next/link';
 
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
@@ -85,7 +86,8 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                             <ul className={styles.servicesList}>
                                 {servicios.map((srv: any, idx: number) => (
                                     <li key={idx} className={styles.serviceItem}>
-                                        ✓ {srv.nombre}
+                                        <DynamicIcon name={srv.icono} size={20} color="var(--color-primary)" />
+                                        {srv.nombre}
                                     </li>
                                 ))}
                             </ul>

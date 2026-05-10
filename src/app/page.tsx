@@ -12,7 +12,10 @@ export default async function Home() {
     .select(`
             *,
             anfitrion:perfiles!propiedades_propietario_id_fkey (nombre_completo, avatar_url),
-            propiedades_fotos (url)
+            propiedades_fotos (url),
+            servicios_rel:propiedades_servicios (
+                servicio:servicios (nombre, icono)
+            )
         `)
     .in('estado', ['disponible', 'ocupado'])
     .order('created_at', { ascending: false })
@@ -89,6 +92,7 @@ export default async function Home() {
                 const anfitrion = prop.anfitrion;
                 const fotos = prop.propiedades_fotos;
                 const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
+                const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
 
                 return (
                   <PropertyCard 
@@ -104,6 +108,7 @@ export default async function Home() {
                       perfil_arriendo={prop.perfil_arriendo}
                       anfitrion_nombre={anfitrion?.nombre_completo}
                       anfitrion_avatar={anfitrion?.avatar_url}
+                      servicios={servicios}
                   />
                 );
               })}

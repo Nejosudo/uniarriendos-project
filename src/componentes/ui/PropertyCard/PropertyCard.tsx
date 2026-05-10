@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import styles from './PropertyCard.module.css';
+import DynamicIcon from '@/componentes/ui/DynamicIcon';
 
 interface PropertyProps {
     id: number;
@@ -13,12 +14,13 @@ interface PropertyProps {
     perfil_arriendo?: string;
     anfitrion_nombre?: string;
     anfitrion_avatar?: string;
+    servicios?: any[];
 }
 
 export default function PropertyCard(props: PropertyProps) {
     const {
         id, titulo, precio, ubicacion_texto, imagen_url, 
-        vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar
+        vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar, servicios
     } = props;
 
     const formatPrecio = (valor: number) => {
@@ -85,6 +87,22 @@ export default function PropertyCard(props: PropertyProps) {
                         <span className={styles.tag}>Solo {perfil_arriendo}</span>
                     )}
                 </div>
+
+                {servicios && servicios.length > 0 && (
+                    <div className={styles.servicesRow}>
+                        {servicios.slice(0, 3).map((srv, idx) => (
+                            <span key={idx} className={styles.serviceIconTag} title={srv.nombre}>
+                                <DynamicIcon name={srv.icono} size={14} color="var(--color-text-muted)" />
+                                {srv.nombre}
+                            </span>
+                        ))}
+                        {servicios.length > 3 && (
+                            <span className={styles.serviceIconTag} title={`Y ${servicios.length - 3} servicios más`}>
+                                +{servicios.length - 3}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className={styles.footer}>
