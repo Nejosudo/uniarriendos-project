@@ -1,0 +1,63 @@
+'use client';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import styles from './ExplorarMap.module.css';
+import Link from 'next/link';
+
+// Configuración para corregir los iconos de Leaflet en Next.js
+const icon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
+export default function MapComponent({ propiedades }: { propiedades: any[] }) {
+    // Centro aproximado de Barrancabermeja
+    const center: [number, number] = [7.0653, -73.8547]; 
+
+    return (
+        <div className={styles.mapContainer}>
+            <MapContainer center={center} zoom={13} scrollWheelZoom={true} className={styles.map}>
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | <a href="https://carto.com/">CARTO</a>'
+                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                />
+                
+                {propiedades.map((prop, idx) => {
+                    // MOCKUP: Generar coordenadas aleatorias cerca del centro 
+                    // Ya que la base de datos actual usa el tipo POINT en coordenadas y aún no lo parseamos.
+                    // En producción, esto se leería de prop.coordenadas
+                    const lat = center[0] + (Math.random() - 0.5) * 0.04;
+                    const lng = center[1] + (Math.random() - 0.5) * 0.04;
+                    
+                    const formatPrecio = (valor: number) => {
+                        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
+                    };
+                    
+                    return (
+                        <Marker key={prop.id} position={[lat, lng]} icon={icon}>
+                            <Popup className={styles.customPopup}>
+                                <div className={styles.popupContent}>
+                                    {prop.propiedades_fotos && prop.propiedades_fotos[0] && (
+                                        <img src={prop.propiedades_fotos[0].url} alt={prop.titulo} className={styles.popupImg} />
+                                    )}
+                                    <div className={styles.popupInfo}>
+                                        <h3 className={styles.popupTitle}>{prop.titulo}</h3>
+                                        <p className={styles.popupPrice}>{formatPrecio(prop.precio)}</p>
+                                        <Link href={`/propiedades/${prop.id}`} className={styles.popupBtn}>
+                                            Ver detalle
+                                        </Link>
+                                    </div>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    );
+                })}
+            </MapContainer>
+        </div>
+    );
+}

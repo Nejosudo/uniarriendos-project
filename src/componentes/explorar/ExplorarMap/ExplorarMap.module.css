@@ -1,0 +1,75 @@
+.mapContainer {
+    width: 100%;
+    height: 700px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--color-border);
+    position: relative;
+    z-index: 1; /* Para evitar superposiciones con los modales o sticky */
+}
+
+.map {
+    width: 100%;
+    height: 100%;
+}
+
+.customPopup .leaflet-popup-content-wrapper {
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.customPopup .leaflet-popup-content {
+    margin: 0;
+    width: 200px !important;
+}
+
+.popupContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.popupImg {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.popupInfo {
+    padding: 1rem;
+}
+
+.popupTitle {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin: 0 0 0.4rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.popupPrice {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin: 0 0 0.8rem 0;
+}
+
+.popupBtn {
+    display: block;
+    text-align: center;
+    background: var(--color-primary);
+    color: white !important;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.popupBtn:hover {
+    background: var(--color-primary-hover);
+}

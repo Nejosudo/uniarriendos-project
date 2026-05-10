@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import styles from './page.module.css';
 import ImageGallery from './ImageGallery';
+import ShareButton from '@/componentes/ui/ShareButton/ShareButton';
 import Link from 'next/link';
 
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
@@ -47,7 +48,10 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     return (
         <main className={styles.container}>
             <div className={styles.header}>
-                <h1 className={styles.title}>{propiedad.titulo}</h1>
+                <div className={styles.titleRow}>
+                    <h1 className={styles.title}>{propiedad.titulo}</h1>
+                    <ShareButton />
+                </div>
                 <p className={styles.location}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle>

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
-import styles from './page.module.css';
 import Link from 'next/link';
+import styles from './page.module.css';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -20,46 +20,108 @@ export default async function Home() {
 
   if (error) {
     console.error('Error al obtener las propiedades:', error);
-    return <div className={styles.main}>Error al cargar las propiedades.</div>;
   }
 
   return (
     <main className={styles.main}>
-      <h1 className={styles.title}>Bienvenido a UniArriendos</h1>
-      <p style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--color-text-muted)' }}>
-        Encuentra el lugar ideal para vivir cerca de la UNIPAZ.
-      </p>
+      {/* Hero Section */}
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            Tu hogar ideal cerca de la <span className={styles.highlight}>UNIPAZ</span>
+          </h1>
+          <p className={styles.heroSubtitle}>
+            Encuentra habitaciones, apartaestudios y casas verificadas. Sin intermediarios, directo con los dueños.
+          </p>
+          
+          <div className={styles.heroActions}>
+            <Link href="/explorar" className={styles.btnPrimaryLarge}>
+              Explorar Propiedades
+            </Link>
+            <Link href="/registro" className={styles.btnOutlineLarge}>
+              Soy Propietario
+            </Link>
+          </div>
+        </div>
+      </section>
 
-      {/* <div className={styles.grid}>
-        {propiedades?.map((prop: any) => {
-          const anfitrion = prop.anfitrion;
-          const fotos = prop.propiedades_fotos;
-          const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
+      {/* Benefits Section */}
+      <section className={styles.benefits}>
+        <div className={styles.container}>
+          <h2 className={styles.sectionTitle}>¿Por qué elegir UniArriendos?</h2>
+          <div className={styles.benefitsGrid}>
+            <div className={styles.benefitCard}>
+              <div className={styles.benefitIcon}>📍</div>
+              <h3>Cerca a la Universidad</h3>
+              <p>Filtramos opciones pensadas estratégicamente para estudiantes de la UNIPAZ y externos.</p>
+            </div>
+            <div className={styles.benefitCard}>
+              <div className={styles.benefitIcon}>🛡️</div>
+              <h3>Anfitriones Verificados</h3>
+              <p>Protegemos tu seguridad. Solo dueños con identidad comprobada pueden publicar en la plataforma.</p>
+            </div>
+            <div className={styles.benefitCard}>
+              <div className={styles.benefitIcon}>⚡</div>
+              <h3>Contacto Directo</h3>
+              <p>Sin comisiones abusivas ni papeleos. Contacta por WhatsApp al anfitrión con un solo clic.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          return (
-              <PropertyCard 
-                  key={prop.id}
-                  id={prop.id}
-                  titulo={prop.titulo}
-                  precio={prop.precio}
-                  ubicacion_texto={prop.ubicacion_texto}
-                  imagen_url={imagenPrincipal}
-                  vivienda_compartida={prop.vivienda_compartida}
-                  estado={prop.estado}
-                  prioridad={prop.prioridad}
-                  perfil_arriendo={prop.perfil_arriendo}
-                  anfitrion_nombre={anfitrion?.nombre_completo}
-                  anfitrion_avatar={anfitrion?.avatar_url}
-              />
-          );
-        })}
-      </div>
-      
-      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-          <Link href="/explorar" style={{ background: 'var(--color-primary)', color: 'white', padding: '0.8rem 2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' }}>
-            Ver todas las propiedades
+      {/* Recents Properties Section */}
+      <section className={styles.recent}>
+        <div className={styles.container}>
+          <div className={styles.recentHeader}>
+            <h2 className={styles.sectionTitle}>Propiedades Recientes</h2>
+            <Link href="/explorar" className={styles.viewAllLink}>
+              Ver todas →
+            </Link>
+          </div>
+          
+          {error ? (
+            <p>Ocurrió un error cargando las propiedades recientes.</p>
+          ) : !propiedades || propiedades.length === 0 ? (
+            <p>Aún no hay propiedades publicadas. ¡Sé el primero!</p>
+          ) : (
+            <div className={styles.propertiesGrid}>
+              {propiedades.map((prop: any) => {
+                const anfitrion = prop.anfitrion;
+                const fotos = prop.propiedades_fotos;
+                const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
+
+                return (
+                  <PropertyCard 
+                      key={prop.id}
+                      id={prop.id}
+                      titulo={prop.titulo}
+                      precio={prop.precio}
+                      ubicacion_texto={prop.ubicacion_texto}
+                      imagen_url={imagenPrincipal}
+                      vivienda_compartida={prop.vivienda_compartida}
+                      estado={prop.estado}
+                      prioridad={prop.prioridad}
+                      perfil_arriendo={prop.perfil_arriendo}
+                      anfitrion_nombre={anfitrion?.nombre_completo}
+                      anfitrion_avatar={anfitrion?.avatar_url}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA Bottom Section */}
+      <section className={styles.ctaBottom}>
+        <div className={styles.ctaContent}>
+          <h2>¿Tienes una habitación o casa disponible?</h2>
+          <p>Únete a nuestra comunidad de anfitriones y alquila tu espacio a estudiantes responsables.</p>
+          <Link href="/registro" className={styles.btnSecondaryLarge}>
+            Publicar mi propiedad
           </Link>
-      </div> */}
+        </div>
+      </section>
     </main>
   );
 }
