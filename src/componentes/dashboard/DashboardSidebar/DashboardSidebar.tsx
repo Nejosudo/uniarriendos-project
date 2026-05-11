@@ -32,11 +32,6 @@ export default function DashboardSidebar({ perfil, email }: DashboardSidebarProp
                 </div>
                 <h3 className={styles.userName}>{perfil?.nombre_completo || 'Usuario'}</h3>
                 <p className={styles.userEmail}>{email}</p>
-                {perfil?.telefono_verificado ? (
-                    <span className={styles.badgeVerified}><DynamicIcon name="CheckCircle2" size={12}/> Teléfono Verificado</span>
-                ) : (
-                    <span className={styles.badgePending}>Teléfono no verificado</span>
-                )}
             </div>
 
             <nav className={styles.nav}>

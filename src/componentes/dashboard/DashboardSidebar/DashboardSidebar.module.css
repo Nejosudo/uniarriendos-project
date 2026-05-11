@@ -55,28 +55,6 @@
     margin-bottom: 1rem;
 }
 
-.badgeVerified {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    background: rgba(28, 198, 91, 0.1);
-    color: #15803d;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-}
-
-.badgePending {
-    display: inline-block;
-    background: rgba(245, 158, 11, 0.1);
-    color: #b45309;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-}
-
 .nav {
     display: flex;
     flex-direction: column;

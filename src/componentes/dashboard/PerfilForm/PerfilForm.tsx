@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
-import { actualizarPerfil, enviarCodigoSMS, verificarCodigoSMS } from '@/app/acciones/perfilActions';
+import { actualizarPerfil } from '@/app/acciones/perfilActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import styles from './PerfilForm.module.css';
@@ -18,13 +18,7 @@ export default function PerfilForm({ initialPerfil, email }: PerfilFormProps) {
     const [nombre, setNombre] = useState(initialPerfil?.nombre_completo || '');
     const [telefono, setTelefono] = useState(initialPerfil?.telefono || '');
     const [avatarUrl, setAvatarUrl] = useState(initialPerfil?.avatar_url || '');
-    const [isVerified, setIsVerified] = useState(initialPerfil?.telefono_verificado || false);
 
-    // Estados de verificación SMS
-    const [isVerifying, setIsVerifying] = useState(false);
-    const [showOtpInput, setShowOtpInput] = useState(false);
-    const [otpCode, setOtpCode] = useState('');
-    
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,56 +57,11 @@ export default function PerfilForm({ initialPerfil, email }: PerfilFormProps) {
 
         if (result.success) {
             setMessage({ text: 'Perfil actualizado correctamente', type: 'success' });
-            // Si el teléfono cambió, reseteamos la verificación
-            if (telefono !== initialPerfil?.telefono && isVerified) {
-                setIsVerified(false);
-                setMessage({ text: 'Perfil actualizado. Debes volver a verificar tu nuevo número.', type: 'error' });
-            }
         } else {
             setMessage({ text: result.error || 'Error al guardar', type: 'error' });
         }
 
         setIsSaving(false);
-    };
-
-    const handleSendSMS = async () => {
-        if (!telefono || telefono.length < 10) {
-            setMessage({ text: 'Ingresa un número de teléfono válido (Mínimo 10 dígitos)', type: 'error' });
-            return;
-        }
-
-        setIsVerifying(true);
-        setMessage(null);
-
-        const result = await enviarCodigoSMS(telefono);
-        
-        if (result.success) {
-            setShowOtpInput(true);
-            setMessage({ text: result.message || 'Código enviado', type: 'success' });
-        } else {
-            setMessage({ text: result.error || 'Error enviando SMS', type: 'error' });
-        }
-        
-        setIsVerifying(false);
-    };
-
-    const handleVerifyOTP = async () => {
-        if (!otpCode) return;
-
-        setIsVerifying(true);
-        setMessage(null);
-
-        const result = await verificarCodigoSMS(telefono, otpCode);
-        
-        if (result.success) {
-            setIsVerified(true);
-            setShowOtpInput(false);
-            setMessage({ text: '¡Teléfono verificado exitosamente!', type: 'success' });
-        } else {
-            setMessage({ text: result.error || 'Código incorrecto', type: 'error' });
-        }
-        
-        setIsVerifying(false);
     };
 
     return (
@@ -178,58 +127,19 @@ export default function PerfilForm({ initialPerfil, email }: PerfilFormProps) {
                     />
                 </div>
 
-                <div className={styles.phoneSection}>
-                    <div className={styles.inputGroup}>
-                        <label>Teléfono (Celular)</label>
-                        <div className={styles.phoneInputWrapper}>
-                            <input 
-                                type="tel" 
-                                value={telefono} 
-                                onChange={(e) => setTelefono(e.target.value)} 
-                                placeholder="Ej: 3001234567"
-                                className={styles.input}
-                                disabled={isVerified && telefono === initialPerfil?.telefono}
-                            />
-                            {isVerified && telefono === initialPerfil?.telefono ? (
-                                <span className={styles.verifiedBadge}>
-                                    <DynamicIcon name="CheckCircle2" size={16} /> Verificado
-                                </span>
-                            ) : (
-                                <button 
-                                    type="button" 
-                                    onClick={handleSendSMS}
-                                    className={styles.verifyBtn}
-                                    disabled={isVerifying || !telefono}
-                                >
-                                    Verificar SMS
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {showOtpInput && !isVerified && (
-                        <div className={styles.otpBox}>
-                            <p>Ingresa el código de 6 dígitos que enviamos a tu celular.</p>
-                            <div className={styles.otpInputWrapper}>
-                                <input 
-                                    type="text" 
-                                    value={otpCode} 
-                                    onChange={(e) => setOtpCode(e.target.value)}
-                                    placeholder="123456"
-                                    maxLength={6}
-                                    className={styles.otpInput}
-                                />
-                                <button 
-                                    type="button" 
-                                    onClick={handleVerifyOTP}
-                                    className={styles.confirmVerifyBtn}
-                                    disabled={isVerifying || otpCode.length < 6}
-                                >
-                                    {isVerifying ? 'Verificando...' : 'Confirmar'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                <div className={styles.inputGroup}>
+                    <label>Teléfono (Celular) *</label>
+                    <input 
+                        type="tel" 
+                        value={telefono} 
+                        onChange={(e) => setTelefono(e.target.value)} 
+                        placeholder="Ej: 3001234567"
+                        className={styles.input}
+                        required
+                    />
+                    <small style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
+                        Obligatorio para publicar propiedades
+                    </small>
                 </div>
             </div>
 
