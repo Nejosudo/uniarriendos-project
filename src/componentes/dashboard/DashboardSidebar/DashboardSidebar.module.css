@@ -1,0 +1,173 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: sticky;
+    top: 70px; /* Navbar superior */
+    padding: 2rem 1.5rem;
+}
+
+.profileSummary {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.avatarContainer {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarPlaceholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-secondary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.userName {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: 0.3rem;
+}
+
+.userEmail {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+}
+
+.badgeVerified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(28, 198, 91, 0.1);
+    color: #15803d;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+}
+
+.badgePending {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.1);
+    color: #b45309;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-grow: 1;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.navItem:hover {
+    background: var(--color-background);
+    color: var(--color-text-main);
+}
+
+.navItem.active {
+    background: var(--color-primary);
+    color: white;
+    font-weight: 600;
+}
+
+.navIcon {
+    flex-shrink: 0;
+}
+
+.footer {
+    margin-top: auto;
+    padding-top: 2rem;
+}
+
+.createBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem;
+    background: white;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.createBtn:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        padding: 1.5rem;
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: center;
+    }
+    .profileSummary {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        text-align: left;
+        gap: 1rem;
+        width: 100%;
+    }
+    .avatarContainer {
+        margin: 0;
+        width: 60px;
+        height: 60px;
+    }
+    .nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+    .footer {
+        padding-top: 0;
+        width: 100%;
+    }
+}

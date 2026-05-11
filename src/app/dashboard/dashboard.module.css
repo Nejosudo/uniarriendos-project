@@ -1,0 +1,36 @@
+.dashboardContainer {
+    display: flex;
+    min-height: calc(100vh - 70px); /* Restando la altura del navbar principal */
+    background-color: #f8fafc;
+}
+
+.sidebarWrapper {
+    width: 280px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.mainContent {
+    flex-grow: 1;
+    padding: 2.5rem;
+    overflow-y: auto;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+    .dashboardContainer {
+        flex-direction: column;
+    }
+    
+    .sidebarWrapper {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+    }
+    
+    .mainContent {
+        padding: 1.5rem;
+    }
+}

@@ -17,7 +17,7 @@ export default async function Navbar() {
             .select('avatar_url, nombre_completo')
             .eq('id', user.id)
             .single();
-            
+
         avatarUrl = perfil?.avatar_url;
         nombre = perfil?.nombre_completo || '';
     }
@@ -34,7 +34,7 @@ export default async function Navbar() {
 
             {user ? (
                 <div className={styles.userMenu}>
-                    <Link href="/perfil" className={styles.avatarContainer} title={nombre}>
+                    <Link href="/dashboard/perfil" className={styles.avatarContainer} title={nombre}>
                         {avatarUrl ? (
                             <img src={avatarUrl} alt="Avatar" className={styles.avatar} />
                         ) : (

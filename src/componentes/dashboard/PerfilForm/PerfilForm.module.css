@@ -1,0 +1,285 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.message {
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.successMsg {
+    background: rgba(28, 198, 91, 0.1);
+    color: #15803d;
+    border: 1px solid rgba(28, 198, 91, 0.2);
+}
+
+.errorMsg {
+    background: rgba(239, 68, 68, 0.1);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.avatarSection {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.avatarWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.avatarImage,
+.avatarPlaceholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-border);
+}
+
+.avatarPlaceholder {
+    background: var(--color-background);
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.uploadBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: white;
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text-main);
+}
+
+.uploadBtn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.avatarInfo p {
+    font-weight: 600;
+    color: var(--color-text-main);
+    margin-bottom: 0.3rem;
+}
+
+.avatarInfo span {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inputGroup label {
+    font-weight: 600;
+    color: var(--color-text-main);
+    font-size: 0.95rem;
+}
+
+.input,
+.inputDisabled {
+    color: black;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    background: white;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.inputDisabled {
+    background: var(--color-background);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+}
+
+.phoneSection {
+    grid-column: 1 / -1;
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+}
+
+.phoneInputWrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.phoneInputWrapper .input {
+    flex: 1;
+}
+
+.verifyBtn {
+    background: var(--color-secondary);
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    height: 45px;
+    transition: background 0.2s;
+}
+
+.verifyBtn:hover:not(:disabled) {
+    background: #1e293b;
+}
+
+.verifyBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.verifiedBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(28, 198, 91, 0.1);
+    color: #15803d;
+    padding: 0 1rem;
+    height: 45px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.otpBox {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--color-border);
+}
+
+.otpBox p {
+    margin-bottom: 1rem;
+    color: var(--color-text-main);
+    font-weight: 500;
+}
+
+.otpInputWrapper {
+    display: flex;
+    gap: 1rem;
+}
+
+.otpInput {
+    flex: 1;
+    max-width: 200px;
+    padding: 0.8rem;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    font-size: 1.2rem;
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.confirmVerifyBtn {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0 2rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.confirmVerifyBtn:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.saveBtn {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.saveBtn:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+@media (max-width: 768px) {
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .avatarSection {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .phoneInputWrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .verifyBtn,
+    .verifiedBadge {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .otpInputWrapper {
+        flex-direction: column;
+    }
+
+    .otpInput {
+        max-width: 100%;
+    }
+
+    .saveBtn {
+        width: 100%;
+    }
+}
