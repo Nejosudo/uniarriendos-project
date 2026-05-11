@@ -5,8 +5,22 @@ import TopSearchBar from '@/componentes/explorar/TopSearchBar/TopSearchBar';
 import ExplorarMap from '@/componentes/explorar/ExplorarMap/ExplorarMap';
 import styles from './page.module.css';
 
-export default async function ExplorarPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default async function Explorar({ searchParams }: { searchParams: any }) {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let favoritosIds = new Set<string>();
+    if (user) {
+        const { data: favs } = await supabase
+            .from('favoritos')
+            .select('propiedad_id')
+            .eq('usuario_id', user.id);
+        
+        if (favs) {
+            favs.forEach(f => favoritosIds.add(f.propiedad_id.toString()));
+        }
+    }
+
     const params = await searchParams;
     
     // Extraer parámetros de búsqueda de la URL
@@ -100,6 +114,7 @@ export default async function ExplorarPage({ searchParams }: { searchParams: Pro
                                         anfitrion_nombre={anfitrion?.nombre_completo}
                                         anfitrion_avatar={anfitrion?.avatar_url}
                                         servicios={servicios}
+                                        isFavorite={favoritosIds.has(prop.id.toString())}
                                     />
                                 );
                             })}

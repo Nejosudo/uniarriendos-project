@@ -6,6 +6,20 @@ import styles from './page.module.css';
 export default async function Home() {
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let favoritosIds = new Set<string>();
+  if (user) {
+      const { data: favs } = await supabase
+          .from('favoritos')
+          .select('propiedad_id')
+          .eq('usuario_id', user.id);
+      
+      if (favs) {
+          favs.forEach(f => favoritosIds.add(f.propiedad_id.toString()));
+      }
+  }
+
   // Fetch solo 3 propiedades destacadas/recientes para la landing
   const { data: propiedades, error } = await supabase
     .from('propiedades')
@@ -109,6 +123,7 @@ export default async function Home() {
                       anfitrion_nombre={anfitrion?.nombre_completo}
                       anfitrion_avatar={anfitrion?.avatar_url}
                       servicios={servicios}
+                      isFavorite={favoritosIds.has(prop.id.toString())}
                   />
                 );
               })}

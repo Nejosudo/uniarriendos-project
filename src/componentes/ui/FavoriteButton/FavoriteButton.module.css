@@ -1,0 +1,171 @@
+.iconBtn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: var(--color-text-muted);
+}
+
+.iconBtn:hover {
+    transform: scale(1.1);
+}
+
+.labeledBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text-main);
+}
+
+.labeledBtn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.labeledBtn.favorited {
+    border-color: #fecdd3; /* Rose 200 */
+    background: #fff1f2; /* Rose 50 */
+    color: #e11d48; /* Rose 600 */
+}
+
+.iconOutline {
+    color: var(--color-text-muted);
+    transition: color 0.2s;
+}
+
+.iconBtn:hover .iconOutline {
+    color: #e11d48;
+}
+
+.iconFilled {
+    color: #e11d48;
+    fill: #e11d48;
+    animation: pulseHeart 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pulseHeart {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modalHeader h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.closeBtn:hover {
+    color: var(--color-text-main);
+}
+
+.modalBody {
+    padding: 1.5rem;
+}
+
+.modalBody p {
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.modalActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.modalBtnPrimary {
+    background: var(--color-primary);
+    color: white;
+    text-align: center;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.modalBtnPrimary:hover {
+    background: var(--color-primary-hover);
+}
+
+.modalBtnOutline {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    text-align: center;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.modalBtnOutline:hover {
+    background: #f0f4f8;
+}

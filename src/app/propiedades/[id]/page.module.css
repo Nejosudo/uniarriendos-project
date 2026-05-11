@@ -16,6 +16,12 @@
     margin-bottom: 0.5rem;
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .title {
     font-size: 2.2rem;
     font-weight: 800;

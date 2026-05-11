@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import styles from './page.module.css';
 import ImageGallery from './ImageGallery';
 import ShareButton from '@/componentes/ui/ShareButton/ShareButton';
+import FavoriteButton from '@/componentes/ui/FavoriteButton/FavoriteButton';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import Link from 'next/link';
 
@@ -36,6 +37,17 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     const { data: { user } } = await supabase.auth.getUser();
     const isLoggedIn = !!user;
 
+    let isFavorite = false;
+    if (user) {
+        const { data: fav } = await supabase
+            .from('favoritos')
+            .select('id')
+            .eq('usuario_id', user.id)
+            .eq('propiedad_id', propiedad.id)
+            .single();
+        if (fav) isFavorite = true;
+    }
+
     // Normalizar datos
     const fotos = propiedad.propiedades_fotos?.sort((a: any, b: any) => a.orden - b.orden).map((f: any) => f.url) || [];
     const servicios = propiedad.servicios_rel?.map((s: any) => s.servicio) || [];
@@ -51,7 +63,10 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
             <div className={styles.header}>
                 <div className={styles.titleRow}>
                     <h1 className={styles.title}>{propiedad.titulo}</h1>
-                    <ShareButton />
+                    <div className={styles.headerActions}>
+                        <FavoriteButton propiedadId={propiedad.id.toString()} initialIsFavorite={isFavorite} variant="labeled" />
+                        <ShareButton />
+                    </div>
                 </div>
                 <p className={styles.location}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>

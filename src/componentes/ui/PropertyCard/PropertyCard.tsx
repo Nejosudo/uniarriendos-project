@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import styles from './PropertyCard.module.css';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import FavoriteButton from '@/componentes/ui/FavoriteButton/FavoriteButton';
 
 interface PropertyProps {
     id: number;
@@ -15,12 +16,14 @@ interface PropertyProps {
     anfitrion_nombre?: string;
     anfitrion_avatar?: string;
     servicios?: any[];
+    isFavorite?: boolean;
 }
 
 export default function PropertyCard(props: PropertyProps) {
     const {
         id, titulo, precio, ubicacion_texto, imagen_url, 
-        vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar, servicios
+        vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar, servicios,
+        isFavorite = false
     } = props;
 
     const formatPrecio = (valor: number) => {
@@ -33,6 +36,7 @@ export default function PropertyCard(props: PropertyProps) {
 
     return (
         <div className={styles.card}>
+            <Link href={`/propiedades/${id}`} className={styles.fullCardLink} aria-hidden="true" tabIndex={-1}></Link>
             <div className={styles.cardHeader}>
                 <div className={styles.hostInfo}>
                     {anfitrion_avatar ? (
@@ -60,11 +64,9 @@ export default function PropertyCard(props: PropertyProps) {
                     {prioridad === 'recomendada' && <span className={styles.badgeRecommended}>★ Recomendada</span>}
                 </div>
 
-                <button className={styles.favoriteBtn} aria-label="Añadir a favoritos">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                </button>
+                <div className={`${styles.favoriteBtnWrapper} ${styles.interactiveElement}`}>
+                    <FavoriteButton propiedadId={id.toString()} initialIsFavorite={isFavorite} variant="icon" />
+                </div>
             </div>
 
             <div className={styles.content}>
@@ -105,7 +107,7 @@ export default function PropertyCard(props: PropertyProps) {
                 )}
             </div>
 
-            <div className={styles.footer}>
+            <div className={`${styles.footer} ${styles.interactiveElement}`}>
                 <Link href={`/propiedades/${id}`} className={styles.viewButton}>
                     Ver detalles
                 </Link>
