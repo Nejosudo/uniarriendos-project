@@ -8,45 +8,62 @@ export default function ShareButton() {
     const handleShare = async () => {
         const url = window.location.href;
         
-        // Si es móvil y soporta Share API
+        // El API de Share solo funciona en contextos seguros (HTTPS) o localhost
+        // Si estamos por IP (ej: 192.168...) navigator.share será undefined
         if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
             try {
                 await navigator.share({
                     title: '¡Mira esta propiedad en UniArriendos!',
                     url: url,
                 });
+                return;
             } catch (error) {
-                console.log('Compartir cancelado o no soportado', error);
-                await copyToClipboard(url);
+                console.log('Compartir cancelado o error en API nativa', error);
+                // Si falla o cancela, intentamos copiar
             }
-        } else {
-            // Si es PC
-            await copyToClipboard(url);
         }
+        
+        // Fallback: Copiar al portapapeles
+        copyToClipboard(url);
     };
 
     const copyToClipboard = async (text: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            showCopied();
-        } catch (e) {
-            // Fallback agresivo para navegadores que bloquean el portapapeles
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.opacity = "0";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
+        // Intento con Clipboard API (Solo contextos seguros)
+        if (navigator.clipboard && typeof window !== 'undefined' && window.isSecureContext) {
             try {
-                document.execCommand('copy');
+                await navigator.clipboard.writeText(text);
                 showCopied();
+                return;
             } catch (err) {
-                console.error('Fallback falló', err);
-                alert("Enlace: " + text); // Último recurso
+                console.error('Error con Clipboard API:', err);
             }
-            document.body.removeChild(textArea);
         }
+
+        // Fallback definitivo: Textarea temporal (Funciona en HTTP/IP)
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // Estilos para que no se vea pero sea seleccionable
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showCopied();
+            } else {
+                console.error('execCommand copy no fue exitoso');
+            }
+        } catch (err) {
+            console.error('Error en fallback manual:', err);
+        }
+        
+        document.body.removeChild(textArea);
     };
 
     const showCopied = () => {
