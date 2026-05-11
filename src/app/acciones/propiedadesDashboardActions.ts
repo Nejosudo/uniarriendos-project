@@ -31,7 +31,7 @@ export async function cambiarEstadoPropiedad(propiedadId: number, nuevoEstado: s
     return { success: true };
 }
 
-export async function eliminarPropiedad(propiedadId: number) {
+export async function eliminarPropiedad(propiedadId: number, password?: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -39,7 +39,21 @@ export async function eliminarPropiedad(propiedadId: number) {
         return { error: 'No autorizado' };
     }
 
-    // La política RLS debería proteger, pero agregamos el check extra aquí
+    // Si se proporciona contraseña, verificarla re-autenticando
+    if (password) {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+            email: user.email!,
+            password: password,
+        });
+
+        if (authError) {
+            return { error: 'Contraseña incorrecta. No se pudo eliminar la propiedad.' };
+        }
+    } else {
+        return { error: 'Se requiere la contraseña para confirmar la eliminación.' };
+    }
+
+    // Proceder con el borrado
     const { error } = await supabase
         .from('propiedades')
         .delete()
@@ -48,7 +62,7 @@ export async function eliminarPropiedad(propiedadId: number) {
 
     if (error) {
         console.error('Error al eliminar propiedad:', error);
-        return { error: 'Error al eliminar la propiedad.' };
+        return { error: 'Error al eliminar la propiedad de la base de datos.' };
     }
 
     revalidatePath('/dashboard/propiedades');

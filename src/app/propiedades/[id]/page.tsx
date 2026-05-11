@@ -5,6 +5,7 @@ import ImageGallery from './ImageGallery';
 import ShareButton from '@/componentes/ui/ShareButton/ShareButton';
 import FavoriteButton from '@/componentes/ui/FavoriteButton/FavoriteButton';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import PropertyDetailMap from '@/componentes/ui/PropertyDetailMap/PropertyDetailMap';
 import Link from 'next/link';
 
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
@@ -110,6 +111,18 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                             <p className={styles.emptyMsg}>No se especificaron servicios.</p>
                         )}
                     </section>
+
+                    {/* Sección de Mapa */}
+                    {propiedad.ubicacion_lat && propiedad.ubicacion_lng && (
+                        <section className={styles.section}>
+                            <h2>Ubicación</h2>
+                            <PropertyDetailMap 
+                                lat={propiedad.ubicacion_lat} 
+                                lng={propiedad.ubicacion_lng} 
+                                direccion={propiedad.ubicacion_texto}
+                            />
+                        </section>
+                    )}
 
                     {/* Sección de Reseñas */}
                     <section className={styles.section}>

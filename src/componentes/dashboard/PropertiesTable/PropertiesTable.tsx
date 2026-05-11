@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { cambiarEstadoPropiedad, eliminarPropiedad } from '@/app/acciones/propiedadesDashboardActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
@@ -13,6 +14,20 @@ interface PropertiesTableProps {
 export default function PropertiesTable({ propiedades: initialPropiedades }: PropertiesTableProps) {
     const [propiedades, setPropiedades] = useState(initialPropiedades);
     const [isLoading, setIsLoading] = useState<number | null>(null);
+    const [mounted, setMounted] = useState(false);
+    
+    // Estados para el modal de borrado
+    const [deleteModal, setDeleteModal] = useState<{show: boolean, id: number | null, titulo: string}>({
+        show: false,
+        id: null,
+        titulo: ''
+    });
+    const [password, setPassword] = useState('');
+    const [deleteError, setDeleteError] = useState('');
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleEstadoChange = async (id: number, nuevoEstado: string) => {
         setIsLoading(id);
@@ -26,17 +41,28 @@ export default function PropertiesTable({ propiedades: initialPropiedades }: Pro
         setIsLoading(null);
     };
 
-    const handleDelete = async (id: number, titulo: string) => {
-        const confirmar = window.confirm(`¿Estás seguro de que deseas eliminar la propiedad "${titulo}"? Esta acción no se puede deshacer.`);
-        if (!confirmar) return;
+    const openDeleteModal = (id: number, titulo: string) => {
+        setDeleteModal({ show: true, id, titulo });
+        setPassword('');
+        setDeleteError('');
+    };
 
-        setIsLoading(id);
-        const result = await eliminarPropiedad(id);
+    const handleConfirmDelete = async () => {
+        if (!password) {
+            setDeleteError('La contraseña es obligatoria.');
+            return;
+        }
+
+        setIsLoading(deleteModal.id);
+        setDeleteError('');
+        
+        const result = await eliminarPropiedad(deleteModal.id!, password);
         
         if (result.success) {
-            setPropiedades(propiedades.filter(p => p.id !== id));
+            setPropiedades(propiedades.filter(p => p.id !== deleteModal.id));
+            setDeleteModal({ show: false, id: null, titulo: '' });
         } else {
-            alert(result.error);
+            setDeleteError(result.error || 'Error desconocido');
         }
         setIsLoading(null);
     };
@@ -72,7 +98,7 @@ export default function PropertiesTable({ propiedades: initialPropiedades }: Pro
                         const imgUrl = fotos.length > 0 ? fotos[0].url : null;
                         
                         return (
-                            <tr key={prop.id} className={isLoading === prop.id ? styles.rowLoading : ''}>
+                            <tr key={prop.id} className={isLoading === prop.id && !deleteModal.show ? styles.rowLoading : ''}>
                                 <td>
                                     <div className={styles.propInfo}>
                                         <div className={styles.imgWrapper}>
@@ -122,7 +148,7 @@ export default function PropertiesTable({ propiedades: initialPropiedades }: Pro
                                         <button 
                                             className={`${styles.actionBtn} ${styles.deleteBtn}`} 
                                             title="Eliminar"
-                                            onClick={() => handleDelete(prop.id, prop.titulo)}
+                                            onClick={() => openDeleteModal(prop.id, prop.titulo)}
                                             disabled={isLoading === prop.id}
                                         >
                                             <DynamicIcon name="Trash2" size={18} />
@@ -134,6 +160,63 @@ export default function PropertiesTable({ propiedades: initialPropiedades }: Pro
                     })}
                 </tbody>
             </table>
+
+            {mounted && deleteModal.show && createPortal(
+                <div className={styles.modalOverlay} onClick={() => setDeleteModal({ ...deleteModal, show: false })}>
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                            <div className={styles.warningIcon}>
+                                <DynamicIcon name="AlertTriangle" size={24} />
+                            </div>
+                            <h3>Eliminar Propiedad</h3>
+                            <button className={styles.closeBtn} onClick={() => setDeleteModal({ ...deleteModal, show: false })}>
+                                <DynamicIcon name="X" size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className={styles.modalBody}>
+                            <p className={styles.warningText}>
+                                ¿Estás seguro de que deseas eliminar <strong>"{deleteModal.titulo}"</strong>?
+                            </p>
+                            <p className={styles.infoText}>
+                                Esta acción es permanente y no se puede deshacer. Se eliminarán todas las fotos y registros asociados.
+                            </p>
+
+                            <div className={styles.inputGroup}>
+                                <label htmlFor="delete-password">Confirma tu contraseña para continuar:</label>
+                                <input 
+                                    type="password" 
+                                    id="delete-password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Tu contraseña"
+                                    className={deleteError ? styles.inputError : ''}
+                                    autoFocus
+                                />
+                                {deleteError && <span className={styles.errorMessage}>{deleteError}</span>}
+                            </div>
+                        </div>
+
+                        <div className={styles.modalFooter}>
+                            <button 
+                                className={styles.cancelBtn} 
+                                onClick={() => setDeleteModal({ ...deleteModal, show: false })}
+                                disabled={isLoading !== null}
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                className={styles.confirmDeleteBtn}
+                                onClick={handleConfirmDelete}
+                                disabled={isLoading !== null}
+                            >
+                                {isLoading === deleteModal.id ? 'Eliminando...' : 'Eliminar Permanentemente'}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }

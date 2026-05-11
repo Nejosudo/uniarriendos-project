@@ -23,16 +23,16 @@ export default function MapComponent({ propiedades }: { propiedades: any[] }) {
         <div className={styles.mapContainer}>
             <MapContainer center={center} zoom={13} scrollWheelZoom={true} className={styles.map}>
                 <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | <a href="https://carto.com/">CARTO</a>'
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 
                 {propiedades.map((prop, idx) => {
-                    // MOCKUP: Generar coordenadas aleatorias cerca del centro 
-                    // Ya que la base de datos actual usa el tipo POINT en coordenadas y aún no lo parseamos.
-                    // En producción, esto se leería de prop.coordenadas
-                    const lat = center[0] + (Math.random() - 0.5) * 0.04;
-                    const lng = center[1] + (Math.random() - 0.5) * 0.04;
+                    // Usar coordenadas reales, si no existen, no renderizar el marcador
+                    if (!prop.ubicacion_lat || !prop.ubicacion_lng) return null;
+
+                    const lat = prop.ubicacion_lat;
+                    const lng = prop.ubicacion_lng;
                     
                     const formatPrecio = (valor: number) => {
                         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
