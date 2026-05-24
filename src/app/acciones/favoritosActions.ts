@@ -2,14 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { assertPuedeUsarFavoritos } from '@/app/acciones/suspensionesActions';
 
 export async function toggleFavorito(propiedadId: string) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        return { error: 'Debes iniciar sesión para guardar favoritos.' };
+    const activo = await assertPuedeUsarFavoritos();
+    if (!activo.ok) {
+        return { error: activo.error };
     }
+
+    const supabase = await createClient();
+    const user = { id: activo.userId };
 
     // Verificar si ya es favorito
     const { data: existente } = await supabase

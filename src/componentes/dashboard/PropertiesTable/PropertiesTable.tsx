@@ -124,16 +124,22 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                                     ${prop.precio.toLocaleString('es-CO')}
                                 </td>
                                 <td>
-                                    <select 
-                                        className={`${styles.statusSelect} ${styles[`status_${prop.estado}`]}`}
-                                        value={prop.estado}
-                                        onChange={(e) => handleEstadoChange(prop.id, e.target.value)}
-                                        disabled={isLoading === prop.id || accionesBloqueadas}
-                                    >
-                                        <option value="disponible">Disponible</option>
-                                        <option value="ocupado">Ocupado</option>
-                                        <option value="inactivo">Oculto</option>
-                                    </select>
+                                    {accionesBloqueadas ? (
+                                        <span className={`${styles.statusBadge} ${styles[`status_${prop.estado}`]}`}>
+                                            {prop.estado === 'disponible' ? 'Disponible' : prop.estado === 'ocupado' ? 'Ocupado' : 'Oculto'}
+                                        </span>
+                                    ) : (
+                                        <select 
+                                            className={`${styles.statusSelect} ${styles[`status_${prop.estado}`]}`}
+                                            value={prop.estado}
+                                            onChange={(e) => handleEstadoChange(prop.id, e.target.value)}
+                                            disabled={isLoading === prop.id}
+                                        >
+                                            <option value="disponible">Disponible</option>
+                                            <option value="ocupado">Ocupado</option>
+                                            <option value="inactivo">Oculto</option>
+                                        </select>
+                                    )}
                                 </td>
                                 <td>
                                     <div className={styles.metrics}>

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import styles from './dashboard.module.css';
 import DashboardSidebar from '@/componentes/dashboard/DashboardSidebar/DashboardSidebar';
-import SuspensionBanner from '@/componentes/dashboard/SuspensionBanner/SuspensionBanner';
+import DashboardSuspensionGuard from '@/componentes/dashboard/DashboardSuspensionGuard/DashboardSuspensionGuard';
 import { getSuspensionForLayout } from '@/lib/suspensiones/guard';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -23,15 +23,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     return (
         <div className={styles.dashboardContainer}>
+            {suspension && Number(suspension.nivel) >= 3 && (
+                <DashboardSuspensionGuard suspension={suspension} />
+            )}
             <div className={styles.sidebarWrapper}>
                 <DashboardSidebar
                     perfil={perfil}
                     email={user.email || ''}
-                    usuarioSuspendido={!!suspension}
+                    suspension={suspension}
                 />
             </div>
             <main className={styles.mainContent}>
-                {suspension && <SuspensionBanner suspension={suspension} />}
                 {children}
             </main>
         </div>

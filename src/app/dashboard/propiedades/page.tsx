@@ -5,7 +5,7 @@ import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import Link from 'next/link';
 import styles from './page.module.css';
 
-import { getSuspensionForLayout } from '@/lib/suspensiones/guard';
+import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 
 export default async function PropiedadesDashboardPage() {
     const supabase = await createClient();
@@ -15,7 +15,11 @@ export default async function PropiedadesDashboardPage() {
         redirect('/login');
     }
 
-    const suspension = await getSuspensionForLayout();
+    const restricciones = await getRestriccionesUsuario();
+
+    if (restricciones.nivel !== null && restricciones.nivel >= 3) {
+        redirect('/dashboard/perfil');
+    }
 
     // Obtener propiedades del usuario con count de favoritos
     const { data: propiedades, error } = await supabase
@@ -39,7 +43,7 @@ export default async function PropiedadesDashboardPage() {
                     <h1 className={styles.title}>Mis Propiedades</h1>
                     <p className={styles.subtitle}>Gestiona tus publicaciones, cambia su estado o edítalas.</p>
                 </div>
-                {!suspension && (
+                {restricciones.puedeGestionarPropiedades && (
                     <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
                         <DynamicIcon name="Plus" size={20} />
                         Publicar Propiedad
@@ -47,7 +51,7 @@ export default async function PropiedadesDashboardPage() {
                 )}
             </div>
 
-            <PropertiesTable propiedades={propiedades || []} accionesBloqueadas={!!suspension} />
+            <PropertiesTable propiedades={propiedades || []} accionesBloqueadas={!restricciones.puedeGestionarPropiedades} />
         </div>
     );
 }

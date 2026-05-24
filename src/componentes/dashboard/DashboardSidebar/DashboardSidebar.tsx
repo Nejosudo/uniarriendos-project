@@ -2,23 +2,36 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import { getRestricciones } from '@/lib/suspensiones/permissions';
+import type { SuspensionActiva } from '@/lib/suspensiones/types';
 import styles from './DashboardSidebar.module.css';
 
 interface DashboardSidebarProps {
     perfil: any;
     email: string;
-    usuarioSuspendido?: boolean;
+    suspension?: SuspensionActiva | null;
 }
 
-export default function DashboardSidebar({ perfil, email, usuarioSuspendido = false }: DashboardSidebarProps) {
+export default function DashboardSidebar({ perfil, email, suspension = null }: DashboardSidebarProps) {
     const pathname = usePathname();
+    const restricciones = getRestricciones(suspension);
 
     const navItems = [
-        { name: 'Mi Perfil', path: '/dashboard/perfil', icon: 'User' },
-        { name: 'Mis Propiedades', path: '/dashboard/propiedades', icon: 'Home' },
-        { name: 'Favoritos', path: '/dashboard/favoritos', icon: 'Heart' },
-        { name: 'PQRS', path: '/dashboard/pqrs', icon: 'MessageSquare' },
-    ];
+        { name: 'Mi Perfil', path: '/dashboard/perfil', icon: 'User', visible: true },
+        {
+            name: 'Mis Propiedades',
+            path: '/dashboard/propiedades',
+            icon: 'Home',
+            visible: !suspension || (restricciones.nivel !== null && restricciones.nivel < 3),
+        },
+        {
+            name: 'Favoritos',
+            path: '/dashboard/favoritos',
+            icon: 'Heart',
+            visible: restricciones.puedeUsarFavoritos,
+        },
+        { name: 'PQRS', path: '/dashboard/pqrs', icon: 'MessageSquare', visible: true },
+    ].filter((item) => item.visible);
 
     return (
         <aside className={styles.sidebar}>
@@ -52,7 +65,7 @@ export default function DashboardSidebar({ perfil, email, usuarioSuspendido = fa
                 })}
             </nav>
             
-            {!usuarioSuspendido && (
+            {restricciones.puedeGestionarPropiedades && (
                 <div className={styles.footer}>
                     <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
                         <DynamicIcon name="PlusCircle" size={20} />

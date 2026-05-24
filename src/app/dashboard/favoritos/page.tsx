@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
+import { redirectSiNoPuedeUsarFavoritos } from '@/lib/suspensiones/guard';
 import styles from './page.module.css';
 import Link from 'next/link';
 
@@ -11,6 +12,8 @@ export default async function FavoritosPage() {
     if (!user) {
         redirect('/login');
     }
+
+    await redirectSiNoPuedeUsarFavoritos();
 
     // Obtener los favoritos del usuario con las propiedades
     const { data: favoritos, error } = await supabase

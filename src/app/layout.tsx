@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/componentes/layout/Navbar/Navbar";
 import Footer from "@/componentes/layout/Footer/Footer";
+import GlobalSuspensionBanner from "@/componentes/layout/GlobalSuspensionBanner/GlobalSuspensionBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
   description: "Plataforma web colaborativa para búsqueda de arriendos de la comunidad UNIPAZ",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,6 +31,7 @@ export default function RootLayout({
     <html lang="es">
       <body suppressHydrationWarning style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Navbar />
+        <GlobalSuspensionBanner />
         <main style={{ flex: 1 }}>
           {children}
         </main>

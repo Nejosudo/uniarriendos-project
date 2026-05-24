@@ -118,6 +118,15 @@
     padding-right: 2rem;
 }
 
+.statusBadge {
+    display: inline-block;
+    padding: 0.5rem 0.85rem;
+    border-radius: 50px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
 .status_disponible {
     background-color: rgba(28, 198, 91, 0.1);
     color: #15803d;

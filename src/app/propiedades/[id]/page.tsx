@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
+import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import styles from './page.module.css';
 import ImageGallery from './ImageGallery';
 import ShareButton from '@/componentes/ui/ShareButton/ShareButton';
@@ -34,9 +35,12 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
         return notFound();
     }
 
-    // Verificar si el usuario ha iniciado sesión
     const { data: { user } } = await supabase.auth.getUser();
     const isLoggedIn = !!user;
+    const restricciones = await getRestriccionesUsuario();
+    const puedeVerContacto = isLoggedIn && restricciones.puedeVerContacto;
+    const puedeUsarFavoritos = isLoggedIn && restricciones.puedeUsarFavoritos;
+    const puedeInteractuar = isLoggedIn && restricciones.puedeInteractuarPublicaciones;
 
     let isFavorite = false;
     if (user) {
@@ -65,7 +69,12 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                 <div className={styles.titleRow}>
                     <h1 className={styles.title}>{propiedad.titulo}</h1>
                     <div className={styles.headerActions}>
-                        <FavoriteButton propiedadId={propiedad.id.toString()} initialIsFavorite={isFavorite} variant="labeled" />
+                        <FavoriteButton
+                            propiedadId={propiedad.id.toString()}
+                            initialIsFavorite={isFavorite}
+                            variant="labeled"
+                            disabled={isLoggedIn && !puedeUsarFavoritos}
+                        />
                         <ShareButton />
                     </div>
                 </div>
@@ -154,11 +163,16 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                 <p className={styles.emptyMsg}>Aún no hay reseñas para esta propiedad.</p>
                             )}
 
-                            {isLoggedIn ? (
+                            {puedeInteractuar ? (
                                 <div className={styles.addReview}>
                                     <h3>Añadir una reseña</h3>
                                     <textarea placeholder="Cuéntanos tu experiencia..." className={styles.textarea}></textarea>
                                     <button className={styles.btnPrimary}>Publicar Reseña</button>
+                                </div>
+                            ) : isLoggedIn ? (
+                                <div className={styles.authPrompt}>
+                                    <p>Tu cuenta está suspendida y no puedes dejar reseñas.</p>
+                                    <Link href="/dashboard/pqrs/nueva" className={styles.btnOutline}>Apelar suspensión (PQRS)</Link>
                                 </div>
                             ) : (
                                 <div className={styles.authPrompt}>
@@ -175,10 +189,15 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                         <div className={styles.qaContainer}>
                             <p className={styles.emptyMsg}>Aún no hay preguntas. ¡Sé el primero en preguntar!</p>
                             
-                            {isLoggedIn ? (
+                            {puedeInteractuar ? (
                                 <div className={styles.qaForm}>
                                     <textarea placeholder="Escribe tu pregunta aquí..." className={styles.textarea}></textarea>
                                     <button className={styles.btnPrimary}>Enviar Pregunta</button>
+                                </div>
+                            ) : isLoggedIn ? (
+                                <div className={styles.authPrompt}>
+                                    <p>Tu cuenta está suspendida y no puedes enviar preguntas.</p>
+                                    <Link href="/dashboard/pqrs/nueva" className={styles.btnOutline}>Apelar suspensión (PQRS)</Link>
                                 </div>
                             ) : (
                                 <div className={styles.authPrompt}>
@@ -214,7 +233,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                 </div>
                             </div>
 
-                            {isLoggedIn ? (
+                            {puedeVerContacto ? (
                                 <div className={styles.contactInfo}>
                                     <p className={styles.contactLabel}>Teléfono de contacto:</p>
                                     <p className={styles.contactPhone}>{anfitrion?.telefono || 'No proporcionado'}</p>
@@ -226,8 +245,17 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                 </div>
                             ) : (
                                 <div className={styles.authPromptSidebar}>
-                                    <p>Inicia sesión para ver la información de contacto del anfitrión.</p>
-                                    <Link href="/login" className={styles.btnPrimaryFull}>Iniciar Sesión</Link>
+                                    <p>
+                                        {isLoggedIn && restricciones.suspendido
+                                            ? 'Tu cuenta está suspendida (nivel 3) y no puedes ver la información de contacto.'
+                                            : 'Inicia sesión para ver la información de contacto del anfitrión.'}
+                                    </p>
+                                    {!isLoggedIn && (
+                                        <Link href="/login" className={styles.btnPrimaryFull}>Iniciar Sesión</Link>
+                                    )}
+                                    {isLoggedIn && restricciones.suspendido && (
+                                        <Link href="/dashboard/pqrs/nueva" className={styles.btnPrimaryFull}>Apelar suspensión (PQRS)</Link>
+                                    )}
                                 </div>
                             )}
                         </div>

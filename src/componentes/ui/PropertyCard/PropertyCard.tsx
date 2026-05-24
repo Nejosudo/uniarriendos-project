@@ -17,13 +17,15 @@ interface PropertyProps {
     anfitrion_avatar?: string;
     servicios?: any[];
     isFavorite?: boolean;
+    favoritosDeshabilitados?: boolean;
 }
 
 export default function PropertyCard(props: PropertyProps) {
     const {
         id, titulo, precio, ubicacion_texto, imagen_url, 
         vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar, servicios,
-        isFavorite = false
+        isFavorite = false,
+        favoritosDeshabilitados = false,
     } = props;
 
     const formatPrecio = (valor: number) => {
@@ -65,7 +67,12 @@ export default function PropertyCard(props: PropertyProps) {
                 </div>
 
                 <div className={`${styles.favoriteBtnWrapper} ${styles.interactiveElement}`}>
-                    <FavoriteButton propiedadId={id.toString()} initialIsFavorite={isFavorite} variant="icon" />
+                    <FavoriteButton
+                        propiedadId={id.toString()}
+                        initialIsFavorite={isFavorite}
+                        variant="icon"
+                        disabled={favoritosDeshabilitados}
+                    />
                 </div>
             </div>
 

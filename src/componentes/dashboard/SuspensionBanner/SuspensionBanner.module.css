@@ -34,6 +34,17 @@
     font-style: italic;
 }
 
+.restricciones {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.restricciones li {
+    margin: 0.15rem 0;
+}
+
 .hint {
     margin-top: 0.5rem !important;
     font-size: 0.85rem !important;

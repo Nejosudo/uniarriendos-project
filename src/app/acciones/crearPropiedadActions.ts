@@ -2,10 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { assertUsuarioActivo } from '@/app/acciones/suspensionesActions';
+import { assertPuedeGestionarPropiedades } from '@/app/acciones/suspensionesActions';
 
 export async function crearPropiedad(formData: any) {
-    const activo = await assertUsuarioActivo();
+    const activo = await assertPuedeGestionarPropiedades();
     if (!activo.ok) {
         return { success: false, error: activo.error };
     }
@@ -90,7 +90,7 @@ export async function crearPropiedad(formData: any) {
 }
 
 export async function editarPropiedad(propiedadId: number, formData: any) {
-    const activo = await assertUsuarioActivo();
+    const activo = await assertPuedeGestionarPropiedades();
     if (!activo.ok) {
         return { success: false, error: activo.error };
     }

@@ -32,9 +32,6 @@ export function calcularFechaFinSuspension(nivel: NivelSuspension | number | str
 export function getMensajeSuspension(s: SuspensionActiva): string {
     const nivelNum = Number(s.nivel) as NivelSuspension;
     const duracion = NIVEL_SUSPENSION_LABELS[nivelNum] || `Nivel ${nivelNum}`;
-    if (nivelNum === 3) {
-        return `Tu cuenta tiene una suspensión permanente (${duracion}). No puedes publicar ni editar propiedades.`;
-    }
     const fin = s.fecha_fin
         ? new Date(s.fecha_fin).toLocaleDateString('es-CO', {
               day: 'numeric',
@@ -42,7 +39,36 @@ export function getMensajeSuspension(s: SuspensionActiva): string {
               year: 'numeric',
           })
         : null;
-    return fin
-        ? `Tu cuenta está suspendida (${duracion}) hasta el ${fin}. No puedes publicar ni editar propiedades.`
-        : `Tu cuenta está suspendida (${duracion}). No puedes publicar ni editar propiedades.`;
+    const vigencia = nivelNum === 3
+        ? 'de forma permanente'
+        : fin
+          ? `hasta el ${fin}`
+          : `(${duracion})`;
+
+    const restriccionesBase =
+        'No puedes crear, editar ni eliminar propiedades, ni dejar reseñas o preguntas. Tus publicaciones están ocultas.';
+
+    if (nivelNum === 1) {
+        return `Tu cuenta está suspendida ${vigencia}. ${restriccionesBase}`;
+    }
+    if (nivelNum === 2) {
+        return `Tu cuenta está suspendida ${vigencia}. ${restriccionesBase} Tampoco puedes marcar propiedades como favoritas.`;
+    }
+    return `Tu cuenta está suspendida ${vigencia}. Solo puedes explorar propiedades, gestionar tu perfil y enviar PQRS para apelar. No verás números de contacto ni podrás interactuar con publicaciones.`;
+}
+
+export function getRestriccionesResumidas(nivel: NivelSuspension): string[] {
+    const base = [
+        'Crear, editar o eliminar propiedades',
+        'Dejar reseñas o preguntas en publicaciones',
+        'Tus propiedades están ocultas mientras dure la suspensión',
+    ];
+    if (nivel >= 2) {
+        base.push('Marcar propiedades como favoritas');
+    }
+    if (nivel >= 3) {
+        base.push('Ver números de contacto de anfitriones');
+        base.push('Acceder a Mis Propiedades y Favoritos en el dashboard');
+    }
+    return base;
 }

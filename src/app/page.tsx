@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
+import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import Link from 'next/link';
 import styles from './page.module.css';
 
@@ -7,6 +8,8 @@ export default async function Home() {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
+  const restricciones = await getRestriccionesUsuario();
+  const favoritosDeshabilitados = !!user && !restricciones.puedeUsarFavoritos;
 
   let favoritosIds = new Set<string>();
   if (user) {
@@ -124,6 +127,7 @@ export default async function Home() {
                       anfitrion_avatar={anfitrion?.avatar_url}
                       servicios={servicios}
                       isFavorite={favoritosIds.has(prop.id.toString())}
+                      favoritosDeshabilitados={favoritosDeshabilitados}
                   />
                 );
               })}

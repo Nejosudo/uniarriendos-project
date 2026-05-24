@@ -10,14 +10,18 @@ interface FavoriteButtonProps {
     propiedadId: string;
     initialIsFavorite: boolean;
     className?: string;
-    variant?: 'icon' | 'labeled'; // 'icon' para tarjetas, 'labeled' para vista detalle
+    variant?: 'icon' | 'labeled';
+    disabled?: boolean;
+    disabledReason?: string;
 }
 
 export default function FavoriteButton({ 
     propiedadId, 
     initialIsFavorite, 
     className = '',
-    variant = 'icon'
+    variant = 'icon',
+    disabled = false,
+    disabledReason = 'No puedes usar favoritos con tu cuenta suspendida.',
 }: FavoriteButtonProps) {
     const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
     const [isPending, startTransition] = useTransition();
@@ -29,8 +33,13 @@ export default function FavoriteButton({
     }, []);
 
     const handleToggle = async (e: React.MouseEvent) => {
-        e.preventDefault(); // Evitar navegación si está dentro de un Link
+        e.preventDefault();
         e.stopPropagation();
+
+        if (disabled) {
+            alert(disabledReason);
+            return;
+        }
 
         // Optimistic UI update
         setIsFavorite(!isFavorite);
@@ -82,7 +91,7 @@ export default function FavoriteButton({
                 <button 
                     onClick={handleToggle} 
                     className={`${styles.labeledBtn} ${isFavorite ? styles.favorited : ''} ${className}`}
-                    disabled={isPending}
+                    disabled={isPending || disabled}
                     title={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
                 >
                     <DynamicIcon name="Heart" size={20} className={isFavorite ? styles.iconFilled : styles.iconOutline} />
@@ -98,7 +107,7 @@ export default function FavoriteButton({
             <button 
                 onClick={handleToggle} 
                 className={`${styles.iconBtn} ${className}`}
-                disabled={isPending}
+                disabled={isPending || disabled}
                 aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
             >
                 <DynamicIcon 

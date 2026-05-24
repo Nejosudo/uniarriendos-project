@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
+import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilters';
 import TopSearchBar from '@/componentes/explorar/TopSearchBar/TopSearchBar';
 import ExplorarMap from '@/componentes/explorar/ExplorarMap/ExplorarMap';
@@ -8,6 +9,8 @@ import styles from './page.module.css';
 export default async function Explorar({ searchParams }: { searchParams: any }) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const restricciones = await getRestriccionesUsuario();
+    const favoritosDeshabilitados = !!user && !restricciones.puedeUsarFavoritos;
 
     let favoritosIds = new Set<string>();
     if (user) {
@@ -115,6 +118,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                                         anfitrion_avatar={anfitrion?.avatar_url}
                                         servicios={servicios}
                                         isFavorite={favoritosIds.has(prop.id.toString())}
+                                        favoritosDeshabilitados={favoritosDeshabilitados}
                                     />
                                 );
                             })}
