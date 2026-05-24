@@ -2,8 +2,14 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { assertUsuarioActivo } from '@/app/acciones/suspensionesActions';
 
 export async function cambiarEstadoPropiedad(propiedadId: number, nuevoEstado: string) {
+    const activo = await assertUsuarioActivo();
+    if (!activo.ok) {
+        return { error: activo.error };
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -32,6 +38,11 @@ export async function cambiarEstadoPropiedad(propiedadId: number, nuevoEstado: s
 }
 
 export async function eliminarPropiedad(propiedadId: number, password?: string) {
+    const activo = await assertUsuarioActivo();
+    if (!activo.ok) {
+        return { error: activo.error };
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

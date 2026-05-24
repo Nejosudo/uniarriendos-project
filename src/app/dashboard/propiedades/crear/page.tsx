@@ -5,6 +5,8 @@ import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import Link from 'next/link';
 import styles from './page.module.css';
 
+import { redirectSiSuspendido } from '@/lib/suspensiones/guard';
+
 export default async function CrearPropiedadPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -12,6 +14,8 @@ export default async function CrearPropiedadPage() {
     if (!user) {
         redirect('/login');
     }
+
+    await redirectSiSuspendido();
 
     // Obtener la lista de servicios disponibles de la BD
     const { data: servicios } = await supabase

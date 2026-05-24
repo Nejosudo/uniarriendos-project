@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { crearPropiedad } from '@/app/acciones/crearPropiedadActions';
+import { crearPropiedad, editarPropiedad } from '@/app/acciones/crearPropiedadActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import styles from './PropertyForm.module.css';
@@ -20,28 +20,60 @@ interface Servicio {
     icono: string;
 }
 
-interface PropertyFormProps {
-    serviciosDisponibles: Servicio[];
+interface PhotoItem {
+    id: string;
+    url: string;
+    file?: File;
+    isExisting: boolean;
 }
 
-export default function PropertyForm({ serviciosDisponibles }: PropertyFormProps) {
+interface PropertyFormProps {
+    serviciosDisponibles: Servicio[];
+    initialData?: any;
+    isEditing?: boolean;
+    propiedadId?: number;
+}
+
+export default function PropertyForm({ 
+    serviciosDisponibles, 
+    initialData, 
+    isEditing = false,
+    propiedadId
+}: PropertyFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Form states
-    const [titulo, setTitulo] = useState('');
-    const [precio, setPrecio] = useState('');
-    const [descripcion, setDescripcion] = useState('');
-    const [ubicacionTexto, setUbicacionTexto] = useState('');
-    const [viviendaCompartida, setViviendaCompartida] = useState(false);
-    const [perfilArriendo, setPerfilArriendo] = useState('ambos'); // ambos, hombre, mujer
-    const [latitud, setLatitud] = useState(7.0687);
-    const [longitud, setLongitud] = useState(-73.8427);
-    const [serviciosSeleccionados, setServiciosSeleccionados] = useState<number[]>([]);
+    // Form states (pre-populated in editing mode)
+    const [titulo, setTitulo] = useState(initialData?.titulo || '');
+    const [precio, setPrecio] = useState(initialData?.precio?.toString() || '');
+    const [descripcion, setDescripcion] = useState(initialData?.descripcion || '');
+    const [ubicacionTexto, setUbicacionTexto] = useState(initialData?.ubicacion_texto || '');
+    const [viviendaCompartida, setViviendaCompartida] = useState(initialData?.vivienda_compartida || false);
+    const [perfilArriendo, setPerfilArriendo] = useState(initialData?.perfil_arriendo || 'ambos');
+    const [latitud, setLatitud] = useState(initialData?.ubicacion_lat || 7.0687);
+    const [longitud, setLongitud] = useState(initialData?.ubicacion_lng || -73.8427);
+    const [serviciosSeleccionados, setServiciosSeleccionados] = useState<number[]>(() => {
+        if (initialData?.propiedades_servicios) {
+            return initialData.propiedades_servicios.map((s: any) => s.servicio_id);
+        }
+        return [];
+    });
     
-    // Photos state
-    const [fotos, setFotos] = useState<File[]>([]);
+    // Photos state - Unified for existing and new photos
+    const [photos, setPhotos] = useState<PhotoItem[]>(() => {
+        if (initialData?.propiedades_fotos) {
+            // Sort by order ascending
+            const sorted = [...initialData.propiedades_fotos].sort((a: any, b: any) => a.orden - b.orden);
+            return sorted.map((foto: any, idx: number) => ({
+                id: `existing-${idx}-${foto.url}`,
+                url: foto.url,
+                isExisting: true
+            }));
+        }
+        return [];
+    });
+
     const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,20 +98,36 @@ export default function PropertyForm({ serviciosDisponibles }: PropertyFormProps
             });
 
             // Limit to 5 max total
-            if (fotos.length + validFiles.length > 5) {
+            if (photos.length + validFiles.length > 5) {
                 alert('Solo puedes subir hasta 5 fotos en total.');
-                const remainingSlots = 5 - fotos.length;
+                const remainingSlots = 5 - photos.length;
                 if (remainingSlots > 0) {
-                    setFotos(prev => [...prev, ...validFiles.slice(0, remainingSlots)]);
+                    const newItems: PhotoItem[] = validFiles.slice(0, remainingSlots).map((file, idx) => ({
+                        id: `new-${Date.now()}-${idx}-${Math.random()}`,
+                        url: URL.createObjectURL(file),
+                        file: file,
+                        isExisting: false
+                    }));
+                    setPhotos(prev => [...prev, ...newItems]);
                 }
                 return;
             }
-            setFotos(prev => [...prev, ...validFiles]);
+            
+            const newItems: PhotoItem[] = validFiles.map((file, idx) => ({
+                id: `new-${Date.now()}-${idx}-${Math.random()}`,
+                url: URL.createObjectURL(file),
+                file: file,
+                isExisting: false
+            }));
+            setPhotos(prev => [...prev, ...newItems]);
         }
     };
 
-    const removePhoto = (index: number) => {
-        setFotos(prev => prev.filter((_, i) => i !== index));
+    const removePhoto = (id: string) => {
+        const index = photos.findIndex(p => p.id === id);
+        if (index === -1) return;
+
+        setPhotos(prev => prev.filter(p => p.id !== id));
         if (mainPhotoIndex === index) {
             setMainPhotoIndex(0);
         } else if (mainPhotoIndex > index) {
@@ -111,29 +159,35 @@ export default function PropertyForm({ serviciosDisponibles }: PropertyFormProps
         setError(null);
 
         try {
-            if (fotos.length === 0) {
+            if (photos.length === 0) {
                 throw new Error("Debes subir al menos una foto (Portada).");
             }
-            if (fotos.length > 5) {
+            if (photos.length > 5) {
                 throw new Error("El máximo de fotos permitidas es 5.");
             }
 
-            // 1. Upload photos to Cloudinary
-            const uploadedUrls: string[] = [];
+            // 1. Prepare photo URLs (uploading new ones to Cloudinary)
+            const finalPhotoUrls: string[] = [];
             
             // Reordenar fotos para que la portada quede de primera
-            const orderedFotos = [...fotos];
-            const mainPhoto = orderedFotos.splice(mainPhotoIndex, 1)[0];
-            orderedFotos.unshift(mainPhoto);
+            const orderedPhotos = [...photos];
+            // Asegurar que mainPhotoIndex esté dentro de los límites válidos
+            const coverIndex = mainPhotoIndex < orderedPhotos.length ? mainPhotoIndex : 0;
+            const mainPhoto = orderedPhotos.splice(coverIndex, 1)[0];
+            orderedPhotos.unshift(mainPhoto);
 
-            for (const file of orderedFotos) {
-                const imgData = new FormData();
-                imgData.append('file', file);
-                const res = await uploadImageToCloudinary(imgData);
-                if (!res.success) {
-                    throw new Error(`Error subiendo foto: ${res.error}`);
+            for (const photo of orderedPhotos) {
+                if (photo.isExisting) {
+                    finalPhotoUrls.push(photo.url);
+                } else if (photo.file) {
+                    const imgData = new FormData();
+                    imgData.append('file', photo.file);
+                    const res = await uploadImageToCloudinary(imgData);
+                    if (!res.success) {
+                        throw new Error(`Error subiendo foto: ${res.error}`);
+                    }
+                    finalPhotoUrls.push(res.url!);
                 }
-                uploadedUrls.push(res.url!);
             }
 
             // 2. Submit form data to our DB action
@@ -147,10 +201,12 @@ export default function PropertyForm({ serviciosDisponibles }: PropertyFormProps
                 latitud,
                 longitud,
                 servicios: serviciosSeleccionados,
-                fotos: uploadedUrls // The ordered URLs
+                fotos: finalPhotoUrls // The ordered URLs
             };
 
-            const result = await crearPropiedad(formData);
+            const result = isEditing && propiedadId
+                ? await editarPropiedad(propiedadId, formData)
+                : await crearPropiedad(formData);
 
             if (result.success) {
                 router.push('/dashboard/propiedades');
@@ -297,12 +353,12 @@ export default function PropertyForm({ serviciosDisponibles }: PropertyFormProps
 
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>4. Fotos ({fotos.length}/5)</h2>
+                    <h2 className={styles.sectionTitle}>4. Fotos ({photos.length}/5)</h2>
                     <button 
                         type="button" 
                         className={styles.uploadBtn}
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={fotos.length >= 5}
+                        disabled={photos.length >= 5}
                     >
                         <DynamicIcon name="Upload" size={18} />
                         Subir Fotos
@@ -318,13 +374,13 @@ export default function PropertyForm({ serviciosDisponibles }: PropertyFormProps
                 </div>
                 <p className={styles.photoHelp}>Sube hasta 5 fotos (Máx 5MB por foto). La primera foto seleccionada será la portada. Haz clic en "Establecer Portada" en cualquier foto para cambiarla.</p>
 
-                {fotos.length > 0 && (
+                {photos.length > 0 && (
                     <div className={styles.photosGrid}>
-                        {fotos.map((foto, index) => (
-                            <div key={index} className={`${styles.photoCard} ${mainPhotoIndex === index ? styles.mainPhotoCard : ''}`}>
-                                <img src={URL.createObjectURL(foto)} alt={`Preview ${index}`} className={styles.photoPreview} />
+                        {photos.map((photo, index) => (
+                            <div key={photo.id} className={`${styles.photoCard} ${mainPhotoIndex === index ? styles.mainPhotoCard : ''}`}>
+                                <img src={photo.url} alt={`Preview ${index}`} className={styles.photoPreview} />
                                 
-                                <button type="button" className={styles.removePhotoBtn} onClick={() => removePhoto(index)}>
+                                <button type="button" className={styles.removePhotoBtn} onClick={() => removePhoto(photo.id)}>
                                     <DynamicIcon name="X" size={16} />
                                 </button>
 
@@ -350,10 +406,10 @@ export default function PropertyForm({ serviciosDisponibles }: PropertyFormProps
                     {isSubmitting ? (
                         <>
                             <div className={styles.spinner}></div>
-                            Publicando...
+                            {isEditing ? 'Guardando...' : 'Publicando...'}
                         </>
                     ) : (
-                        <>Publicar Propiedad</>
+                        <>{isEditing ? 'Guardar Cambios' : 'Publicar Propiedad'}</>
                     )}
                 </button>
             </div>

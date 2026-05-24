@@ -9,9 +9,10 @@ import styles from './PropertiesTable.module.css';
 
 interface PropertiesTableProps {
     propiedades: any[];
+    accionesBloqueadas?: boolean;
 }
 
-export default function PropertiesTable({ propiedades: initialPropiedades }: PropertiesTableProps) {
+export default function PropertiesTable({ propiedades: initialPropiedades, accionesBloqueadas = false }: PropertiesTableProps) {
     const [propiedades, setPropiedades] = useState(initialPropiedades);
     const [isLoading, setIsLoading] = useState<number | null>(null);
     const [mounted, setMounted] = useState(false);
@@ -72,10 +73,12 @@ export default function PropertiesTable({ propiedades: initialPropiedades }: Pro
             <div className={styles.emptyState}>
                 <DynamicIcon name="Home" size={48} className={styles.emptyIcon} />
                 <h2>No has publicado ninguna propiedad</h2>
-                <p>Comienza a recibir ingresos alquilando tu espacio a estudiantes de la UNIPAZ.</p>
-                <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
-                    Publicar mi primera propiedad
-                </Link>
+                <p>{accionesBloqueadas ? 'Tu cuenta está suspendida y no puedes publicar nuevas propiedades.' : 'Comienza a recibir ingresos alquilando tu espacio a estudiantes de la UNIPAZ.'}</p>
+                {!accionesBloqueadas && (
+                    <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
+                        Publicar mi primera propiedad
+                    </Link>
+                )}
             </div>
         );
     }
@@ -125,7 +128,7 @@ export default function PropertiesTable({ propiedades: initialPropiedades }: Pro
                                         className={`${styles.statusSelect} ${styles[`status_${prop.estado}`]}`}
                                         value={prop.estado}
                                         onChange={(e) => handleEstadoChange(prop.id, e.target.value)}
-                                        disabled={isLoading === prop.id}
+                                        disabled={isLoading === prop.id || accionesBloqueadas}
                                     >
                                         <option value="disponible">Disponible</option>
                                         <option value="ocupado">Ocupado</option>
@@ -142,17 +145,21 @@ export default function PropertiesTable({ propiedades: initialPropiedades }: Pro
                                         <Link href={`/propiedades/${prop.id}`} target="_blank" className={styles.actionBtn} title="Ver pública">
                                             <DynamicIcon name="ExternalLink" size={18} />
                                         </Link>
-                                        <Link href={`/dashboard/propiedades/${prop.id}/editar`} className={styles.actionBtn} title="Editar">
-                                            <DynamicIcon name="Edit" size={18} />
-                                        </Link>
-                                        <button 
-                                            className={`${styles.actionBtn} ${styles.deleteBtn}`} 
-                                            title="Eliminar"
-                                            onClick={() => openDeleteModal(prop.id, prop.titulo)}
-                                            disabled={isLoading === prop.id}
-                                        >
-                                            <DynamicIcon name="Trash2" size={18} />
-                                        </button>
+                                        {!accionesBloqueadas && (
+                                            <>
+                                                <Link href={`/dashboard/propiedades/${prop.id}/editar`} className={styles.actionBtn} title="Editar">
+                                                    <DynamicIcon name="Edit" size={18} />
+                                                </Link>
+                                                <button 
+                                                    className={`${styles.actionBtn} ${styles.deleteBtn}`} 
+                                                    title="Eliminar"
+                                                    onClick={() => openDeleteModal(prop.id, prop.titulo)}
+                                                    disabled={isLoading === prop.id}
+                                                >
+                                                    <DynamicIcon name="Trash2" size={18} />
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </td>
                             </tr>

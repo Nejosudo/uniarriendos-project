@@ -9,17 +9,18 @@ export default async function Navbar() {
 
     let avatarUrl = null;
     let nombre = '';
+    let isAdmin = false;
 
     if (user) {
-        // Obtenemos los datos del perfil para el avatar
         const { data: perfil } = await supabase
             .from('perfiles')
-            .select('avatar_url, nombre_completo')
+            .select('avatar_url, nombre_completo, rol')
             .eq('id', user.id)
             .single();
 
         avatarUrl = perfil?.avatar_url;
         nombre = perfil?.nombre_completo || '';
+        isAdmin = perfil?.rol === 'admin';
     }
 
     return (
@@ -34,6 +35,11 @@ export default async function Navbar() {
 
             {user ? (
                 <div className={styles.userMenu}>
+                    {isAdmin && (
+                        <Link href="/admin" className={styles.adminLink}>
+                            Admin
+                        </Link>
+                    )}
                     <Link href="/dashboard/perfil" className={styles.avatarContainer} title={nombre}>
                         {avatarUrl ? (
                             <img src={avatarUrl} alt="Avatar" className={styles.avatar} />

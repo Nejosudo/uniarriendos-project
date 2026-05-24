@@ -5,6 +5,8 @@ import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import Link from 'next/link';
 import styles from './page.module.css';
 
+import { getSuspensionForLayout } from '@/lib/suspensiones/guard';
+
 export default async function PropiedadesDashboardPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -12,6 +14,8 @@ export default async function PropiedadesDashboardPage() {
     if (!user) {
         redirect('/login');
     }
+
+    const suspension = await getSuspensionForLayout();
 
     // Obtener propiedades del usuario con count de favoritos
     const { data: propiedades, error } = await supabase
@@ -35,13 +39,15 @@ export default async function PropiedadesDashboardPage() {
                     <h1 className={styles.title}>Mis Propiedades</h1>
                     <p className={styles.subtitle}>Gestiona tus publicaciones, cambia su estado o edítalas.</p>
                 </div>
-                <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
-                    <DynamicIcon name="Plus" size={20} />
-                    Publicar Propiedad
-                </Link>
+                {!suspension && (
+                    <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
+                        <DynamicIcon name="Plus" size={20} />
+                        Publicar Propiedad
+                    </Link>
+                )}
             </div>
 
-            <PropertiesTable propiedades={propiedades || []} />
+            <PropertiesTable propiedades={propiedades || []} accionesBloqueadas={!!suspension} />
         </div>
     );
 }

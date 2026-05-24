@@ -7,15 +7,17 @@ import styles from './DashboardSidebar.module.css';
 interface DashboardSidebarProps {
     perfil: any;
     email: string;
+    usuarioSuspendido?: boolean;
 }
 
-export default function DashboardSidebar({ perfil, email }: DashboardSidebarProps) {
+export default function DashboardSidebar({ perfil, email, usuarioSuspendido = false }: DashboardSidebarProps) {
     const pathname = usePathname();
 
     const navItems = [
         { name: 'Mi Perfil', path: '/dashboard/perfil', icon: 'User' },
         { name: 'Mis Propiedades', path: '/dashboard/propiedades', icon: 'Home' },
         { name: 'Favoritos', path: '/dashboard/favoritos', icon: 'Heart' },
+        { name: 'PQRS', path: '/dashboard/pqrs', icon: 'MessageSquare' },
     ];
 
     return (
@@ -50,12 +52,14 @@ export default function DashboardSidebar({ perfil, email }: DashboardSidebarProp
                 })}
             </nav>
             
-            <div className={styles.footer}>
-                <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
-                    <DynamicIcon name="PlusCircle" size={20} />
-                    Publicar Propiedad
-                </Link>
-            </div>
+            {!usuarioSuspendido && (
+                <div className={styles.footer}>
+                    <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
+                        <DynamicIcon name="PlusCircle" size={20} />
+                        Publicar Propiedad
+                    </Link>
+                </div>
+            )}
         </aside>
     );
 }
