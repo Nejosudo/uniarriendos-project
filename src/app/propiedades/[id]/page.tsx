@@ -7,7 +7,10 @@ import ShareButton from '@/componentes/ui/ShareButton/ShareButton';
 import FavoriteButton from '@/componentes/ui/FavoriteButton/FavoriteButton';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import PropertyDetailMap from '@/componentes/ui/PropertyDetailMap/PropertyDetailMap';
+import ResenasSection from '@/componentes/propiedades/ResenasSection/ResenasSection';
 import Link from 'next/link';
+import { usuarioYaReseno } from '@/app/acciones/resenasActions';
+import { calcularPromedioResenas, formatearEstrellas } from '@/lib/resenas/utils';
 
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
     const supabase = await createClient();
@@ -57,7 +60,14 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     const fotos = propiedad.propiedades_fotos?.sort((a: any, b: any) => a.orden - b.orden).map((f: any) => f.url) || [];
     const servicios = propiedad.servicios_rel?.map((s: any) => s.servicio) || [];
     const anfitrion = propiedad.anfitrion;
-    const resenas = propiedad.resenas || [];
+    const resenasVisibles = (propiedad.resenas || [])
+        .filter((r: { reportada?: boolean }) => !r.reportada)
+        .sort(
+            (a: { created_at: string }, b: { created_at: string }) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+    const resumenResenas = calcularPromedioResenas(resenasVisibles);
+    const yaReseno = user ? await usuarioYaReseno(Number(id)) : false;
 
     const formatPrecio = (valor: number) => {
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
@@ -84,6 +94,15 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                     </svg>
                     {propiedad.ubicacion_texto}
                 </p>
+                {resumenResenas && (
+                    <p className={styles.ratingSummary}>
+                        <span className={styles.ratingStars}>{formatearEstrellas(resumenResenas.promedio)}</span>
+                        <span>
+                            {resumenResenas.promedio} · {resumenResenas.total}{' '}
+                            {resumenResenas.total === 1 ? 'reseña' : 'reseñas'}
+                        </span>
+                    </p>
+                )}
             </div>
 
             <ImageGallery fotos={fotos} />
@@ -133,55 +152,13 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                         </section>
                     )}
 
-                    {/* Sección de Reseñas */}
-                    <section className={styles.section}>
-                        <h2>Reseñas de otros usuarios</h2>
-                        <div className={styles.reviewsContainer}>
-                            {resenas.length > 0 ? (
-                                <div className={styles.reviewsList}>
-                                    {resenas.map((res: any) => (
-                                        <div key={res.id} className={styles.reviewItem}>
-                                            <div className={styles.reviewHeader}>
-                                                {res.usuario?.avatar_url ? (
-                                                    <img src={res.usuario.avatar_url} alt={res.usuario.nombre_completo} className={styles.reviewAvatar} />
-                                                ) : (
-                                                    <div className={styles.reviewAvatarDefault}>{res.usuario?.nombre_completo?.charAt(0)}</div>
-                                                )}
-                                                <div>
-                                                    <p className={styles.reviewUser}>{res.usuario?.nombre_completo}</p>
-                                                    <p className={styles.reviewDate}>{new Date(res.created_at).toLocaleDateString()}</p>
-                                                </div>
-                                                <div className={styles.stars}>
-                                                    {'★'.repeat(res.calificacion)}{'☆'.repeat(5 - res.calificacion)}
-                                                </div>
-                                            </div>
-                                            <p className={styles.reviewComment}>{res.comentario}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className={styles.emptyMsg}>Aún no hay reseñas para esta propiedad.</p>
-                            )}
-
-                            {puedeInteractuar ? (
-                                <div className={styles.addReview}>
-                                    <h3>Añadir una reseña</h3>
-                                    <textarea placeholder="Cuéntanos tu experiencia..." className={styles.textarea}></textarea>
-                                    <button className={styles.btnPrimary}>Publicar Reseña</button>
-                                </div>
-                            ) : isLoggedIn ? (
-                                <div className={styles.authPrompt}>
-                                    <p>Tu cuenta está suspendida y no puedes dejar reseñas.</p>
-                                    <Link href="/dashboard/pqrs/nueva" className={styles.btnOutline}>Apelar suspensión (PQRS)</Link>
-                                </div>
-                            ) : (
-                                <div className={styles.authPrompt}>
-                                    <p>Inicia sesión para dejar una reseña.</p>
-                                    <Link href="/login" className={styles.btnOutline}>Iniciar Sesión</Link>
-                                </div>
-                            )}
-                        </div>
-                    </section>
+                    <ResenasSection
+                        propiedadId={propiedad.id}
+                        resenasIniciales={resenasVisibles}
+                        puedeInteractuar={puedeInteractuar}
+                        isLoggedIn={isLoggedIn}
+                        yaReseno={yaReseno}
+                    />
 
                     {/* Sección de Preguntas */}
                     <section className={styles.section}>

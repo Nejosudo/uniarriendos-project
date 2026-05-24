@@ -1,0 +1,233 @@
+.container {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.summaryStars {
+    color: #f59e0b;
+    font-size: 1.25rem;
+    letter-spacing: 1px;
+}
+
+.summaryText {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+}
+
+.summaryText strong {
+    color: var(--color-text-main);
+}
+
+.reviewsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.reviewItem {
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1.5rem;
+}
+
+.reviewItem:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.reviewHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.reviewAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.reviewAvatarDefault {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.reviewUser {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-text-main);
+}
+
+.reviewDate {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.stars {
+    margin-left: auto;
+    color: #f59e0b;
+    font-size: 1.1rem;
+}
+
+.reviewComment {
+    line-height: 1.6;
+    color: var(--color-text-main);
+}
+
+.emptyMsg {
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.addReview {
+    border-top: 1px solid var(--color-border);
+    padding-top: 1.5rem;
+}
+
+.addReview h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.ratingPicker {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+}
+
+.ratingLabel {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-right: 0.5rem;
+}
+
+.starBtn {
+    background: none;
+    border: none;
+    padding: 0.15rem;
+    cursor: pointer;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: #d1d5db;
+    transition: color 0.15s, transform 0.1s;
+}
+
+.starBtn:hover,
+.starBtnActive {
+    color: #f59e0b;
+    transform: scale(1.05);
+}
+
+.textarea {
+    width: 100%;
+    padding: 1rem;
+    color: var(--color-text-main);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 1rem;
+    font-family: inherit;
+    font-size: 1rem;
+    background: var(--background);
+    outline: none;
+}
+
+.textarea:focus {
+    border-color: var(--color-primary);
+}
+
+.btnPrimary {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btnPrimary:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.btnPrimary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.errorAlert {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.successMsg {
+    background: rgba(28, 198, 91, 0.1);
+    border: 1px solid rgba(28, 198, 91, 0.3);
+    color: #15803d;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.authPrompt {
+    border-top: 1px solid var(--color-border);
+    padding-top: 1.5rem;
+    text-align: center;
+}
+
+.authPrompt p {
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+}
+
+.btnOutline {
+    display: inline-block;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-main);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btnOutline:hover {
+    background: var(--color-surface);
+}
+
+.alreadyReviewed {
+    border-top: 1px solid var(--color-border);
+    padding-top: 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}

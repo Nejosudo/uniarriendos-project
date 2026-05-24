@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
 import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
+import { calcularPromedioResenas } from '@/lib/resenas/utils';
 import Link from 'next/link';
 import styles from './page.module.css';
 
@@ -32,7 +33,8 @@ export default async function Home() {
             propiedades_fotos (url),
             servicios_rel:propiedades_servicios (
                 servicio:servicios (nombre, icono)
-            )
+            ),
+            resenas (calificacion, reportada)
         `)
     .in('estado', ['disponible', 'ocupado'])
     .order('created_at', { ascending: false })
@@ -110,6 +112,7 @@ export default async function Home() {
                 const fotos = prop.propiedades_fotos;
                 const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
                 const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
+                const resumenResenas = calcularPromedioResenas(prop.resenas);
 
                 return (
                   <PropertyCard 
@@ -128,6 +131,8 @@ export default async function Home() {
                       servicios={servicios}
                       isFavorite={favoritosIds.has(prop.id.toString())}
                       favoritosDeshabilitados={favoritosDeshabilitados}
+                      calificacionPromedio={resumenResenas?.promedio ?? null}
+                      totalResenas={resumenResenas?.total ?? 0}
                   />
                 );
               })}

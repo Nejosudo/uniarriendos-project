@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
 import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
+import { calcularPromedioResenas } from '@/lib/resenas/utils';
 import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilters';
 import TopSearchBar from '@/componentes/explorar/TopSearchBar/TopSearchBar';
 import ExplorarMap from '@/componentes/explorar/ExplorarMap/ExplorarMap';
@@ -42,7 +43,8 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
             propiedades_fotos (url),
             servicios_rel:propiedades_servicios (
                 servicio:servicios (nombre, icono)
-            )
+            ),
+            resenas (calificacion, reportada)
         `)
         .in('estado', ['disponible', 'ocupado']);
 
@@ -101,6 +103,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                                 const fotos = prop.propiedades_fotos;
                                 const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
                                 const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
+                                const resumenResenas = calcularPromedioResenas(prop.resenas);
 
                                 return (
                                     <PropertyCard 
@@ -119,6 +122,8 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                                         servicios={servicios}
                                         isFavorite={favoritosIds.has(prop.id.toString())}
                                         favoritosDeshabilitados={favoritosDeshabilitados}
+                                        calificacionPromedio={resumenResenas?.promedio ?? null}
+                                        totalResenas={resumenResenas?.total ?? 0}
                                     />
                                 );
                             })}

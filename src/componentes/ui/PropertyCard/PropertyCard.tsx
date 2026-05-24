@@ -2,6 +2,7 @@ import Link from 'next/link';
 import styles from './PropertyCard.module.css';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import FavoriteButton from '@/componentes/ui/FavoriteButton/FavoriteButton';
+import { formatearEstrellas } from '@/lib/resenas/utils';
 
 interface PropertyProps {
     id: number;
@@ -18,6 +19,8 @@ interface PropertyProps {
     servicios?: any[];
     isFavorite?: boolean;
     favoritosDeshabilitados?: boolean;
+    calificacionPromedio?: number | null;
+    totalResenas?: number;
 }
 
 export default function PropertyCard(props: PropertyProps) {
@@ -26,6 +29,8 @@ export default function PropertyCard(props: PropertyProps) {
         vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar, servicios,
         isFavorite = false,
         favoritosDeshabilitados = false,
+        calificacionPromedio = null,
+        totalResenas = 0,
     } = props;
 
     const formatPrecio = (valor: number) => {
@@ -82,6 +87,14 @@ export default function PropertyCard(props: PropertyProps) {
                 </div>
                 
                 <h3 className={styles.title}>{titulo}</h3>
+                {calificacionPromedio != null && totalResenas > 0 && (
+                    <p className={styles.ratingRow}>
+                        <span className={styles.ratingStars}>{formatearEstrellas(calificacionPromedio)}</span>
+                        <span className={styles.ratingText}>
+                            {calificacionPromedio} ({totalResenas})
+                        </span>
+                    </p>
+                )}
                 <p className={styles.location}>
                     <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>

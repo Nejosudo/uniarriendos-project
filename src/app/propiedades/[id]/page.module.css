@@ -38,6 +38,20 @@
     margin-top: 0.5rem;
 }
 
+.ratingSummary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+}
+
+.ratingStars {
+    color: #f59e0b;
+    letter-spacing: 1px;
+}
+
 .icon {
     width: 20px;
     height: 20px;
