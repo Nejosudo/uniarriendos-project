@@ -91,6 +91,45 @@
   text-align: center;
 }
 
+.successMsg {
+  color: #15803d;
+  font-size: 0.85rem;
+  background: rgba(28, 198, 91, 0.1);
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(28, 198, 91, 0.3);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.infoBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.forgotLink {
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
 .authLinks {
   margin-top: 1.5rem;
   text-align: center;

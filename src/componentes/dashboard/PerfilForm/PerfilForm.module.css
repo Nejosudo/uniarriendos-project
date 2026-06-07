@@ -95,6 +95,19 @@
     gap: 1.5rem;
 }
 
+.badgeRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    min-height: 2.5rem;
+}
+
+.badgeHint {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
 .inputGroup {
     display: flex;
     flex-direction: column;

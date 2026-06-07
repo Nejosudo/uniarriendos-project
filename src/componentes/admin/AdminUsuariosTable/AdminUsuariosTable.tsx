@@ -8,6 +8,7 @@ import {
 import { cambiarRolUsuario } from '@/app/acciones/adminUsuariosActions';
 import type { RolUsuario } from '@/lib/suspensiones/types';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 import styles from './AdminUsuariosTable.module.css';
 import type { NivelSuspension } from '@/lib/suspensiones/types';
 
@@ -24,6 +25,7 @@ interface Usuario {
     nombre_completo: string | null;
     telefono: string | null;
     rol: RolUsuario;
+    tipo?: string | null;
     created_at: string;
     suspensiones?: Suspension[];
 }
@@ -118,6 +120,7 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                     <thead>
                         <tr>
                             <th>Usuario</th>
+                            <th>Tipo</th>
                             <th>Teléfono</th>
                             <th>Rol</th>
                             <th>Estado</th>
@@ -135,6 +138,9 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                                             <strong>{u.nombre_completo || 'Sin nombre'}</strong>
                                             <span className={styles.userId}>{u.id.slice(0, 8)}…</span>
                                         </div>
+                                    </td>
+                                    <td>
+                                        <UserBadge tipo={u.tipo} />
                                     </td>
                                     <td>{u.telefono || '—'}</td>
                                     <td>

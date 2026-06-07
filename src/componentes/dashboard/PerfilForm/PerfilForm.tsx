@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { actualizarPerfil } from '@/app/acciones/perfilActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 import styles from './PerfilForm.module.css';
 
 interface PerfilFormProps {
@@ -125,6 +126,16 @@ export default function PerfilForm({ initialPerfil, email }: PerfilFormProps) {
                         className={styles.inputDisabled}
                         title="El correo no se puede cambiar"
                     />
+                </div>
+
+                <div className={styles.inputGroup}>
+                    <label>Tipo de cuenta</label>
+                    <div className={styles.badgeRow}>
+                        <UserBadge tipo={initialPerfil?.tipo} />
+                        <span className={styles.badgeHint}>
+                            Asignado automáticamente según tu correo de registro.
+                        </span>
+                    </div>
                 </div>
 
                 <div className={styles.inputGroup}>

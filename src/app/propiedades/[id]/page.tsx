@@ -8,9 +8,12 @@ import FavoriteButton from '@/componentes/ui/FavoriteButton/FavoriteButton';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import PropertyDetailMap from '@/componentes/ui/PropertyDetailMap/PropertyDetailMap';
 import ResenasSection from '@/componentes/propiedades/ResenasSection/ResenasSection';
+import PreguntasSection from '@/componentes/propiedades/PreguntasSection/PreguntasSection';
 import Link from 'next/link';
 import { usuarioYaReseno } from '@/app/acciones/resenasActions';
+import type { PreguntaConUsuario } from '@/app/acciones/preguntasActions';
 import { calcularPromedioResenas, formatearEstrellas } from '@/lib/resenas/utils';
+import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
     const supabase = await createClient();
@@ -21,12 +24,16 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
         .from('propiedades')
         .select(`
             *,
-            anfitrion:perfiles!propiedades_propietario_id_fkey(nombre_completo, avatar_url, telefono, created_at),
+            anfitrion:perfiles!propiedades_propietario_id_fkey(nombre_completo, avatar_url, telefono, created_at, tipo),
             propiedades_fotos(url, orden),
             servicios_rel:propiedades_servicios(
                 servicio:servicios(nombre, icono)
             ),
             resenas(
+                *,
+                usuario:perfiles(nombre_completo, avatar_url)
+            ),
+            preguntas(
                 *,
                 usuario:perfiles(nombre_completo, avatar_url)
             )
@@ -68,6 +75,11 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
         );
     const resumenResenas = calcularPromedioResenas(resenasVisibles);
     const yaReseno = user ? await usuarioYaReseno(Number(id)) : false;
+    const esAnfitrion = !!user && user.id === propiedad.propietario_id;
+    const preguntasOrdenadas: PreguntaConUsuario[] = (propiedad.preguntas || []).sort(
+        (a: { created_at: string }, b: { created_at: string }) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
     const formatPrecio = (valor: number) => {
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
@@ -160,32 +172,15 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                         yaReseno={yaReseno}
                     />
 
-                    {/* Sección de Preguntas */}
                     <section className={styles.section}>
                         <h2>Preguntas al Anfitrión</h2>
-                        <div className={styles.qaContainer}>
-                            <p className={styles.emptyMsg}>Aún no hay preguntas. ¡Sé el primero en preguntar!</p>
-                            
-                            {puedeInteractuar ? (
-                                <div className={styles.qaForm}>
-                                    <textarea placeholder="Escribe tu pregunta aquí..." className={styles.textarea}></textarea>
-                                    <button className={styles.btnPrimary}>Enviar Pregunta</button>
-                                </div>
-                            ) : isLoggedIn ? (
-                                <div className={styles.authPrompt}>
-                                    <p>Tu cuenta está suspendida y no puedes enviar preguntas.</p>
-                                    <Link href="/dashboard/pqrs/nueva" className={styles.btnOutline}>Apelar suspensión (PQRS)</Link>
-                                </div>
-                            ) : (
-                                <div className={styles.authPrompt}>
-                                    <p>Inicia sesión para hacer una pregunta.</p>
-                                    <div className={styles.authButtons}>
-                                        <Link href="/login" className={styles.btnOutline}>Iniciar Sesión</Link>
-                                        <Link href="/registro" className={styles.btnPrimary}>Registrarse</Link>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <PreguntasSection
+                            propiedadId={propiedad.id}
+                            preguntasIniciales={preguntasOrdenadas}
+                            puedeInteractuar={puedeInteractuar}
+                            isLoggedIn={isLoggedIn}
+                            esAnfitrion={esAnfitrion}
+                        />
                     </section>
                 </div>
 
@@ -205,7 +200,10 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                     <div className={styles.defaultAvatar}>{anfitrion?.nombre_completo?.charAt(0).toUpperCase() || 'A'}</div>
                                 )}
                                 <div>
-                                    <p className={styles.hostName}>{anfitrion?.nombre_completo || 'Anfitrión'}</p>
+                                    <p className={styles.hostName}>
+                                        {anfitrion?.nombre_completo || 'Anfitrión'}
+                                        <UserBadge tipo={anfitrion?.tipo} className={styles.hostBadge} />
+                                    </p>
                                     <p className={styles.hostSubtitle}>Anfitrión verificado</p>
                                 </div>
                             </div>
