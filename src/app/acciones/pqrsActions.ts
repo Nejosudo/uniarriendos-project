@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { notificarAdmins } from './notificacionesActions';
 
 export type PqrsTipo = 'peticion' | 'queja' | 'reclamo' | 'sugerencia';
 export type PqrsEstado = 'pendiente' | 'en_proceso' | 'resuelto';
@@ -61,6 +62,16 @@ export async function crearPqrs(input: CrearPqrsInput) {
         console.error('Error creando PQRS:', error);
         return { success: false, error: 'No se pudo enviar tu solicitud. Intenta de nuevo.' };
     }
+
+    // Notificar a los administradores
+    const { data: perfil } = await supabase.from('perfiles').select('nombre_completo').eq('id', user.id).single();
+    await notificarAdmins({
+        tipo: 'pqrs_nueva',
+        titulo: 'Nueva PQRS',
+        mensaje: `Nueva ${input.tipo} de ${perfil?.nombre_completo || 'un usuario'}: «${asunto}».`,
+        enlace: '/admin/pqrs',
+        metadata: { pqrs_id: data.id }
+    });
 
     revalidatePath('/dashboard/pqrs');
 

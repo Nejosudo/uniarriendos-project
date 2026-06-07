@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { assertPuedeInteractuarPublicaciones } from '@/app/acciones/suspensionesActions';
+import { crearNotificacion } from './notificacionesActions';
 
 export interface ResenaConUsuario {
     id: number;
@@ -87,6 +88,20 @@ export async function crearResena(
         console.error('Error creando reseña:', error);
         return { success: false, error: 'No se pudo publicar la reseña. Intenta de nuevo.' };
     }
+
+    // Notificar al propietario
+    const { data: perfilAutor } = await supabase.from('perfiles').select('nombre_completo').eq('id', user.id).single();
+    const nombreAutor = perfilAutor?.nombre_completo || 'Un usuario';
+    const { data: propData } = await supabase.from('propiedades').select('titulo').eq('id', propiedadId).single();
+
+    await crearNotificacion({
+        usuarioId: propiedad.propietario_id,
+        tipo: 'resena_nueva',
+        titulo: 'Nueva Reseña',
+        mensaje: `${nombreAutor} dejó una reseña de ${cal}★ en «${propData?.titulo || 'tu propiedad'}».`,
+        enlace: `/propiedades/${propiedadId}`,
+        metadata: { propiedad_id: propiedadId }
+    });
 
     revalidatePath(`/propiedades/${propiedadId}`);
     revalidatePath('/explorar');

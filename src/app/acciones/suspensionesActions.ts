@@ -7,6 +7,7 @@ import { obtenerSuspensionActiva } from '@/lib/suspensiones/check';
 import { getRestricciones } from '@/lib/suspensiones/permissions';
 import { calcularFechaFinSuspension, getMensajeSuspension } from '@/lib/suspensiones/types';
 import type { NivelSuspension, SuspensionActiva } from '@/lib/suspensiones/types';
+import { crearNotificacion } from './notificacionesActions';
 
 export async function obtenerMiSuspension(): Promise<SuspensionActiva | null> {
     const supabase = await createClient();
@@ -169,6 +170,15 @@ export async function suspenderUsuario(
 
     await ocultarPropiedadesUsuario(supabase, usuarioId);
 
+    await crearNotificacion({
+        usuarioId: usuarioId,
+        tipo: 'suspension_aplicada',
+        titulo: 'Cuenta Suspendida',
+        mensaje: `Tu cuenta fue suspendida (nivel ${nivelNum}). ${motivo ? `Motivo: ${motivo}` : ''}`,
+        enlace: '/dashboard',
+        metadata: { nivel: nivelNum }
+    });
+
     revalidatePath('/admin/usuarios');
     revalidatePath('/dashboard');
     revalidatePath('/explorar');
@@ -191,6 +201,14 @@ export async function levantarSuspension(usuarioId: string) {
         console.error('Error levantando suspensión:', error);
         return { success: false, error: `No se pudo levantar la suspensión: ${error.message}` };
     }
+
+    await crearNotificacion({
+        usuarioId: usuarioId,
+        tipo: 'suspension_levantada',
+        titulo: 'Suspensión Levantada',
+        mensaje: 'Tu suspensión fue levantada. Ya puedes usar la plataforma con normalidad.',
+        enlace: '/dashboard'
+    });
 
     revalidatePath('/admin/usuarios');
     revalidatePath('/dashboard');

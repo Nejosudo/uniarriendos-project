@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { assertPuedeGestionarPropiedades } from '@/app/acciones/suspensionesActions';
+import { crearNotificacion } from './notificacionesActions';
 
 export async function cambiarEstadoPropiedad(propiedadId: number, nuevoEstado: string) {
     const activo = await assertPuedeGestionarPropiedades();
@@ -27,6 +28,41 @@ export async function cambiarEstadoPropiedad(propiedadId: number, nuevoEstado: s
     if (error) {
         console.error('Error al cambiar estado:', error);
         return { error: 'Error al cambiar el estado de la propiedad.' };
+    }
+
+    // Obtener detalles de la propiedad para la notificación
+    const { data: propData } = await supabase.from('propiedades').select('titulo, estado').eq('id', propiedadId).single();
+    const titulo = propData?.titulo || 'tu propiedad';
+
+    // Notificar al propietario
+    await crearNotificacion({
+        usuarioId: user.id,
+        tipo: 'propiedad_estado_cambio',
+        titulo: 'Estado Actualizado',
+        mensaje: `Tu propiedad «${titulo}» ahora está marcada como ${nuevoEstado}.`,
+        enlace: `/dashboard/propiedades`,
+        metadata: { propiedad_id: propiedadId, estado: nuevoEstado }
+    });
+
+    // Si cambió a disponible, notificar a los usuarios que la tienen en favoritos
+    if (nuevoEstado === 'disponible') {
+        const { data: favoritos } = await supabase
+            .from('favoritos')
+            .select('usuario_id')
+            .eq('propiedad_id', propiedadId);
+
+        if (favoritos && favoritos.length > 0) {
+            for (const fav of favoritos) {
+                await crearNotificacion({
+                    usuarioId: fav.usuario_id,
+                    tipo: 'propiedad_disponible',
+                    titulo: 'Propiedad Disponible',
+                    mensaje: `«${titulo}» volvió a estar disponible.`,
+                    enlace: `/propiedades/${propiedadId}`,
+                    metadata: { propiedad_id: propiedadId }
+                });
+            }
+        }
     }
 
     revalidatePath('/dashboard/propiedades');

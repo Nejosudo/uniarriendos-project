@@ -17,6 +17,17 @@ export async function crearPropiedad(formData: any) {
         return { success: false, error: 'Usuario no autorizado' };
     }
 
+    // Verificar si el usuario tiene un número de contacto válido
+    const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('telefono')
+        .eq('id', user.id)
+        .single();
+
+    if (!perfil?.telefono || perfil.telefono.trim() === '') {
+        return { success: false, error: 'Debes registrar un número de teléfono válido en tu perfil para poder crear una propiedad.' };
+    }
+
     try {
         // 1. Insertar Propiedad
         const { data: nuevaPropiedad, error: propError } = await supabase

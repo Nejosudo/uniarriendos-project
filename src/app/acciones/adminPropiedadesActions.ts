@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminAction } from '@/lib/admin/auth';
+import { crearNotificacion } from './notificacionesActions';
 
 export async function adminCambiarEstadoPropiedad(propiedadId: number, nuevoEstado: string) {
     const auth = await verifyAdminAction();
@@ -70,6 +71,20 @@ export async function adminToggleVerificada(propiedadId: number, verificada: boo
     if (error) {
         console.error('Error admin verificando propiedad:', error);
         return { success: false, error: 'No se pudo actualizar la verificación' };
+    }
+
+    if (verificada) {
+        const { data: propData } = await supabase.from('propiedades').select('propietario_id, titulo').eq('id', propiedadId).single();
+        if (propData?.propietario_id) {
+            await crearNotificacion({
+                usuarioId: propData.propietario_id,
+                tipo: 'propiedad_verificada',
+                titulo: 'Propiedad Verificada',
+                mensaje: `Tu propiedad «${propData.titulo}» fue verificada por el equipo de UniArriendos.`,
+                enlace: `/propiedades/${propiedadId}`,
+                metadata: { propiedad_id: propiedadId }
+            });
+        }
     }
 
     revalidatePath('/admin/propiedades');

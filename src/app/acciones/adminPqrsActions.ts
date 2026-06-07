@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminAction } from '@/lib/admin/auth';
 import type { PqrsEstado } from '@/app/acciones/pqrsActions';
+import { crearNotificacion } from './notificacionesActions';
 
 export async function responderPqrs(
     pqrsId: number,
@@ -44,6 +45,19 @@ export async function responderPqrs(
     if (estadoError) {
         console.error('Error actualizando estado PQRS:', estadoError);
         return { success: false, error: 'Respuesta guardada pero no se pudo actualizar el estado' };
+    }
+
+    // Notificar al usuario
+    const { data: pqrsData } = await supabase.from('pqrs').select('usuario_id, asunto').eq('id', pqrsId).single();
+    if (pqrsData?.usuario_id) {
+        await crearNotificacion({
+            usuarioId: pqrsData.usuario_id,
+            tipo: 'pqrs_respuesta',
+            titulo: 'Respuesta a tu PQRS',
+            mensaje: `Un administrador respondió tu PQRS: «${pqrsData.asunto}».`,
+            enlace: '/dashboard/pqrs',
+            metadata: { pqrs_id: pqrsId }
+        });
     }
 
     revalidatePath('/admin/pqrs');

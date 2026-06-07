@@ -2,6 +2,7 @@ import Link from 'next/link';
 import styles from './Navbar.module.css';
 import { createClient } from '@/lib/supabase/server';
 import { logoutAction } from '@/app/(auth)/actions';
+import NotificationBell from '@/componentes/ui/NotificationBell/NotificationBell';
 
 export default async function Navbar() {
     const supabase = await createClient();
@@ -40,6 +41,7 @@ export default async function Navbar() {
                             Admin
                         </Link>
                     )}
+                    <NotificationBell />
                     <Link href="/dashboard/perfil" className={styles.avatarContainer} title={nombre}>
                         {avatarUrl ? (
                             <img src={avatarUrl} alt="Avatar" className={styles.avatar} />
