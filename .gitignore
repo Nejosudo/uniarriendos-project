@@ -19,6 +19,7 @@
 
 # production
 /build
+/supabase/migrations
 
 # misc
 .DS_Store
@@ -32,7 +33,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-./implementation_plan.md
+PROJECT_REPORT_es.md
 
 # vercel
 .vercel
