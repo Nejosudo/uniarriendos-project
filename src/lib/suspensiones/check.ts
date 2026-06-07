@@ -28,19 +28,24 @@ async function obtenerViaRpc(
     supabase: SupabaseClient,
     userId: string
 ): Promise<SuspensionActiva | null> {
-    const { data, error } = await supabase.rpc('get_suspension_activa', {
-        check_user_id: userId,
-    });
+    try{
+        const { data, error } = await supabase.rpc('get_suspension_activa', {
+            check_user_id: userId,
+        });
 
-    if (error) {
-        // RPC no existe aún (migración 004 pendiente) — fallback abajo
-        if (error.code !== 'PGRST202' && !error.message?.includes('Could not find')) {
-            console.error('[suspensiones] RPC get_suspension_activa error:', error.message);
+        if (error) {
+            // RPC no existe aún (migración 004 pendiente) — fallback abajo
+            if (error.code !== 'PGRST202' && !error.message?.includes('Could not find')) {
+                console.error('[suspensiones] RPC get_suspension_activa error:', error.message);
+            }
+            return null;
         }
+
+        return normalizarSuspension(data);
+    } catch (error:any) {
+        console.error('[suspensiones] RPC get_suspension_activa exception:', error.message);
         return null;
     }
-
-    return normalizarSuspension(data);
 }
 
 async function obtenerViaTabla(

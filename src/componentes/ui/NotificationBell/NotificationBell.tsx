@@ -31,19 +31,27 @@ export default function NotificationBell() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data } = await supabase
+            // 1. Obtener las últimas 5 para el dropdown
+            const { data: ultimas } = await supabase
                 .from('notificaciones')
                 .select('*')
                 .eq('usuario_id', user.id)
                 .order('created_at', { ascending: false })
                 .limit(5);
 
-            if (data) {
-                setNotificaciones(data);
-                const noLeidas = data.filter(n => !n.leida).length;
-                // Si hay más de 5, deberíamos hacer un count real, 
-                // pero por ahora contamos las visibles no leídas
-                setNoLeidasCount(noLeidas);
+            if (ultimas) {
+                setNotificaciones(ultimas);
+            }
+
+            // 2. Obtener el conteo real de no leídas
+            const { count, error: countError } = await supabase
+                .from('notificaciones')
+                .select('*', { count: 'exact', head: true })
+                .eq('usuario_id', user.id)
+                .eq('leida', false);
+
+            if (!countError) {
+                setNoLeidasCount(count || 0);
             }
         } catch (error) {
             console.error('Error fetching notificaciones:', error);
@@ -55,6 +63,35 @@ export default function NotificationBell() {
     useEffect(() => {
         fetchNotificaciones();
 
+        // Suscribirse a cambios en tiempo real
+        let channel: any;
+
+        const setupSubscription = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // Configurar el canal y los listeners ANTES de suscribirse
+            channel = supabase
+                .channel(`notificaciones-${user.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'notificaciones',
+                        filter: `usuario_id=eq.${user.id}`
+                    },
+                    () => {
+                        fetchNotificaciones();
+                    }
+                );
+
+            // Suscribirse después de configurar los listeners
+            await channel.subscribe();
+        };
+
+        setupSubscription();
+
         // Cerrar dropdown al hacer click fuera
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -63,7 +100,12 @@ export default function NotificationBell() {
         };
 
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            if (channel) {
+                supabase.removeChannel(channel);
+            }
+        };
     }, []);
 
     const toggleDropdown = () => {
@@ -110,7 +152,7 @@ export default function NotificationBell() {
     return (
         <div className={styles.container} ref={dropdownRef}>
             <button className={styles.bellButton} onClick={toggleDropdown} aria-label="Notificaciones">
-                <DynamicIcon name="Bell" size={20} />
+                <DynamicIcon name="bell" size={20} />
                 {noLeidasCount > 0 && (
                     <span className={styles.badge}>{noLeidasCount > 9 ? '9+' : noLeidasCount}</span>
                 )}
@@ -162,3 +204,4 @@ export default function NotificationBell() {
         </div>
     );
 }
+

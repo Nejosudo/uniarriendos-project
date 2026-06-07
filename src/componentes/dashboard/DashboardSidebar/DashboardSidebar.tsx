@@ -24,12 +24,8 @@ export default function DashboardSidebar({ perfil, email, suspension = null }: D
             icon: 'Home',
             visible: !suspension || (restricciones.nivel !== null && restricciones.nivel < 3),
         },
-        {
-            name: 'Favoritos',
-            path: '/dashboard/favoritos',
-            icon: 'Heart',
-            visible: restricciones.puedeUsarFavoritos,
-        },
+        { name: 'Favoritos', path: '/dashboard/favoritos', icon: 'Heart', visible: restricciones.puedeUsarFavoritos },
+        { name: 'Notificaciones', path: '/dashboard/notificaciones', icon: 'Bell', visible: true },
         { name: 'PQRS', path: '/dashboard/pqrs', icon: 'MessageSquare', visible: true },
     ].filter((item) => item.visible);
 

@@ -19,16 +19,27 @@ export interface PreguntaConUsuario {
 }
 
 export async function crearPregunta(propiedadId: number, pregunta: string) {
-    const activo = await assertPuedeInteractuarPublicaciones();
-    if (!activo.ok) {
-        return { success: false, error: activo.error };
-    }
-
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    
     if (!user) {
         return { success: false, error: 'Debes iniciar sesión para enviar una pregunta.' };
+    }
+
+    let puedeInteractuar = true;
+    try{
+        const activo = await assertPuedeInteractuarPublicaciones();
+        if (!activo.ok) {
+            puedeInteractuar = false;
+        }
+
+    } catch(error){
+        console.error('Error verificando suspensión:', error);
+    }
+
+    if (!puedeInteractuar) {
+        return { success: false, error: 'No puedes hacer preguntas debido a una suspensión activa. Contacta al soporte para más información.' };
     }
 
     const texto = pregunta?.trim();

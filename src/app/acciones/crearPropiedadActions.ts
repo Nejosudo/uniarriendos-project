@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { assertPuedeGestionarPropiedades } from '@/app/acciones/suspensionesActions';
+import { notificarAdmins } from './notificacionesActions';
 
 export async function crearPropiedad(formData: any) {
     const activo = await assertPuedeGestionarPropiedades();
@@ -93,6 +94,16 @@ export async function crearPropiedad(formData: any) {
         revalidatePath('/explorar');
         revalidatePath('/');
 
+
+        // Notificar a administradores sobre la nueva propiedad
+        await notificarAdmins({
+            tipo: 'propiedad_nueva_admin',
+            titulo: 'Nueva Propiedad',
+            mensaje: `Se ha publicado una nueva propiedad: «${formData.titulo}».`,
+            enlace: '/admin/propiedades',
+            metadata: { propiedad_id: propiedadId }
+        });
+        
         return { success: true, propiedadId };
     } catch (error: any) {
         console.error('Excepción en crearPropiedad:', error);

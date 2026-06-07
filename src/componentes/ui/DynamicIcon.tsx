@@ -42,7 +42,8 @@ import {
   LayoutDashboard,
   Building2,
   Ban,
-  LucideProps
+  LucideProps,
+  Bell
 } from 'lucide-react';
 
 interface DynamicIconProps {
@@ -95,7 +96,8 @@ const IconMap: Record<string, React.FC<LucideProps>> = {
   MessageCircle,
   LayoutDashboard,
   Building2,
-  Ban
+  Ban,
+  Bell
 };
 
 export default function DynamicIcon({ name, className, size = 20, color = 'currentColor' }: DynamicIconProps) {
