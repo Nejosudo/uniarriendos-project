@@ -4,6 +4,7 @@ import styles from './dashboard.module.css';
 import DashboardSidebar from '@/componentes/dashboard/DashboardSidebar/DashboardSidebar';
 import DashboardSuspensionGuard from '@/componentes/dashboard/DashboardSuspensionGuard/DashboardSuspensionGuard';
 import { getSuspensionForLayout } from '@/lib/suspensiones/guard';
+import PhoneBanner from '@/componentes/dashboard/PhoneBanner/PhoneBanner';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient();
@@ -34,6 +35,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 />
             </div>
             <main className={styles.mainContent}>
+                <PhoneBanner />
                 {children}
             </main>
         </div>

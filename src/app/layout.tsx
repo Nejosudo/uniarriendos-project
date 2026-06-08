@@ -5,6 +5,7 @@ import Navbar from "@/componentes/layout/Navbar/Navbar";
 import Footer from "@/componentes/layout/Footer/Footer";
 import GlobalSuspensionBanner from "@/componentes/layout/GlobalSuspensionBanner/GlobalSuspensionBanner";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
