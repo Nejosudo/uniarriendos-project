@@ -26,25 +26,32 @@ const getAddressFromCoords = async (lat: number, lng: number) => {
     try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
         const data = await res.json();
+        
         if (data && data.address) {
-            // Simplificar dirección
+            // Construir dirección completa con número de propiedad
+            const houseNumber = data.address.house_number || '';
             const road = data.address.road || data.address.pedestrian || '';
             const neighbourhood = data.address.neighbourhood || data.address.suburb || '';
             const city = data.address.city || data.address.town || '';
+        
             
             let parts = [];
-            if (road) parts.push(road);
+        
+            if (road && houseNumber) {
+                parts.push(`${road} #${houseNumber}`);
+            } else if (road) {
+                parts.push(road);
+            }
+            
             if (neighbourhood) parts.push(`Barrio ${neighbourhood}`);
             if (city) parts.push(city);
             
-            if (parts.length > 0) {
-                return parts.join(', ');
-            } else {
-                return data.display_name;
-            }
+            const resultado = parts.length > 0 ? parts.join(', ') : data.display_name;
+            return resultado;
         }
         return undefined;
     } catch (e) {
+        console.error('❌ Error en getAddressFromCoords:', e);
         return undefined;
     }
 };

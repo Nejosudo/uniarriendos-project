@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import styles from './page.module.css';
 import ImageGallery from './ImageGallery';
@@ -15,11 +16,9 @@ import type { PreguntaConUsuario } from '@/app/acciones/preguntasActions';
 import { calcularPromedioResenas, formatearEstrellas } from '@/lib/resenas/utils';
 import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 
-export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
+// Función para obtener propiedad (reutilizable para metadata y componente)
+async function obtenerPropiedad(id: string) {
     const supabase = await createClient();
-    const { id } = await params;
-
-    // Obtener propiedad con relaciones, incluyendo reseñas
     const { data: propiedad, error } = await supabase
         .from('propiedades')
         .select(`
@@ -40,11 +39,68 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
         `)
         .eq('id', id)
         .single();
+    
+    return { data: propiedad, error };
+}
+
+// Metadata dinámica para cada propiedad
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+    const { id } = await params;
+    const { data: propiedad } = await obtenerPropiedad(id);
+
+    if (!propiedad) {
+        return {
+            title: "Propiedad no encontrada",
+            description: "La propiedad que buscas no existe en UniArriendos.",
+        };
+    }
+
+    const imagenPrincipal = propiedad.propiedades_fotos?.[0]?.url || 'https://uniarriendos-project.vercel.app/default-property.png';
+    const titulo = `${propiedad.titulo} - $${propiedad.precio?.toLocaleString('es-CO')} | UniArriendos`;
+    const descripcion = propiedad.descripcion?.substring(0, 160) || `Arriendo en ${propiedad.ubicacion_texto} - ${propiedad.titulo}`;
+
+    return {
+        title: titulo,
+        description: descripcion,
+        keywords: [propiedad.titulo, propiedad.ubicacion_texto, 'arriendo', 'habitación', 'apartamento'],
+        openGraph: {
+            type: 'website',
+            locale: 'es_CO',
+            url: `https://uniarriendos-project.vercel.app/propiedades/${id}`,
+            title: propiedad.titulo,
+            description: descripcion,
+            siteName: 'UniArriendos',
+            images: [
+                {
+                    url: imagenPrincipal,
+                    width: 1200,
+                    height: 630,
+                    alt: propiedad.titulo,
+                    type: 'image/jpeg',
+                },
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: propiedad.titulo,
+            description: descripcion,
+            images: [imagenPrincipal],
+        },
+        alternates: {
+            canonical: `https://uniarriendos-project.vercel.app/propiedades/${id}`,
+        },
+    };
+}
+
+export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
+    const { id } = await params;
+    const { data: propiedad, error } = await obtenerPropiedad(id);
 
     if (error || !propiedad) {
         return notFound();
     }
 
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const isLoggedIn = !!user;
     const restricciones = await getRestriccionesUsuario();

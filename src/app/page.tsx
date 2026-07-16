@@ -1,9 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
+import type { Metadata } from 'next';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
 import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import { calcularPromedioResenas } from '@/lib/resenas/utils';
 import Link from 'next/link';
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+    title: 'UniArriendos - Arriendos para universitarios de UNIPAZ',
+    description: 'Encuentra tu próximo arriendo de forma segura. Plataforma verificada para estudiantes y externos de UNIPAZ en Barrancabermeja con reseñas, fotos y ubicación en tiempo real.',
+    keywords: ['arriendos Barrancabermeja', 'habitaciones universitarios', 'UNIPAZ', 'apartamentos estudiantes'],
+    alternates: {
+        canonical: 'https://uniarriendos-project.vercel.app',
+    },
+};
 
 export default async function Home() {
   const supabase = await createClient();

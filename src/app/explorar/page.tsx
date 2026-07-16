@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import type { Metadata } from 'next';
 import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
 import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import { calcularPromedioResenas } from '@/lib/resenas/utils';
@@ -6,6 +7,23 @@ import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilt
 import TopSearchBar from '@/componentes/explorar/TopSearchBar/TopSearchBar';
 import ExplorarMap from '@/componentes/explorar/ExplorarMap/ExplorarMap';
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+    title: 'Explorar arriendos - Busca tu próxima vivienda | UniArriendos',
+    description: 'Explora cientos de arriendos verificados en Barrancabermeja. Filtra por precio, tipo de vivienda y servicios. Encuentra tu próxima habitación, apartamento o casa perfecta.',
+    keywords: ['explorar arriendos', 'buscar habitación', 'apartamentos Barrancabermeja', 'vivienda estudiantes'],
+    openGraph: {
+        type: 'website',
+        locale: 'es_CO',
+        url: 'https://uniarriendos-project.vercel.app/explorar',
+        title: 'Explorar arriendos disponibles',
+        description: 'Cientos de opciones de arriendo para estudiantes y externos en Barrancabermeja',
+        siteName: 'UniArriendos',
+    },
+    alternates: {
+        canonical: 'https://uniarriendos-project.vercel.app/explorar',
+    },
+};
 
 export default async function Explorar({ searchParams }: { searchParams: any }) {
     const supabase = await createClient();

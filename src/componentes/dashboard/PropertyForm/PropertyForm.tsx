@@ -75,6 +75,7 @@ export default function PropertyForm({
     });
 
     const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
+    const [ubicacionError, setUbicacionError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleServiceToggle = (id: number) => {
@@ -136,20 +137,50 @@ export default function PropertyForm({
     };
 
     const buscarEnMapa = async () => {
-        if (!ubicacionTexto.trim()) return;
+        if (!ubicacionTexto.trim()) {
+            setUbicacionError('Ingresa una dirección para buscar.');
+            return;
+        }
+        
         try {
-            // Añadimos Barrancabermeja para enfocar la búsqueda
-            const query = encodeURIComponent(`${ubicacionTexto}, Barrancabermeja, Santander, Colombia`);
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
-            const data = await res.json();
-            if (data && data.length > 0) {
-                setLatitud(parseFloat(data[0].lat));
-                setLongitud(parseFloat(data[0].lon));
+            setUbicacionError(null);
+            
+            // Construir la query completa con la ciudad para mejorar resultados
+            const query = `${ubicacionTexto}, Barrancabermeja, Santander, Colombia`;
+            
+            // viewbox = [left,top,right,bottom] - coordenadas de Barrancabermeja
+            const params = new URLSearchParams({
+                format: 'json',
+                q: query,
+                viewbox: '-73.95,7.19,-73.73,6.95',
+                bounded: '1', // Busca solo dentro del viewbox
+                limit: '1',
+                countrycodes: 'co' // Parámetro correcto de Nominatim
+            });
+            
+            const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+            console.log('Búsqueda en Nominatim:', url);
+            
+            const respuesta = await fetch(url);
+            
+            if (!respuesta.ok) {
+                throw new Error(`Error HTTP: ${respuesta.status}`);
+            }
+            
+            const datos = await respuesta.json();
+            console.log('Respuesta de Nominatim:', datos);
+
+            if (datos && Array.isArray(datos) && datos.length > 0) {
+                const { lat, lon } = datos[0];
+                setLatitud(parseFloat(lat));
+                setLongitud(parseFloat(lon));
+                setUbicacionError(null);
             } else {
-                alert('No se encontró la dirección en el mapa. Intenta ser más específico o mueve el marcador manualmente.');
+                setUbicacionError('No se encontró la dirección. Intenta ser más específico o mueve el marcador manualmente.');
             }
         } catch (e) {
-            console.error('Error buscando dirección', e);
+            console.error('Error buscando dirección:', e);
+            setUbicacionError('Error al buscar la dirección. Intenta nuevamente o mueve el marcador manualmente.');
         }
     };
 
@@ -321,10 +352,14 @@ export default function PropertyForm({
                     <div className={styles.searchAddressGroup}>
                         <input 
                             type="text" 
-                            required 
-                            placeholder="Ej. Barrio El Parnaso, Cra 24 #12-34"
+                            required
+                            disabled
+                            placeholder="Opción de búsqueda deshabilitada, usa el mapa dinamico."
                             value={ubicacionTexto}
-                            onChange={(e) => setUbicacionTexto(e.target.value)}
+                            onChange={(e) => {
+                                setUbicacionTexto(e.target.value);
+                                setUbicacionError(null);
+                            }}
                             className={styles.input}
                             style={{ flex: 1 }}
                         />
@@ -332,6 +367,11 @@ export default function PropertyForm({
                             <DynamicIcon name="Search" size={20} />
                         </button>
                     </div>
+                    {ubicacionError && (
+                        <div style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                            {ubicacionError}
+                        </div>
+                    )}
                 </div>
 
                 <div className={styles.mapGroup}>

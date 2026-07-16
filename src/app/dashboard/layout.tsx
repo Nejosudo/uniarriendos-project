@@ -1,10 +1,17 @@
 import { createClient } from '@/lib/supabase/server';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import styles from './dashboard.module.css';
 import DashboardSidebar from '@/componentes/dashboard/DashboardSidebar/DashboardSidebar';
 import DashboardSuspensionGuard from '@/componentes/dashboard/DashboardSuspensionGuard/DashboardSuspensionGuard';
 import { getSuspensionForLayout } from '@/lib/suspensiones/guard';
 import PhoneBanner from '@/componentes/dashboard/PhoneBanner/PhoneBanner';
+
+export const metadata: Metadata = {
+    title: 'Dashboard - Mi cuenta | UniArriendos',
+    description: 'Gestiona tu cuenta, propiedades, favoritos y mensajes en UniArriendos.',
+    robots: 'noindex, nofollow',
+};
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient();
