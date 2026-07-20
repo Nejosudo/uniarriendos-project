@@ -3,6 +3,7 @@ import styles from './Navbar.module.css';
 import { createClient } from '@/lib/supabase/server';
 import { logoutAction } from '@/app/(auth)/actions';
 import NotificationBell from '@/componentes/ui/NotificationBell/NotificationBell';
+import NavbarMobileMenu from './NavbarMobileMenu';
 
 export default async function Navbar() {
     const supabase = await createClient();
@@ -58,6 +59,16 @@ export default async function Navbar() {
             ) : (
                 <Link href="/login" className={styles.authButton}>Iniciar Sesión</Link>
             )}
+
+            <div className={styles.mobileActions}>
+                {user && <NotificationBell />}
+                <NavbarMobileMenu
+                    isLoggedIn={!!user}
+                    isAdmin={isAdmin}
+                    avatarUrl={avatarUrl}
+                    nombre={nombre}
+                />
+            </div>
         </nav>
     );
 }

@@ -3,14 +3,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: #ffff;
-    border-bottom: 1px solid #eaeaea;
+    background-color: #fff;
+    border-bottom: 1px solid var(--color-border);
     position: sticky;
     top: 0;
     z-index: 1000;
+    gap: 1rem;
 }
 
-/* logo provicional */
 .logo {
     font-size: 1.5rem;
     font-weight: bold;
@@ -120,4 +120,133 @@
 .logoutBtn:hover {
     background: var(--color-error);
     color: white;
+}
+
+.mobileActions {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mobileMenuButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    cursor: pointer;
+}
+
+.mobileMenuOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    display: flex;
+    justify-content: flex-end;
+    z-index: 1100;
+}
+
+.mobileMenuPanel {
+    width: min(88vw, 340px);
+    height: 100%;
+    background: var(--color-surface);
+    border-left: 1px solid var(--color-border);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.mobileMenuLinks {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mobileMenuLinks a,
+.mobileProfileLink,
+.mobileAdminLink,
+.mobileAuthButton,
+.mobileLogoutBtn {
+    font-weight: 600;
+}
+
+.mobileUserSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.mobileProfileLink {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--color-text-main);
+}
+
+.mobileAvatar,
+.mobileDefaultAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mobileAdminLink,
+.mobileAuthButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.mobileAdminLink {
+    background: #0f172a;
+    color: white;
+}
+
+.mobileAuthButton {
+    background: var(--color-primary);
+    color: white;
+}
+
+.mobileLogoutBtn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-error);
+    background: transparent;
+    color: var(--color-error);
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 0.9rem 1rem;
+    }
+
+    .navLinks,
+    .userMenu,
+    .authButton {
+        display: none;
+    }
+
+    .mobileActions {
+        display: flex;
+        margin-left: auto;
+    }
 }
