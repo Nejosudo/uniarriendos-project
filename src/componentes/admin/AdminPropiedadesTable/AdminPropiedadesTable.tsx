@@ -8,6 +8,7 @@ import {
     adminToggleVerificada,
 } from '@/app/acciones/adminPropiedadesActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import toast from 'react-hot-toast';
 import styles from './AdminPropiedadesTable.module.css';
 
 interface AdminPropiedadesTableProps {
@@ -35,24 +36,30 @@ export default function AdminPropiedadesTable({ propiedades: initial }: AdminPro
     const handleEstado = async (id: number, estado: string) => {
         setLoadingId(id);
         const result = await adminCambiarEstadoPropiedad(id, estado);
-        if (result.success) updateProp(id, { estado });
-        else alert(result.error);
+        if (result.success) {
+            updateProp(id, { estado });
+            toast.success('Estado actualizado');
+        } else toast.error(result.error || 'No se pudo actualizar el estado');
         setLoadingId(null);
     };
 
     const handlePrioridad = async (id: number, prioridad: string) => {
         setLoadingId(id);
         const result = await adminCambiarPrioridad(id, prioridad);
-        if (result.success) updateProp(id, { prioridad });
-        else alert(result.error);
+        if (result.success) {
+            updateProp(id, { prioridad });
+            toast.success('Prioridad actualizada');
+        } else toast.error(result.error || 'No se pudo actualizar la prioridad');
         setLoadingId(null);
     };
 
     const handleVerificada = async (id: number, verificada: boolean) => {
         setLoadingId(id);
         const result = await adminToggleVerificada(id, verificada);
-        if (result.success) updateProp(id, { verificada });
-        else alert(result.error);
+        if (result.success) {
+            updateProp(id, { verificada });
+            toast.success(verificada ? 'Propiedad verificada' : 'Verificación retirada');
+        } else toast.error(result.error || 'No se pudo actualizar la verificación');
         setLoadingId(null);
     };
 

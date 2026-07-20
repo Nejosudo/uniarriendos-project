@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { cambiarEstadoPropiedad, eliminarPropiedad } from '@/app/acciones/propiedadesDashboardActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import toast from 'react-hot-toast';
 import styles from './PropertiesTable.module.css';
 
 interface PropertiesTableProps {
@@ -36,8 +37,9 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
         
         if (result.success) {
             setPropiedades(propiedades.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
+            toast.success('Estado de la propiedad actualizado');
         } else {
-            alert(result.error);
+            toast.error(result.error || 'No se pudo actualizar la propiedad');
         }
         setIsLoading(null);
     };
@@ -62,6 +64,7 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
         if (result.success) {
             setPropiedades(propiedades.filter(p => p.id !== deleteModal.id));
             setDeleteModal({ show: false, id: null, titulo: '' });
+            toast.success('Propiedad eliminada');
         } else {
             setDeleteError(result.error || 'Error desconocido');
         }

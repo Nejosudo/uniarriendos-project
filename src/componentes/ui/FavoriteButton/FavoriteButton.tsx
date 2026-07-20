@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { toggleFavorito } from '@/app/acciones/favoritosActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import toast from 'react-hot-toast';
 import styles from './FavoriteButton.module.css';
 
 interface FavoriteButtonProps {
@@ -37,7 +38,7 @@ export default function FavoriteButton({
         e.stopPropagation();
 
         if (disabled) {
-            alert(disabledReason);
+            toast.error(disabledReason);
             return;
         }
 
@@ -52,10 +53,11 @@ export default function FavoriteButton({
                 if (result.error.includes('iniciar sesión')) {
                     setShowAuthModal(true);
                 } else {
-                    alert(result.error);
+                    toast.error(result.error || 'No se pudo actualizar favoritos');
                 }
             } else if (result.success !== undefined) {
                 setIsFavorite(result.isFavorite);
+                toast.success(result.isFavorite ? 'Añadido a favoritos' : 'Eliminado de favoritos');
             }
         });
     };

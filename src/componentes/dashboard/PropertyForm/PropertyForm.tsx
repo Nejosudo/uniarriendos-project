@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { crearPropiedad, editarPropiedad } from '@/app/acciones/crearPropiedadActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import toast from 'react-hot-toast';
 import styles from './PropertyForm.module.css';
 
 // Importación dinámica del mapa para evitar errores de SSR con Leaflet
@@ -92,7 +93,7 @@ export default function PropertyForm({
             const maxSize = 5 * 1024 * 1024;
             const validFiles = newFiles.filter(file => {
                 if (file.size > maxSize) {
-                    alert(`La imagen "${file.name}" supera el límite de 5MB y no se añadirá.`);
+                    toast.error(`La imagen "${file.name}" supera el límite de 5MB y no se añadirá.`);
                     return false;
                 }
                 return true;
@@ -100,7 +101,7 @@ export default function PropertyForm({
 
             // Limit to 5 max total
             if (photos.length + validFiles.length > 5) {
-                alert('Solo puedes subir hasta 5 fotos en total.');
+                toast.error('Solo puedes subir hasta 5 fotos en total.');
                 const remainingSlots = 5 - photos.length;
                 if (remainingSlots > 0) {
                     const newItems: PhotoItem[] = validFiles.slice(0, remainingSlots).map((file, idx) => ({

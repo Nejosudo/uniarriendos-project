@@ -11,6 +11,7 @@ import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 import styles from './AdminUsuariosTable.module.css';
 import type { NivelSuspension } from '@/lib/suspensiones/types';
+import toast from 'react-hot-toast';
 
 interface Suspension {
     id: number;
@@ -66,8 +67,9 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
         const result = await cambiarRolUsuario(id, rol);
         if (result.success) {
             setUsuarios(usuarios.map((u) => (u.id === id ? { ...u, rol } : u)));
+            toast.success('Rol actualizado');
         } else {
-            alert(result.error);
+            toast.error(result.error || 'No se pudo actualizar el rol');
         }
         setLoadingId(null);
     };
@@ -80,6 +82,7 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
         if (result.success) {
             setSuspendModal(null);
             setMotivo('');
+            toast.success('Usuario suspendido');
             window.location.reload();
         } else {
             setError(result.error || 'Error al suspender');
@@ -92,9 +95,10 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
         setLoadingId(id);
         const result = await levantarSuspension(id);
         if (result.success) {
+            toast.success('Suspensión levantada');
             window.location.reload();
         } else {
-            alert(result.error);
+            toast.error(result.error || 'No se pudo levantar la suspensión');
         }
         setLoadingId(null);
     };

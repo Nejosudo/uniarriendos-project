@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { responderPqrs, cambiarEstadoPqrs } from '@/app/acciones/adminPqrsActions';
 import type { PqrsEstado } from '@/app/acciones/pqrsActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import toast from 'react-hot-toast';
 import styles from './AdminPqrsPanel.module.css';
 
 interface PqrsItem {
@@ -64,6 +65,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
         if (result.success) {
             setRespuesta('');
             setExpandedId(null);
+            toast.success('Respuesta enviada');
             window.location.reload();
         } else {
             setError(result.error || 'Error al responder');
@@ -76,8 +78,9 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
         const result = await cambiarEstadoPqrs(id, estado);
         if (result.success) {
             setPqrs(pqrs.map((p) => (p.id === id ? { ...p, estado } : p)));
+            toast.success('Estado de PQRS actualizado');
         } else {
-            alert(result.error);
+            toast.error(result.error || 'No se pudo actualizar el estado de la PQRS');
         }
         setLoadingId(null);
     };
