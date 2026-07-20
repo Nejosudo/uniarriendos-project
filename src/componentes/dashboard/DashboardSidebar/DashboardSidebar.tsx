@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
@@ -14,6 +15,7 @@ interface DashboardSidebarProps {
 
 export default function DashboardSidebar({ perfil, email, suspension = null }: DashboardSidebarProps) {
     const pathname = usePathname();
+    const [isOpen, setIsOpen] = useState(false);
     const restricciones = getRestricciones(suspension);
 
     const navItems = [
@@ -31,44 +33,58 @@ export default function DashboardSidebar({ perfil, email, suspension = null }: D
 
     return (
         <aside className={styles.sidebar}>
-            <div className={styles.profileSummary}>
-                <div className={styles.avatarContainer}>
-                    {perfil?.avatar_url ? (
-                        <img src={perfil.avatar_url} alt="Avatar" className={styles.avatar} />
-                    ) : (
-                        <div className={styles.avatarPlaceholder}>
-                            {perfil?.nombre_completo ? perfil.nombre_completo.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                    )}
-                </div>
-                <h3 className={styles.userName}>{perfil?.nombre_completo || 'Usuario'}</h3>
-                <p className={styles.userEmail}>{email}</p>
-            </div>
+            <button
+                type="button"
+                className={styles.mobileToggle}
+                onClick={() => setIsOpen((value) => !value)}
+                aria-expanded={isOpen}
+                aria-label={isOpen ? 'Ocultar menú del dashboard' : 'Mostrar menú del dashboard'}
+            >
+                <DynamicIcon name={isOpen ? 'ChevronUp' : 'Menu'} size={18} />
+                {isOpen ? 'Ocultar menú' : 'Menú del dashboard'}
+            </button>
 
-            <nav className={styles.nav}>
-                {navItems.map((item) => {
-                    const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`);
-                    return (
-                        <Link 
-                            key={item.path} 
-                            href={item.path} 
-                            className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-                        >
-                            <DynamicIcon name={item.icon} size={20} className={styles.navIcon} />
-                            {item.name}
-                        </Link>
-                    );
-                })}
-            </nav>
-            
-            {restricciones.puedeGestionarPropiedades && (
-                <div className={styles.footer}>
-                    <Link href="/dashboard/propiedades/crear" className={styles.createBtn}>
-                        <DynamicIcon name="PlusCircle" size={20} />
-                        Publicar Propiedad
-                    </Link>
+            <div className={`${styles.content} ${isOpen ? styles.contentOpen : ''}`}>
+                <div className={styles.profileSummary}>
+                    <div className={styles.avatarContainer}>
+                        {perfil?.avatar_url ? (
+                            <img src={perfil.avatar_url} alt="Avatar" className={styles.avatar} />
+                        ) : (
+                            <div className={styles.avatarPlaceholder}>
+                                {perfil?.nombre_completo ? perfil.nombre_completo.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                        )}
+                    </div>
+                    <h3 className={styles.userName}>{perfil?.nombre_completo || 'Usuario'}</h3>
+                    <p className={styles.userEmail}>{email}</p>
                 </div>
-            )}
+
+                <nav className={styles.nav}>
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`);
+                        return (
+                            <Link 
+                                key={item.path} 
+                                href={item.path} 
+                                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+                                onClick={() => setIsOpen(false)}
+                            >
+                                <DynamicIcon name={item.icon} size={20} className={styles.navIcon} />
+                                {item.name}
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                {restricciones.puedeGestionarPropiedades && (
+                    <div className={styles.footer}>
+                        <Link href="/dashboard/propiedades/crear" className={styles.createBtn} onClick={() => setIsOpen(false)}>
+                            <DynamicIcon name="PlusCircle" size={20} />
+                            Publicar Propiedad
+                        </Link>
+                    </div>
+                )}
+            </div>
         </aside>
     );
 }

@@ -7,6 +7,27 @@
     padding: 2rem 1.5rem;
 }
 
+.mobileToggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .profileSummary {
     text-align: center;
     margin-bottom: 2.5rem;
@@ -119,31 +140,43 @@
     .sidebar {
         padding: 1.5rem;
         position: static;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        align-items: center;
     }
+
+    .mobileToggle {
+        display: inline-flex;
+    }
+
+    .content {
+        display: none;
+        margin-top: 1rem;
+        gap: 1.25rem;
+    }
+
+    .contentOpen {
+        display: flex;
+    }
+
     .profileSummary {
         margin-bottom: 0;
         padding-bottom: 0;
         border-bottom: none;
-        display: flex;
-        align-items: center;
-        text-align: left;
-        gap: 1rem;
         width: 100%;
     }
+
     .avatarContainer {
         margin: 0;
         width: 60px;
         height: 60px;
     }
+
     .nav {
-        flex-direction: row;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
+        overflow-x: visible;
     }
+
+    .navItem {
+        width: 100%;
+    }
+
     .footer {
         padding-top: 0;
         width: 100%;
