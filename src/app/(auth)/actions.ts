@@ -38,8 +38,12 @@ export async function registerAction(prevState: any, formData: FormData) {
   const nombre = formData.get('nombre') as string
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const aceptaTerminos = formData.get('aceptaTerminos') === 'on'
 
-  if (!nombre || !email || !password) {
+  if (!nombre || !email || !password || !aceptaTerminos) {
+    if (!aceptaTerminos) {
+      return { error: 'Debes aceptar los términos y condiciones para registrarte' }
+    }
     return { error: 'Por favor, completa todos los campos' }
   }
 

@@ -81,6 +81,30 @@
   background-color: var(--color-primary-hover);
 }
 
+.termsCheckbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.termsCheckbox input {
+  accent-color: var(--color-primary);
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.termsCheckbox a {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.termsCheckbox a:hover {
+  text-decoration: underline;
+}
+
 .errorMsg {
   color: var(--color-error);
   font-size: 0.85rem;

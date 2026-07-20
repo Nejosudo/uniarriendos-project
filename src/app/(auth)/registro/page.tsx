@@ -56,6 +56,14 @@ export default function RegisterPage() {
             />
           </div>
 
+          <label className={styles.termsCheckbox}>
+            <input type="checkbox" name="aceptaTerminos" required />
+            <span>
+              Acepto los <Link href="/terminos">términos y condiciones</Link> y la{' '}
+              <Link href="/privacidad">política de privacidad</Link>.
+            </span>
+          </label>
+
           <button type="submit" className={styles.submitBtn} disabled={isPending}>
             {isPending ? 'Creando cuenta...' : 'Crear Cuenta'}
           </button>
