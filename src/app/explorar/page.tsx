@@ -10,7 +10,7 @@ import styles from './page.module.css';
 
 export const metadata: Metadata = {
     title: 'Explorar arriendos - Busca tu próxima vivienda | UniArriendos',
-    description: 'Explora cientos de arriendos verificados en Barrancabermeja. Filtra por precio, tipo de vivienda y servicios. Encuentra tu próxima habitación, apartamento o casa perfecta.',
+    description: 'Explora opciones de arriendo en Barrancabermeja para la comunidad universitaria de UNIPAZ. Filtra por precio, tipo de vivienda y servicios. Encuentra tu próxima habitación, apartamento o casa.',
     keywords: ['explorar arriendos', 'buscar habitación', 'apartamentos Barrancabermeja', 'vivienda estudiantes'],
     openGraph: {
         type: 'website',
@@ -134,6 +134,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                                         vivienda_compartida={prop.vivienda_compartida}
                                         estado={prop.estado}
                                         prioridad={prop.prioridad}
+                                        verificada={prop.verificada}
                                         perfil_arriendo={prop.perfil_arriendo}
                                         anfitrion_nombre={anfitrion?.nombre_completo}
                                         anfitrion_avatar={anfitrion?.avatar_url}

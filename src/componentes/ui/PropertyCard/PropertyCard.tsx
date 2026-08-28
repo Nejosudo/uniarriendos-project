@@ -13,6 +13,7 @@ interface PropertyProps {
     vivienda_compartida?: boolean;
     estado?: string;
     prioridad?: string;
+    verificada?: boolean;
     perfil_arriendo?: string;
     anfitrion_nombre?: string;
     anfitrion_avatar?: string;
@@ -26,7 +27,7 @@ interface PropertyProps {
 export default function PropertyCard(props: PropertyProps) {
     const {
         id, titulo, precio, ubicacion_texto, imagen_url, 
-        vivienda_compartida, estado, prioridad, perfil_arriendo, anfitrion_nombre, anfitrion_avatar, servicios,
+        vivienda_compartida, estado, prioridad, verificada, perfil_arriendo, anfitrion_nombre, anfitrion_avatar, servicios,
         isFavorite = false,
         favoritosDeshabilitados = false,
         calificacionPromedio = null,
@@ -67,7 +68,11 @@ export default function PropertyCard(props: PropertyProps) {
                 <div className={styles.badges}>
                     {estado === 'disponible' && <span className={styles.badgeSuccess}>Disponible</span>}
                     {estado === 'ocupado' && <span className={styles.badgeError}>Ocupado</span>}
-                    {prioridad === 'verificada' && <span className={styles.badgeVerified}>✓ Verificada</span>}
+                    {verificada && (
+                        <span className={styles.badgeVerified} title="Propiedad revisada y verificada por el equipo de administración de UniArriendos">
+                            ✓ Verificada
+                        </span>
+                    )}
                     {prioridad === 'recomendada' && <span className={styles.badgeRecommended}>★ Recomendada</span>}
                 </div>
 

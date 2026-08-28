@@ -117,9 +117,16 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                                         <div className={styles.propDetails}>
                                             <h4>{prop.titulo}</h4>
                                             <span className={styles.location}>{prop.ubicacion_texto}</span>
-                                            {prop.prioridad === 'recomendada' && (
-                                                <span className={styles.badgeRecomendada}>Destacada</span>
-                                            )}
+                                            <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                                                {prop.verificada && (
+                                                    <span className={styles.badgeRecomendada} style={{ background: '#dcfce7', color: '#15803d' }} title="Propiedad verificada por el equipo de administración">
+                                                        ✓ Verificada
+                                                    </span>
+                                                )}
+                                                {prop.prioridad === 'recomendada' && (
+                                                    <span className={styles.badgeRecomendada}>Destacada</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </td>

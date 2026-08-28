@@ -47,7 +47,14 @@ export default function MapComponent({ propiedades }: { propiedades: any[] }) {
                                     )}
                                     <div className={styles.popupInfo}>
                                         <h3 className={styles.popupTitle}>{prop.titulo}</h3>
-                                        <p className={styles.popupPrice}>{formatPrecio(prop.precio)}</p>
+                                        <p className={styles.popupPrice}>
+                                            {formatPrecio(prop.precio)}
+                                            {prop.verificada && (
+                                                <span style={{ marginLeft: '6px', color: '#16a34a', fontWeight: 'bold', fontSize: '0.8rem' }} title="Propiedad verificada por admin">
+                                                    ✓ Verificada
+                                                </span>
+                                            )}
+                                        </p>
                                         <Link href={`/propiedades/${prop.id}`} className={styles.popupBtn}>
                                             Ver detalle
                                         </Link>

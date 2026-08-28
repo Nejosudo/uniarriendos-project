@@ -181,6 +181,11 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                     <div className={styles.tagsRow}>
                         {propiedad.estado === 'disponible' && <span className={styles.tagSuccess}>Disponible</span>}
                         {propiedad.estado === 'ocupado' && <span className={styles.tagError}>Ocupado</span>}
+                        {propiedad.verificada && (
+                            <span className={styles.tagSuccess} style={{ background: '#dcfce7', color: '#15803d', borderColor: '#bbf7d0' }} title="Revisada y verificada por el equipo de administración de UniArriendos">
+                                ✓ Propiedad Verificada
+                            </span>
+                        )}
                         {propiedad.vivienda_compartida && <span className={styles.tagDefault}>Vivienda Compartida</span>}
                         {propiedad.perfil_arriendo && propiedad.perfil_arriendo !== 'ambos' && (
                             <span className={styles.tagDefault}>Solo {propiedad.perfil_arriendo}</span>
@@ -260,7 +265,13 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                         {anfitrion?.nombre_completo || 'Anfitrión'}
                                         <UserBadge tipo={anfitrion?.tipo} className={styles.hostBadge} />
                                     </p>
-                                    <p className={styles.hostSubtitle}>Anfitrión verificado</p>
+                                     {propiedad.verificada ? (
+                                         <p className={styles.hostSubtitle} style={{ color: '#16a34a', fontWeight: 600 }} title="Propiedad verificada por el equipo de administración">
+                                             ✓ Propiedad verificada
+                                         </p>
+                                     ) : (
+                                         <p className={styles.hostSubtitle}>Anfitrión registrado</p>
+                                     )}
                                 </div>
                             </div>
 

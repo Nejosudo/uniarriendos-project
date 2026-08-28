@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     url: "https://uniarriendos-project.vercel.app",
     siteName: "UniArriendos",
     title: "UniArriendos - Plataforma de arriendos para universitarios",
-    description: "Encuentra arriendos seguros y verificados para estudiantes de UNIPAZ en Barrancabermeja",
+    description: "Encuentra arriendos para estudiantes de UNIPAZ en Barrancabermeja",
     images: [
       {
         url: "https://uniarriendos-project.vercel.app/og-image.png",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "UniArriendos",
-    description: "Busca arriendos seguros para estudiantes de UNIPAZ",
+    description: "Busca arriendos para estudiantes de UNIPAZ",
     creator: "@uniarriendos",
   },
   robots: "index, follow",
