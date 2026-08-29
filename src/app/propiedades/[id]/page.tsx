@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -92,6 +93,19 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     };
 }
 
+function jsonLdPropiedad(prop: any, fotos: string[]) {
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://uniarriendos-project.vercel.app';
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Residence',
+    name: prop.titulo,
+    description: prop.descripcion?.slice(0, 300),
+    image: fotos,
+    url: `${base}/propiedades/${prop.id}`,
+    offers: { '@type': 'Offer', price: prop.precio, priceCurrency: 'COP' },
+    address: prop.ubicacion_texto,
+  };
+}
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
     const { id } = await params;
     const { data: propiedad, error } = await obtenerPropiedad(id);
@@ -141,8 +155,10 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
     };
 
+    const jsonLd = jsonLdPropiedad(propiedad, fotos);
     return (
         <main className={styles.container}>
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
             <div className={styles.header}>
                 <div className={styles.titleRow}>
                     <h1 className={styles.title}>{propiedad.titulo}</h1>
@@ -256,7 +272,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                         <div className={styles.hostCard}>
                             <div className={styles.hostHeader}>
                                 {anfitrion?.avatar_url ? (
-                                    <img src={anfitrion.avatar_url} alt={anfitrion.nombre_completo} className={styles.hostAvatar} />
+                                    <Image src={anfitrion.avatar_url} alt={anfitrion.nombre_completo ? `Avatar de ${anfitrion.nombre_completo}` : 'Avatar anfitrión'} width={48} height={48} className={styles.hostAvatar} />
                                 ) : (
                                     <div className={styles.defaultAvatar}>{anfitrion?.nombre_completo?.charAt(0).toUpperCase() || 'A'}</div>
                                 )}

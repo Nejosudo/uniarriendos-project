@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import styles from './ExplorarMap.module.css';
 import Link from 'next/link';
+import NextImage from 'next/image';
 
 // Configuración para corregir los iconos de Leaflet en Next.js
 const icon = L.icon({
@@ -43,7 +44,7 @@ export default function MapComponent({ propiedades }: { propiedades: any[] }) {
                             <Popup className={styles.customPopup}>
                                 <div className={styles.popupContent}>
                                     {prop.propiedades_fotos && prop.propiedades_fotos[0] && (
-                                        <img src={prop.propiedades_fotos[0].url} alt={prop.titulo} className={styles.popupImg} />
+                                        <NextImage src={prop.propiedades_fotos[0].url} alt={prop.titulo} width={200} height={120} className={styles.popupImg} style={{ objectFit: 'cover' }} />
                                     )}
                                     <div className={styles.popupInfo}>
                                         <h3 className={styles.popupTitle}>{prop.titulo}</h3>

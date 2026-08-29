@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import { getRestricciones } from '@/lib/suspensiones/permissions';
@@ -48,9 +49,9 @@ export default function DashboardSidebar({ perfil, email, suspension = null }: D
                 <div className={styles.profileSummary}>
                     <div className={styles.avatarContainer}>
                         {perfil?.avatar_url ? (
-                            <img src={perfil.avatar_url} alt="Avatar" className={styles.avatar} />
+                            <Image src={perfil.avatar_url} alt={`Avatar de ${perfil?.nombre_completo || 'usuario'}`} width={64} height={64} className={styles.avatar} />
                         ) : (
-                            <div className={styles.avatarPlaceholder}>
+                            <div className={styles.avatarPlaceholder} aria-hidden="true">
                                 {perfil?.nombre_completo ? perfil.nombre_completo.charAt(0).toUpperCase() : 'U'}
                             </div>
                         )}

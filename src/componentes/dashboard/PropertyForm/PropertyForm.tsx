@@ -8,6 +8,7 @@ import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import toast from 'react-hot-toast';
 import styles from './PropertyForm.module.css';
+import { checkNsfw, isAllowedMime } from '@/lib/fotos/nsfw';
 
 // Importación dinámica del mapa para evitar errores de SSR con Leaflet
 const MapComponent = dynamic(() => import('./MapComponent'), { 
@@ -85,44 +86,49 @@ export default function PropertyForm({
         );
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            
-            // Validar tamaño máximo 5MB
-            const maxSize = 5 * 1024 * 1024;
-            const validFiles = newFiles.filter(file => {
-                if (file.size > maxSize) {
-                    toast.error(`La imagen "${file.name}" supera el límite de 5MB y no se añadirá.`);
-                    return false;
-                }
-                return true;
-            });
+    const [validatingNsfw, setValidatingNsfw] = useState(false);
 
-            // Limit to 5 max total
-            if (photos.length + validFiles.length > 5) {
-                toast.error('Solo puedes subir hasta 5 fotos en total.');
-                const remainingSlots = 5 - photos.length;
-                if (remainingSlots > 0) {
-                    const newItems: PhotoItem[] = validFiles.slice(0, remainingSlots).map((file, idx) => ({
-                        id: `new-${Date.now()}-${idx}-${Math.random()}`,
-                        url: URL.createObjectURL(file),
-                        file: file,
-                        isExisting: false
-                    }));
-                    setPhotos(prev => [...prev, ...newItems]);
-                }
-                return;
-            }
-            
-            const newItems: PhotoItem[] = validFiles.map((file, idx) => ({
-                id: `new-${Date.now()}-${idx}-${Math.random()}`,
-                url: URL.createObjectURL(file),
-                file: file,
-                isExisting: false
-            }));
-            setPhotos(prev => [...prev, ...newItems]);
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        const newFiles = Array.from(e.target.files);
+        const maxSize = 5 * 1024 * 1024;
+        let validFiles: File[] = [];
+        for (const file of newFiles) {
+            if (file.size > maxSize) { toast.error(`"${file.name}" supera 5MB`); continue; }
+            if (!isAllowedMime(file.type)) { toast.error(`"${file.name}" formato no permitido`); continue; }
+            validFiles.push(file);
         }
+        if (photos.length + validFiles.length > 5) {
+            toast.error('Solo 5 fotos en total.');
+            validFiles = validFiles.slice(0, 5 - photos.length);
+        }
+        if (validFiles.length === 0) return;
+        setValidatingNsfw(true);
+        const safeFiles: File[] = [];
+        for (const file of validFiles) {
+            try {
+                const res = await checkNsfw(file);
+                if (res.blocked) {
+                    toast.error(`"${file.name}" rechazada: contenido no permitido (${res.label} ${(res.score*100).toFixed(0)}%)`);
+                    continue;
+                }
+                if (res.predictions.find(p => p.className === 'Sexy' && p.probability > 0.7)) {
+                    toast(`"${file.name}" marcada para revisión manual`, { icon: '⚠️' });
+                }
+                safeFiles.push(file);
+            } catch {
+                toast.error(`No se pudo validar "${file.name}", se omitirá`);
+            }
+        }
+        setValidatingNsfw(false);
+        if (safeFiles.length === 0) return;
+        const newItems: PhotoItem[] = safeFiles.map((file, idx) => ({
+            id: `new-${Date.now()}-${idx}-${Math.random()}`,
+            url: URL.createObjectURL(file),
+            file,
+            isExisting: false
+        }));
+        setPhotos(prev => [...prev, ...newItems]);
     };
 
     const removePhoto = (id: string) => {
@@ -399,10 +405,10 @@ export default function PropertyForm({
                         type="button" 
                         className={styles.uploadBtn}
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={photos.length >= 5}
+                        disabled={photos.length >= 5 || validatingNsfw}
                     >
                         <DynamicIcon name="Upload" size={18} />
-                        Subir Fotos
+                        {validatingNsfw ? 'Validando...' : 'Subir Fotos'}
                     </button>
                     <input 
                         type="file" 

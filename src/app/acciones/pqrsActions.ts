@@ -2,7 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { notificarAdmins } from './notificacionesActions';
+import { sanitizeText, validateTextoLargo } from '@/lib/validation';
+import { checkRateLimit, rateLimitKey } from '@/lib/rateLimit';
 
 export type PqrsTipo = 'peticion' | 'queja' | 'reclamo' | 'sugerencia';
 export type PqrsEstado = 'pendiente' | 'en_proceso' | 'resuelto';
@@ -23,28 +26,21 @@ export async function crearPqrs(input: CrearPqrsInput) {
         return { success: false, error: 'Usuario no autorizado' };
     }
 
-    const asunto = input.asunto?.trim();
-    const mensaje = input.mensaje?.trim();
+    const ip = (await headers()).get('x-forwarded-for')?.split(',')[0]?.trim() || null
+    const rl = checkRateLimit(rateLimitKey(ip, user.id, 'pqrs'), 3, 60 * 60 * 1000)
+    if (!rl.ok) return { success: false, error: 'Límite de PQRS alcanzado. Intenta en una hora.' }
+
+    const asunto = sanitizeText(input.asunto || '', 150);
+    const mensaje = sanitizeText(input.mensaje || '', 2000);
 
     if (!TIPOS_VALIDOS.includes(input.tipo)) {
         return { success: false, error: 'Tipo de PQRS no válido' };
     }
 
-    if (!asunto || asunto.length < 5) {
-        return { success: false, error: 'El asunto debe tener al menos 5 caracteres' };
-    }
-
-    if (!mensaje || mensaje.length < 20) {
-        return { success: false, error: 'El mensaje debe tener al menos 20 caracteres' };
-    }
-
-    if (asunto.length > 150) {
-        return { success: false, error: 'El asunto no puede superar 150 caracteres' };
-    }
-
-    if (mensaje.length > 2000) {
-        return { success: false, error: 'El mensaje no puede superar 2000 caracteres' };
-    }
+    const eA = validateTextoLargo(asunto, 5, 150, 'Asunto')
+    if (eA) return { success: false, error: eA }
+    const eM = validateTextoLargo(mensaje, 20, 2000, 'Mensaje')
+    if (eM) return { success: false, error: eM }
 
     const { data, error } = await supabase
         .from('pqrs')

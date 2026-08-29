@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
@@ -35,11 +36,7 @@ function UserAvatar({
 }) {
     if (avatarUrl) {
         return (
-            <img
-                src={avatarUrl}
-                alt={nombre || 'Usuario'}
-                className={styles.qaAvatar}
-            />
+            <Image src={avatarUrl} alt={nombre || 'Usuario'} width={40} height={40} className={styles.qaAvatar} />
         );
     }
 

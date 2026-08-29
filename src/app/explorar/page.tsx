@@ -84,8 +84,9 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
         query = query.eq('vivienda_compartida', true);
     }
 
-    // Ejecutar consulta ordenando por más reciente
-    const { data: propiedades, error } = await query.order('created_at', { ascending: false });
+    const page = Math.max(1, parseInt(params.page as string, 10) || 1);
+    const limit = 12;
+    const { data: propiedades, error } = await query.order('created_at', { ascending: false }).range((page - 1) * limit, page * limit - 1);
 
     if (error) {
         console.error("Error cargando propiedades en explorar:", error);
@@ -111,10 +112,9 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                             <span className={styles.emptySub}>Intenta usar filtros más amplios o limpia la búsqueda.</span>
                         </div>
                     ) : vista === 'mapa' ? (
-                        // VISTA MAPA
                         <ExplorarMap propiedades={propiedades} />
                     ) : (
-                        // VISTA LISTA (Cuadrícula)
+                        <>
                         <div className={styles.grid}>
                             {propiedades.map((prop: any) => {
                                 const anfitrion = prop.anfitrion;
@@ -147,6 +147,11 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                                 );
                             })}
                         </div>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                            {page > 1 && <a href={`?${new URLSearchParams({ ...params, page: String(page - 1) }).toString()}`} className={styles.emptySub} style={{ padding: '0.6rem 1rem', border: '1px solid var(--color-border)', borderRadius: 8 }}>← Anterior</a>}
+                            {propiedades && propiedades.length === limit && <a href={`?${new URLSearchParams({ ...params, page: String(page + 1) }).toString()}`} className={styles.emptySub} style={{ padding: '0.6rem 1rem', border: '1px solid var(--color-border)', borderRadius: 8 }}>Siguiente →</a>}
+                        </div>
+                        </>
                     )}
                 </div>
 

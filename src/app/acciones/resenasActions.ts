@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { assertPuedeInteractuarPublicaciones } from '@/app/acciones/suspensionesActions';
 import { crearNotificacion } from './notificacionesActions';
+import { sanitizeText, validateTextoLargo } from '@/lib/validation';
 
 export interface ResenaConUsuario {
     id: number;
@@ -40,13 +41,9 @@ export async function crearResena(
         return { success: false, error: 'La calificación debe ser entre 1 y 5 estrellas.' };
     }
 
-    const texto = comentario?.trim();
-    if (!texto || texto.length < 10) {
-        return { success: false, error: 'El comentario debe tener al menos 10 caracteres.' };
-    }
-    if (texto.length > 1000) {
-        return { success: false, error: 'El comentario no puede superar 1000 caracteres.' };
-    }
+    const texto = sanitizeText(comentario || '', 1000);
+    const eT = validateTextoLargo(texto, 10, 1000, 'Comentario')
+    if (eT) return { success: false, error: eT }
 
     const { data: propiedad, error: propError } = await supabase
         .from('propiedades')

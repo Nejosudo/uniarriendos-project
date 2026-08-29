@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './Navbar.module.css';
 import { createClient } from '@/lib/supabase/server';
 import { logoutAction } from '@/app/(auth)/actions';
@@ -43,17 +44,17 @@ export default async function Navbar() {
                         </Link>
                     )}
                     <NotificationBell />
-                    <Link href="/dashboard/perfil" className={styles.avatarContainer} title={nombre}>
+                    <Link href="/dashboard/perfil" className={styles.avatarContainer} title={nombre} aria-label="Mi perfil">
                         {avatarUrl ? (
-                            <img src={avatarUrl} alt="Avatar" className={styles.avatar} />
+                            <Image src={avatarUrl} alt={`Avatar de ${nombre || 'usuario'}`} width={32} height={32} className={styles.avatar} />
                         ) : (
-                            <div className={styles.defaultAvatar}>
+                            <div className={styles.defaultAvatar} aria-hidden="true">
                                 {nombre ? nombre.charAt(0).toUpperCase() : 'U'}
                             </div>
                         )}
                     </Link>
                     <form action={logoutAction}>
-                        <button type="submit" className={styles.logoutBtn}>Salir</button>
+                        <button type="submit" className={styles.logoutBtn} aria-label="Cerrar sesión">Salir</button>
                     </form>
                 </div>
             ) : (

@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import styles from './ImageGallery.module.css';
 
 interface Props {
@@ -9,6 +10,16 @@ interface Props {
 export default function ImageGallery({ fotos }: Props) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImage, setCurrentImage] = useState(0);
+    useEffect(() => {
+        if (!lightboxOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setLightboxOpen(false);
+            if (e.key === 'ArrowRight') setCurrentImage(v => (v + 1) % fotos.length);
+            if (e.key === 'ArrowLeft') setCurrentImage(v => v === 0 ? fotos.length - 1 : v - 1);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [lightboxOpen, fotos.length]);
 
     if (!fotos || fotos.length === 0) {
         return (
@@ -45,21 +56,20 @@ export default function ImageGallery({ fotos }: Props) {
         if (count === 1) {
             return (
                 <div className={styles.singleImage} onClick={() => openLightbox(0)}>
-                    <img src={fotos[0]} alt="Propiedad" />
+                    <Image src={fotos[0]} alt="Propiedad - foto 1 de 1" fill sizes="100vw" style={{ objectFit: 'cover' }} />
                 </div>
             );
         }
 
-        // Layout Mosaico adaptativo (2 a 5+ fotos)
         return (
             <div className={`${styles.mosaic} ${styles[`mosaic${Math.min(count, 5)}`]}`}>
                 <div className={styles.mainPhoto} onClick={() => openLightbox(0)}>
-                    <img src={fotos[0]} alt="Principal" />
+                    <Image src={fotos[0]} alt="Propiedad - foto principal" fill sizes="60vw" style={{ objectFit: 'cover' }} priority />
                 </div>
                 <div className={styles.sidePhotos}>
                     {fotos.slice(1, 5).map((foto, idx) => (
                         <div key={idx} className={styles.smallPhoto} onClick={() => openLightbox(idx + 1)}>
-                            <img src={foto} alt={`Foto ${idx + 1}`} />
+                            <Image src={foto} alt={`Propiedad - foto ${idx + 2} de ${fotos.length}`} fill sizes="20vw" style={{ objectFit: 'cover' }} />
                             {idx === 3 && count > 5 && (
                                 <div className={styles.morePhotosOverlay}>+{count - 5} fotos</div>
                             )}
@@ -78,22 +88,24 @@ export default function ImageGallery({ fotos }: Props) {
 
             {/* Lightbox Modal */}
             {lightboxOpen && (
-                <div className={styles.lightbox} onClick={closeLightbox}>
-                    <button className={styles.closeBtn} onClick={closeLightbox}>✕</button>
+                <div className={styles.lightbox} onClick={closeLightbox} role="dialog" aria-modal="true" aria-label="Galería ampliada">
+                    <button className={styles.closeBtn} onClick={closeLightbox} aria-label="Cerrar galería">✕</button>
                     
                     {fotos.length > 1 && (
-                        <button className={styles.navBtnLeft} onClick={prevImage}>‹</button>
+                        <button className={styles.navBtnLeft} onClick={prevImage} aria-label="Foto anterior">‹</button>
                     )}
                     
-                    <img 
+                    <Image 
                         src={fotos[currentImage]} 
-                        alt="Vista ampliada" 
+                        alt={`Vista ampliada ${currentImage + 1} de ${fotos.length}`} 
+                        width={1200} height={800}
                         className={styles.lightboxImage} 
                         onClick={(e) => e.stopPropagation()} 
+                        style={{ width: 'auto', height: 'auto', maxWidth: '90vw', maxHeight: '90vh' }}
                     />
                     
                     {fotos.length > 1 && (
-                        <button className={styles.navBtnRight} onClick={nextImage}>›</button>
+                        <button className={styles.navBtnRight} onClick={nextImage} aria-label="Foto siguiente">›</button>
                     )}
                     
                     {fotos.length > 1 && (

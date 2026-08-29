@@ -60,18 +60,19 @@ export default function NotificationBell() {
         }
     };
 
+    const channelRef = useRef<any>(null);
+
     useEffect(() => {
         fetchNotificaciones();
-
-        // Suscribirse a cambios en tiempo real
-        let channel: any;
 
         const setupSubscription = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-
-            // Configurar el canal y los listeners ANTES de suscribirse
-            channel = supabase
+            if (channelRef.current) {
+                try { await supabase.removeChannel(channelRef.current); } catch {}
+                channelRef.current = null;
+            }
+            const channel = supabase
                 .channel(`notificaciones-${user.id}`)
                 .on(
                     'postgres_changes',
@@ -84,26 +85,23 @@ export default function NotificationBell() {
                     () => {
                         fetchNotificaciones();
                     }
-                );
-
-            // Suscribirse después de configurar los listeners
-            await channel.subscribe();
+                )
+                .subscribe();
+            channelRef.current = channel;
         };
 
         setupSubscription();
-
-        // Cerrar dropdown al hacer click fuera
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
-            if (channel) {
-                supabase.removeChannel(channel);
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+                channelRef.current = null;
             }
         };
     }, []);

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { assertPuedeInteractuarPublicaciones } from '@/app/acciones/suspensionesActions';
 import { crearNotificacion } from './notificacionesActions';
+import { sanitizeText, validateTextoLargo } from '@/lib/validation';
 
 export interface PreguntaConUsuario {
     id: number;
@@ -42,13 +43,9 @@ export async function crearPregunta(propiedadId: number, pregunta: string) {
         return { success: false, error: 'No puedes hacer preguntas debido a una suspensión activa. Contacta al soporte para más información.' };
     }
 
-    const texto = pregunta?.trim();
-    if (!texto || texto.length < 10) {
-        return { success: false, error: 'La pregunta debe tener al menos 10 caracteres.' };
-    }
-    if (texto.length > 500) {
-        return { success: false, error: 'La pregunta no puede superar 500 caracteres.' };
-    }
+    const texto = sanitizeText(pregunta || '', 500);
+    const eP = validateTextoLargo(texto, 10, 500, 'Pregunta')
+    if (eP) return { success: false, error: eP }
 
     const { data: propiedad, error: propError } = await supabase
         .from('propiedades')
@@ -102,13 +99,9 @@ export async function responderPregunta(preguntaId: number, respuesta: string) {
         return { success: false, error: 'Debes iniciar sesión para responder.' };
     }
 
-    const texto = respuesta?.trim();
-    if (!texto || texto.length < 5) {
-        return { success: false, error: 'La respuesta debe tener al menos 5 caracteres.' };
-    }
-    if (texto.length > 1000) {
-        return { success: false, error: 'La respuesta no puede superar 1000 caracteres.' };
-    }
+    const texto2 = sanitizeText(respuesta || '', 1000);
+    const eR = validateTextoLargo(texto2, 5, 1000, 'Respuesta')
+    if (eR) return { success: false, error: eR }
 
     const { data: pregunta, error: preguntaError } = await supabase
         .from('preguntas')
@@ -141,7 +134,7 @@ export async function responderPregunta(preguntaId: number, respuesta: string) {
     const { error } = await supabase
         .from('preguntas')
         .update({
-            respuesta: texto,
+            respuesta: texto2,
             responded_at: new Date().toISOString(),
         })
         .eq('id', preguntaId)

@@ -266,6 +266,21 @@ export interface Database {
           created_at?: string;
         };
       };
+      consentimientos: {
+        Row: { id: number; usuario_id: string; tipo: string; version: string; aceptado_at: string; ip_hash: string | null; user_agent: string | null };
+        Insert: { id?: number; usuario_id: string; tipo: string; version: string; aceptado_at?: string; ip_hash?: string | null; user_agent?: string | null };
+        Update: { id?: number; usuario_id?: string; tipo?: string; version?: string; aceptado_at?: string; ip_hash?: string | null; user_agent?: string | null };
+      };
+      fotos_validacion: {
+        Row: { id: number; usuario_id: string | null; propiedad_id: number | null; foto_url: string | null; resultado: string; motivo: string | null; scores: Json | null; revisado_por: string | null; created_at: string };
+        Insert: { id?: number; usuario_id?: string | null; propiedad_id?: number | null; foto_url?: string | null; resultado: string; motivo?: string | null; scores?: Json | null; revisado_por?: string | null; created_at?: string };
+        Update: { id?: number; usuario_id?: string | null; propiedad_id?: number | null; foto_url?: string | null; resultado?: string; motivo?: string | null; scores?: Json | null; revisado_por?: string | null; created_at?: string };
+      };
+      admin_audit_log: {
+        Row: { id: number; admin_id: string; accion: string; entidad: string; entidad_id: string | null; detalle: Json | null; created_at: string };
+        Insert: { id?: number; admin_id: string; accion: string; entidad: string; entidad_id?: string | null; detalle?: Json | null; created_at?: string };
+        Update: { id?: number; admin_id?: string; accion?: string; entidad?: string; entidad_id?: string | null; detalle?: Json | null; created_at?: string };
+      };
     };
   };
 }

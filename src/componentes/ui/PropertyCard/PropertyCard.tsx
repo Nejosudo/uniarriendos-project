@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './PropertyCard.module.css';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import FavoriteButton from '@/componentes/ui/FavoriteButton/FavoriteButton';
@@ -48,7 +49,7 @@ export default function PropertyCard(props: PropertyProps) {
             <div className={styles.cardHeader}>
                 <div className={styles.hostInfo}>
                     {anfitrion_avatar ? (
-                        <img src={anfitrion_avatar} alt={anfitrion_nombre} className={styles.hostAvatar} />
+                        <Image src={anfitrion_avatar} alt={anfitrion_nombre || 'Anfitrión'} width={32} height={32} className={styles.hostAvatar} />
                     ) : (
                         <div className={styles.defaultHostAvatar}>
                             {anfitrion_nombre ? anfitrion_nombre.charAt(0).toUpperCase() : 'H'}
@@ -60,7 +61,7 @@ export default function PropertyCard(props: PropertyProps) {
 
             <div className={styles.imageWrapper}>
                 {imagen_url ? (
-                    <img src={imagen_url} alt={titulo} className={styles.image} />
+                    <Image src={imagen_url} alt={titulo} fill sizes="(max-width: 768px) 100vw, 400px" className={styles.image} priority={false} />
                 ) : (
                     <div className={styles.noImage}>Sin Imagen</div>
                 )}

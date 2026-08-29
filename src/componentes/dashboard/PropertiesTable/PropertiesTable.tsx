@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -109,7 +110,7 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                                     <div className={styles.propInfo}>
                                         <div className={styles.imgWrapper}>
                                             {imgUrl ? (
-                                                <img src={imgUrl} alt={prop.titulo} />
+                                                <Image src={imgUrl} alt={prop.titulo} width={80} height={60} style={{ objectFit: 'cover' }} />
                                             ) : (
                                                 <div className={styles.imgPlaceholder}><DynamicIcon name="Image" size={16}/></div>
                                             )}

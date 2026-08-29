@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { actualizarPerfil } from '@/app/acciones/perfilActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
@@ -76,9 +77,9 @@ export default function PerfilForm({ initialPerfil, email }: PerfilFormProps) {
             <div className={styles.avatarSection}>
                 <div className={styles.avatarWrapper}>
                     {avatarUrl ? (
-                        <img src={avatarUrl} alt="Perfil" className={styles.avatarImage} />
+                        <Image src={avatarUrl} alt={`Foto de perfil de ${nombre || 'usuario'}`} width={120} height={120} className={styles.avatarImage} />
                     ) : (
-                        <div className={styles.avatarPlaceholder}>
+                        <div className={styles.avatarPlaceholder} aria-hidden="true">
                             <DynamicIcon name="Camera" size={32} />
                         </div>
                     )}
@@ -87,6 +88,7 @@ export default function PerfilForm({ initialPerfil, email }: PerfilFormProps) {
                         onClick={() => fileInputRef.current?.click()} 
                         className={styles.uploadBtn}
                         disabled={isSaving}
+                        aria-label="Cambiar foto de perfil"
                     >
                         <DynamicIcon name="Upload" size={16} /> Cambiar Foto
                     </button>
