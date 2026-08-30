@@ -46,6 +46,9 @@ export async function crearPregunta(propiedadId: number, pregunta: string) {
     const texto = sanitizeText(pregunta || '', 500);
     const eP = validateTextoLargo(texto, 10, 500, 'Pregunta')
     if (eP) return { success: false, error: eP }
+    const { moderarTexto } = await import('@/lib/moderacion/check');
+    const modQ = await moderarTexto(texto);
+    if (modQ.estado === 'oculto') return { success: false, error: 'Pregunta con contenido no permitido.' };
 
     const { data: propiedad, error: propError } = await supabase
         .from('propiedades')

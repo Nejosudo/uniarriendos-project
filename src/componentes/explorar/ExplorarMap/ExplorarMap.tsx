@@ -11,6 +11,6 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
     )
 });
 
-export default function ExplorarMap({ propiedades }: { propiedades: any[] }) {
-    return <MapComponent propiedades={propiedades} />;
+export default function ExplorarMap({ propiedades, destacadaId }: { propiedades: any[]; destacadaId?: number }) {
+    return <MapComponent propiedades={propiedades} destacadaId={destacadaId} />;
 }

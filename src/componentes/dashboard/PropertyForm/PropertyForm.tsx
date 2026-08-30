@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { crearPropiedad, editarPropiedad } from '@/app/acciones/crearPropiedadActions';
@@ -258,6 +258,44 @@ export default function PropertyForm({
         }
     };
 
+function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descripcion, propiedadId, onAplicar }: any) {
+    const [loading, setLoading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+    const [usos, setUsos] = useState(0);
+    const key = `ia_mejorar_${propiedadId || 'nuevo'}`;
+    useEffect(() => { setUsos(Number(localStorage.getItem(key) || 0)); }, [key]);
+    const handle = async () => {
+        if (descripcion.trim().length < 20) { toast.error('Escribe al menos 20 caracteres antes de mejorar'); return; }
+        if (usos >= 2) { toast.error('Límite 2 mejoras por propiedad'); return; }
+        setLoading(true);
+        const r = await fetch('/api/ai/mejorar-descripcion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ descripcion, titulo, precio, ubicacion_texto, servicios }) });
+        const j = await r.json();
+        setLoading(false);
+        if (!r.ok) { toast.error(j.error || 'Error IA'); return; }
+        setPreview(j.mejorada);
+        toast('Revisa la sugerencia y decide si aplicarla', { icon: '✨' });
+    };
+    if (preview) {
+        return (
+            <div style={{ marginTop: '0.6rem', padding: '0.8rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.4rem' }}>✨ Sugerencia IA (no se aplica automático):</p>
+                <p style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', background: 'white', padding: '0.6rem', borderRadius: 6, border: '1px solid #e2e8f0' }}>{preview}</p>
+                <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem' }}>Aviso: el texto es sugerencia; tú eres responsable del contenido publicado.</p>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem' }}>
+                    <button type="button" onClick={() => { onAplicar(preview); const n = usos + 1; localStorage.setItem(key, String(n)); setUsos(n); setPreview(null); toast.success('Descripción mejorada aplicada'); }} style={{ padding: '0.5rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600 }}>Aplicar</button>
+                    <button type="button" onClick={() => setPreview(null)} style={{ padding: '0.5rem 1rem', background: 'white', border: '1px solid var(--color-border)', borderRadius: 8 }}>Descartar</button>
+                </div>
+            </div>
+        );
+    }
+    return (
+        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? '#94a3b8' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
+            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Escribe detalles primero. Límite 2 por propiedad.</span>
+        </div>
+    );
+}
+
     return (
         <form onSubmit={handleSubmit} className={styles.form}>
             {error && <div className={styles.errorAlert}>{error}</div>}
@@ -332,6 +370,7 @@ export default function PropertyForm({
                         onChange={(e) => setDescripcion(e.target.value)}
                         className={styles.textarea}
                     />
+                    <MejorarDescripcion titulo={titulo} precio={precio} ubicacion_texto={ubicacionTexto} servicios={serviciosSeleccionados.map(id => serviciosDisponibles.find(s=>s.id===id)?.nombre).filter(Boolean) as string[]} descripcion={descripcion} propiedadId={propiedadId} onAplicar={setDescripcion} />
                 </div>
             </section>
 

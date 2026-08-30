@@ -3,13 +3,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import styles from './TopSearchBar.module.css';
 
-export default function TopSearchBar() {
+export default function TopSearchBar({ vista: vistaProp, onVistaChange }: { vista?: string; onVistaChange?: (v: string) => void }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [q, setQ] = useState(searchParams.get('q') || '');
     const [isPending, startTransition] = useTransition();
 
-    const vistaActual = searchParams.get('vista') || 'lista';
+    const vistaActual = vistaProp ?? (searchParams.get('vista') || 'lista');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,6 +17,7 @@ export default function TopSearchBar() {
     };
 
     const cambiarVista = (nuevaVista: string) => {
+        if (onVistaChange) { onVistaChange(nuevaVista); return; }
         actualizarUrl({ vista: nuevaVista });
     };
 

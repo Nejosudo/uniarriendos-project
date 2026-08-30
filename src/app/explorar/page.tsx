@@ -1,11 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
-import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
 import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
-import { calcularPromedioResenas } from '@/lib/resenas/utils';
 import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilters';
-import TopSearchBar from '@/componentes/explorar/TopSearchBar/TopSearchBar';
-import ExplorarMap from '@/componentes/explorar/ExplorarMap/ExplorarMap';
+import ExplorarView from '@/componentes/explorar/ExplorarView';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -52,6 +49,25 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     const compartida = params.compartida === 'true';
     const vista = (params.vista as string) || 'lista';
 
+    const isSemanticQuery = q && q.trim().split(/\s+/).length >= 2 && q.length >= 6;
+    let semanticFiltros: any = null;
+    let semanticResultados: any[] | null = null;
+    let useSemantic = false;
+    if (isSemanticQuery) {
+        try {
+            const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            const r = await fetch(`${base}/api/search/semantic?q=${encodeURIComponent(q)}`, { next: { revalidate: 300 } });
+            if (r.ok) {
+                const j = await r.json();
+                if (j.resultados?.length) {
+                    useSemantic = true;
+                    semanticFiltros = j.filtros;
+                    semanticResultados = j.resultados;
+                }
+            }
+        } catch {}
+    }
+
     // Construir la consulta dinámicamente
     let query = supabase
         .from('propiedades')
@@ -67,7 +83,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
         .in('estado', ['disponible', 'ocupado']);
 
     // Aplicar filtros a la consulta
-    if (q) {
+    if (q && !useSemantic) {
         query = query.or(`titulo.ilike.%${q}%,ubicacion_texto.ilike.%${q}%,descripcion.ilike.%${q}%`);
     }
     
@@ -86,7 +102,14 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
 
     const page = Math.max(1, parseInt(params.page as string, 10) || 1);
     const limit = 12;
-    const { data: propiedades, error } = await query.order('created_at', { ascending: false }).range((page - 1) * limit, page * limit - 1);
+    let propiedades: any[] | null = null;
+    let error: any = null;
+    if (useSemantic && semanticResultados) {
+        propiedades = semanticResultados;
+    } else {
+        const res = await query.order('created_at', { ascending: false }).range((page - 1) * limit, page * limit - 1);
+        propiedades = res.data; error = res.error;
+    }
 
     if (error) {
         console.error("Error cargando propiedades en explorar:", error);
@@ -98,70 +121,11 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                 <h1 className={styles.title}>Explorar Propiedades</h1>
                 <p className={styles.subtitle}>Encuentra el lugar ideal para vivir cerca a la UNIPAZ.</p>
             </div>
-            
-            <TopSearchBar />
-            
-            <div className={styles.layout}>
-                {/* Contenido Principal */}
-                <div className={styles.mainContent}>
-                    {error ? (
-                        <div className={styles.error}>Ocurrió un error al cargar las propiedades.</div>
-                    ) : !propiedades || propiedades.length === 0 ? (
-                        <div className={styles.empty}>
-                            <p>No se encontraron propiedades que coincidan con tu búsqueda.</p>
-                            <span className={styles.emptySub}>Intenta usar filtros más amplios o limpia la búsqueda.</span>
-                        </div>
-                    ) : vista === 'mapa' ? (
-                        <ExplorarMap propiedades={propiedades} />
-                    ) : (
-                        <>
-                        <div className={styles.grid}>
-                            {propiedades.map((prop: any) => {
-                                const anfitrion = prop.anfitrion;
-                                const fotos = prop.propiedades_fotos;
-                                const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
-                                const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
-                                const resumenResenas = calcularPromedioResenas(prop.resenas);
-
-                                return (
-                                    <PropertyCard 
-                                        key={prop.id}
-                                        id={prop.id}
-                                        titulo={prop.titulo}
-                                        precio={prop.precio}
-                                        ubicacion_texto={prop.ubicacion_texto}
-                                        imagen_url={imagenPrincipal}
-                                        vivienda_compartida={prop.vivienda_compartida}
-                                        estado={prop.estado}
-                                        prioridad={prop.prioridad}
-                                        verificada={prop.verificada}
-                                        perfil_arriendo={prop.perfil_arriendo}
-                                        anfitrion_nombre={anfitrion?.nombre_completo}
-                                        anfitrion_avatar={anfitrion?.avatar_url}
-                                        servicios={servicios}
-                                        isFavorite={favoritosIds.has(prop.id.toString())}
-                                        favoritosDeshabilitados={favoritosDeshabilitados}
-                                        calificacionPromedio={resumenResenas?.promedio ?? null}
-                                        totalResenas={resumenResenas?.total ?? 0}
-                                    />
-                                );
-                            })}
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                            {page > 1 && <a href={`?${new URLSearchParams({ ...params, page: String(page - 1) }).toString()}`} className={styles.emptySub} style={{ padding: '0.6rem 1rem', border: '1px solid var(--color-border)', borderRadius: 8 }}>← Anterior</a>}
-                            {propiedades && propiedades.length === limit && <a href={`?${new URLSearchParams({ ...params, page: String(page + 1) }).toString()}`} className={styles.emptySub} style={{ padding: '0.6rem 1rem', border: '1px solid var(--color-border)', borderRadius: 8 }}>Siguiente →</a>}
-                        </div>
-                        </>
-                    )}
-                </div>
-
-                {/* Sidebar (Filtros fijos a la derecha) */}
-                <aside className={styles.sidebar}>
-                    <div className={styles.stickyWrapper}>
-                        <ExplorarFilters />
-                    </div>
-                </aside>
-            </div>
+            {error ? <div className={styles.error}>Ocurrió un error al cargar las propiedades.</div> : !propiedades || propiedades.length === 0 ? (
+                <><div className={styles.empty}><p>No se encontraron propiedades que coincidan con tu búsqueda.</p><span className={styles.emptySub}>Intenta usar filtros más amplios o limpia la búsqueda.</span></div><div className={styles.layout}><aside className={styles.sidebar}><div className={styles.stickyWrapper}><ExplorarFilters /></div></aside></div></>
+            ) : (
+                <ExplorarView propiedades={propiedades} favoritosIds={favoritosIds} favoritosDeshabilitados={favoritosDeshabilitados} q={q} useSemantic={useSemantic} filtrosInicial={semanticFiltros} vistaInicial={vista} page={page} params={params} />
+            )}
         </div>
     );
 }

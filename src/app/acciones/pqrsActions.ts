@@ -32,6 +32,11 @@ export async function crearPqrs(input: CrearPqrsInput) {
 
     const asunto = sanitizeText(input.asunto || '', 150);
     const mensaje = sanitizeText(input.mensaje || '', 2000);
+    const { moderarTexto } = await import('@/lib/moderacion/check');
+    const modA = await moderarTexto(asunto);
+    const modM = await moderarTexto(mensaje);
+    const mod = modA.estado !== 'visible' ? modA : modM;
+    if (mod.estado === 'oculto') return { success: false, error: 'Contenido no permitido en PQRS.' };
 
     if (!TIPOS_VALIDOS.includes(input.tipo)) {
         return { success: false, error: 'Tipo de PQRS no válido' };
