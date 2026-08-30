@@ -7,9 +7,9 @@ Next.js 16 + Supabase + Cloudinary + Leaflet. Marketplace de arriendos para la c
 - Node 20+, pnpm
 - Supabase CLI (`npm i -g supabase` o `npx supabase`)
 - Cloudinary account (para fotos)
-- (Opcional Fase 4) Gemini API key gratuita en aistudio.google.com
+- Gemini API key en aistudio.google.com
 
-## Setup local (<10 min)
+## Setup local 
 
 ```bash
 pnpm install
@@ -26,12 +26,11 @@ Abre http://localhost:3000
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=        # solo server
+SUPABASE_SERVICE_ROLE_KEY=        
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-# Futuro IA (Fase 4)
 GEMINI_API_KEY=
 ```
 
@@ -40,8 +39,6 @@ Configurar en Supabase Dashboard → Auth → URL Configuration: `http://localho
 ## Migraciones
 
 - `supabase/migrations/000_baseline.sql` — snapshot esquema base (generado Fase 0, reemplazar con `supabase db dump` real si tienes acceso remoto con datos)
-- `001–009` — incrementales (PQRS, admin, suspensiones, reseñas, preguntas, notificaciones)
-- No commitear `.env*`. Migraciones SÍ versionadas (`.gitignore` ya corregido).
 
 ## Roles
 
@@ -51,7 +48,3 @@ Primer admin: `UPDATE perfiles SET rol='admin' WHERE id='UUID'`
 
 - `pnpm dev` / `pnpm build` / `pnpm lint`
 - `npx supabase gen types typescript --project-id TU_REF > src/lib/types/database.types.ts` — regenerar tipos
-
-## Estado
-
-Ver `documentacion/kanban.md` (proceso), `documentacion/etapa_final.md` (cierre) y `plan-report-2808.md` (roadmap 60%→100%).
