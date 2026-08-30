@@ -68,10 +68,8 @@ export default function NotificationBell() {
         const setupSubscription = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-            if (channelRef.current) {
-                try { await supabase.removeChannel(channelRef.current); } catch {}
-                channelRef.current = null;
-            }
+            const existing = (supabase as any).getChannels?.()?.find((c: any) => c.topic === `realtime:notificaciones-${user.id}`);
+            if (existing || channelRef.current) return;
             const channel = supabase
                 .channel(`notificaciones-${user.id}`)
                 .on(
@@ -86,7 +84,9 @@ export default function NotificationBell() {
                         fetchNotificaciones();
                     }
                 )
-                .subscribe();
+                .subscribe((status: string) => {
+                    if (status === 'CHANNEL_ERROR') console.error('Realtime channel error');
+                });
             channelRef.current = channel;
         };
 

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import CotsemLayers from '@/componentes/ui/CotsemLayers/CotsemLayers';
 
 // Fix for default marker icons in Leaflet with Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -87,14 +88,21 @@ function LocationMarker({ position, onChange }: { position: L.LatLngExpression, 
 
 export default function MapComponent({ lat, lng, onLocationChange }: MapComponentProps) {
     const center: [number, number] = lat && lng ? [lat, lng] : UNIPAZ_CENTER;
+    const [showRuta, setShowRuta] = useState(true);
+    const [showParadas, setShowParadas] = useState(true);
 
     return (
-        <div style={{ height: '350px', width: '100%', borderRadius: '12px', overflow: 'hidden', zIndex: 1 }}>
+        <div style={{ height: '350px', width: '100%', borderRadius: '12px', overflow: 'hidden', zIndex: 1, position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 500, background: 'white', padding: '6px 10px', borderRadius: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.15)', fontSize: '0.8rem', display: 'flex', gap: 12 }}>
+                <label style={{ display: 'flex', gap: 4, alignItems: 'center' }}><input type="checkbox" checked={showRuta} onChange={e => setShowRuta(e.target.checked)} /> Ruta</label>
+                <label style={{ display: 'flex', gap: 4, alignItems: 'center' }}><input type="checkbox" checked={showParadas} onChange={e => setShowParadas(e.target.checked)} /> Paradas</label>
+            </div>
             <MapContainer center={center} zoom={15} style={{ height: '100%', width: '100%' }}>
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <CotsemLayers showRuta={showRuta} showParadas={showParadas} />
                 <LocationMarker position={center} onChange={onLocationChange} />
             </MapContainer>
         </div>

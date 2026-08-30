@@ -151,39 +151,33 @@ export default function PropertyForm({
         
         try {
             setUbicacionError(null);
-            
-            // Construir la query completa con la ciudad para mejorar resultados
-            const query = `${ubicacionTexto}, Barrancabermeja, Santander, Colombia`;
-            
-            // viewbox = [left,top,right,bottom] - coordenadas de Barrancabermeja
-            const params = new URLSearchParams({
-                format: 'json',
-                q: query,
-                viewbox: '-73.95,7.19,-73.73,6.95',
-                bounded: '1', // Busca solo dentro del viewbox
-                limit: '1',
-                countrycodes: 'co' // Parámetro correcto de Nominatim
-            });
-            
-            const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-            console.log('Búsqueda en Nominatim:', url);
-            
-            const respuesta = await fetch(url);
-            
-            if (!respuesta.ok) {
-                throw new Error(`Error HTTP: ${respuesta.status}`);
+            const raw = ubicacionTexto.trim();
+            const variants = [
+                `${raw}, Barrancabermeja, Santander, Colombia`,
+                raw.replace(/\s+con\s+/i, ' con ').replace('#', ' ').trim() + ', Barrancabermeja, Colombia',
+                raw.replace(/calle\s*/i, 'Calle ').replace(/carrera\s*/i, 'Carrera ').trim() + ', Barrancabermeja',
+                raw
+            ];
+            let found: any = null;
+            for (const query of variants) {
+                const params = new URLSearchParams({ format: 'json', q: query, limit: '1', countrycodes: 'co', addressdetails: '1' });
+                const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+                const respuesta = await fetch(url);
+                if (!respuesta.ok) continue;
+                const datos = await respuesta.json();
+                if (datos?.length) { found = datos[0]; break; }
             }
-            
-            const datos = await respuesta.json();
-            console.log('Respuesta de Nominatim:', datos);
-
-            if (datos && Array.isArray(datos) && datos.length > 0) {
-                const { lat, lon } = datos[0];
-                setLatitud(parseFloat(lat));
-                setLongitud(parseFloat(lon));
+            if (found) {
+                setLatitud(parseFloat(found.lat));
+                setLongitud(parseFloat(found.lon));
                 setUbicacionError(null);
             } else {
-                setUbicacionError('No se encontró la dirección. Intenta ser más específico o mueve el marcador manualmente.');
+                const fallback = raw.replace(/\s*con\s*/i, ' y ').replace('#', ' ').split(',')[0];
+                const p2 = new URLSearchParams({ format: 'json', q: `${fallback}, Barrancabermeja, Colombia`, limit: '1', countrycodes: 'co' });
+                const r2 = await fetch(`https://nominatim.openstreetmap.org/search?${p2.toString()}`);
+                const d2 = await r2.json();
+                if (d2?.length) { setLatitud(parseFloat(d2[0].lat)); setLongitud(parseFloat(d2[0].lon)); setUbicacionError(null); }
+                else setUbicacionError('No se encontró la dirección. Intenta ser más específico o mueve el marcador manualmente.');
             }
         } catch (e) {
             console.error('Error buscando dirección:', e);
@@ -290,7 +284,7 @@ function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descri
     }
     return (
         <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? '#94a3b8' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
+            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? '#94a3b8' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', color: usos >= 2 ? 'white' : '#1f2937' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
             <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Escribe detalles primero. Límite 2 por propiedad.</span>
         </div>
     );
@@ -400,7 +394,7 @@ function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descri
                             type="text" 
                             required
                             disabled
-                            placeholder="Opción de búsqueda deshabilitada, usa el mapa dinamico."
+                            placeholder="La búsqueda por dirección exacta no esta disponible"
                             value={ubicacionTexto}
                             onChange={(e) => {
                                 setUbicacionTexto(e.target.value);
@@ -409,7 +403,7 @@ function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descri
                             className={styles.input}
                             style={{ flex: 1 }}
                         />
-                        <button type="button" onClick={buscarEnMapa} className={styles.searchMapBtn} title="Buscar en el mapa">
+                        <button type="button" onClick={buscarEnMapa} className={styles.searchMapBtn} title="Buscar en el mapa" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
                             <DynamicIcon name="Search" size={20} />
                         </button>
                     </div>

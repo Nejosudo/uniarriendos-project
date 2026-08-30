@@ -16,6 +16,7 @@ import { usuarioYaReseno } from '@/app/acciones/resenasActions';
 import type { PreguntaConUsuario } from '@/app/acciones/preguntasActions';
 import { calcularPromedioResenas, formatearEstrellas } from '@/lib/resenas/utils';
 import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
+import CotsemInfo from '@/componentes/ui/CotsemInfo/CotsemInfo';
 
 // Función para obtener propiedad (reutilizable para metadata y componente)
 async function obtenerPropiedad(id: string) {
@@ -233,6 +234,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                     {propiedad.ubicacion_lat && propiedad.ubicacion_lng && (
                         <section className={styles.section}>
                             <h2>Ubicación</h2>
+                            <CotsemInfo lat={propiedad.ubicacion_lat} lng={propiedad.ubicacion_lng} />
                             <PropertyDetailMap 
                                 lat={propiedad.ubicacion_lat} 
                                 lng={propiedad.ubicacion_lng} 
