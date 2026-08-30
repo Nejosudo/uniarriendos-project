@@ -19,6 +19,7 @@
 
 # production
 /build
+/supabase/.temp
 /supabase/migrations
 
 # misc
@@ -34,7 +35,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 PROJECT_REPORT_es.md
-implementation_plan.md
+/documentacion
 
 # vercel
 .vercel
