@@ -1,7 +1,7 @@
 -- 000_baseline.sql — Snapshot del esquema base UniArriendos
--- Generado: 2026-08-28 (Fase 0 — Cimientos)
--- Origen: inferido desde código + migraciones 001–009. Reemplazar con `supabase db dump -f supabase/migrations/000_baseline.sql` cuando haya acceso remoto.
--- Uso: `supabase db reset` recrea BD desde este snapshot + incrementales 001–009.
+-- Generado: 2026-08-28 (Fase 0 — Cimientos) — Actualizado: 2026-08-28 (Fase 3/4: 010–013)
+-- Origen: inferido desde código + migraciones 001–009 + 010_consentimientos, 011_fotos_validacion, 012_indices_y_auditoria, 013_pqrs_respuestas_usuario. Reemplazar con `supabase db dump -f supabase/migrations/000_baseline.sql` cuando haya acceso remoto.
+-- Uso: `supabase db reset` recrea BD desde este snapshot + incrementales 001–013.
 -- Nota: Este archivo NO contiene datos, solo estructura. Equivale al "backup del esqueleto".
 
 -- Extensiones
@@ -84,5 +84,6 @@ CREATE TABLE IF NOT EXISTS public.resenas (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Resto de tablas (pqrs, suspensiones, preguntas, notificaciones) se crean en migraciones 001–009
--- Ver: 001_pqrs.sql, 002_admin.sql, 006_preguntas.sql, 009_notificaciones.sql
+-- Resto de tablas se crean en migraciones 001–013
+-- 001_pqrs.sql, 002_admin.sql, 006_preguntas.sql, 009_notificaciones.sql, 010_consentimientos.sql, 011_fotos_validacion.sql, 012_indices_y_auditoria.sql, 013_pqrs_respuestas_usuario.sql
+-- Para esquema completo: `supabase db reset` aplica 000_baseline + 001–013 en orden.
