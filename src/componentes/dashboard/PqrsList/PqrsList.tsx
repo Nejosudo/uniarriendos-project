@@ -1,15 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { PqrsEstado } from '@/app/acciones/pqrsActions';
+import Image from 'next/image';
+import { PqrsEstado, responderPqrsUsuario } from '@/app/acciones/pqrsActions';
+import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import toast from 'react-hot-toast';
 import styles from './PqrsList.module.css';
 
 interface PqrsRespuesta {
     id: number;
     mensaje: string;
+    imagen_url?: string | null;
     created_at: string;
+    admin_id?: string | null;
+    usuario_id?: string | null;
 }
 
 interface PqrsItem {
@@ -79,6 +85,42 @@ export default function PqrsList({ pqrs }: PqrsListProps) {
         );
     }
 
+function PqrsResponder({ pqrsId }: { pqrsId: number }) {
+    const [mensaje, setMensaje] = useState('');
+    const [imagen, setImagen] = useState<File | null>(null);
+    const [loading, setLoading] = useState(false);
+    const fileRef = useRef<HTMLInputElement>(null);
+    const handleSend = async () => {
+        if (mensaje.trim().length < 10) { toast.error('Mensaje mínimo 10 caracteres'); return; }
+        setLoading(true);
+        let imagenUrl: string | null = null;
+        if (imagen) {
+            if (imagen.size > 5 * 1024 * 1024) { toast.error('Imagen máx 5MB'); setLoading(false); return; }
+            if (!['image/jpeg','image/png','image/webp','image/avif'].includes(imagen.type)) { toast.error('Formato no permitido'); setLoading(false); return; }
+            const fd = new FormData(); fd.append('file', imagen);
+            const up = await uploadImageToCloudinary(fd);
+            if (!up.success) { toast.error(up.error || 'Error subiendo imagen'); setLoading(false); return; }
+            imagenUrl = up.url || null;
+        }
+        const res = await responderPqrsUsuario(pqrsId, mensaje, imagenUrl);
+        if (res.success) { toast.success('Respuesta enviada'); setMensaje(''); setImagen(null); window.location.reload(); }
+        else toast.error(res.error || 'Error');
+        setLoading(false);
+    };
+    return (
+        <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', border: '1px solid var(--color-border)', borderRadius: 8 }}>
+            <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>Responder / Anexar evidencia</h4>
+            <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={3} placeholder="Responde al equipo o anexa evidencia..." style={{ width: '100%', padding: '0.6rem', borderRadius: 8, border: '1px solid var(--color-border)', background: 'white', color: '#1f2937' }} />
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', alignItems: 'center' }}>
+                <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e => setImagen(e.target.files?.[0] || null)} style={{ fontSize: '0.85rem' }} />
+                {imagen && <span style={{ fontSize: '0.8rem', color: '#16a34a' }}>{imagen.name}</span>}
+                <button type="button" onClick={handleSend} disabled={loading} style={{ marginLeft: 'auto', padding: '0.6rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600 }}>{loading ? 'Enviando...' : 'Enviar'}</button>
+            </div>
+            <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.4rem' }}>Máx 5MB, JPG/PNG/WebP/AVIF.</p>
+        </div>
+    );
+}
+
     return (
         <div className={styles.container}>
             <div className={styles.filters}>
@@ -141,16 +183,24 @@ export default function PqrsList({ pqrs }: PqrsListProps) {
                                             <div className={styles.respuestas}>
                                                 <h4 className={styles.respuestasTitle}>
                                                     <DynamicIcon name="MessageCircle" size={16} />
-                                                    Respuestas del equipo ({respuestas.length})
+                                                    Historial ({respuestas.length})
                                                 </h4>
                                                 {respuestas.map((r) => (
-                                                    <div key={r.id} className={styles.respuesta}>
-                                                        <p>{r.mensaje}</p>
+                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid #16a34a' }}>
+                                                        <p><strong>{r.usuario_id ? 'Tú:' : 'Equipo:'}</strong> {r.mensaje}</p>
+                                                        {r.imagen_url && (
+                                                            <>
+                                                                <img src={r.imagen_url} alt="Evidencia" style={{ maxWidth: 260, borderRadius: 8, marginTop: 6, border: '1px solid var(--color-border)' }} />
+                                                                <div style={{ marginTop: 6 }}><a href={r.imagen_url} download target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', padding: '4px 8px', background: '#f1f5f9', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', color: '#1f2937' }}>Ver evidencia</a></div>
+                                                            </>
+                                                        )}
                                                         <span className={styles.respuestaFecha}>{formatDate(r.created_at)}</span>
                                                     </div>
                                                 ))}
                                             </div>
                                         )}
+
+                                        <PqrsResponder pqrsId={item.id} />
 
                                         {respuestas.length === 0 && item.estado === 'pendiente' && (
                                             <p className={styles.sinRespuesta}>

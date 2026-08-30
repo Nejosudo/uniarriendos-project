@@ -15,7 +15,7 @@ interface PqrsItem {
     estado: PqrsEstado;
     created_at: string;
     usuario?: { nombre_completo: string | null };
-    pqrs_respuestas?: { id: number; mensaje: string; created_at: string }[];
+    pqrs_respuestas?: { id: number; mensaje: string; imagen_url?: string | null; usuario_id?: string | null; admin_id?: string | null; created_at: string }[];
 }
 
 interface AdminPqrsPanelProps {
@@ -158,8 +158,17 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                             <div className={styles.respuestas}>
                                                 <h4>Respuestas anteriores</h4>
                                                 {respuestas.map((r) => (
-                                                    <div key={r.id} className={styles.respuesta}>
-                                                        <p>{r.mensaje}</p>
+                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid #16a34a' }}>
+                                                        <p><strong>{r.usuario_id ? 'Usuario:' : 'Equipo:'}</strong> {r.mensaje}</p>
+                                                        {r.imagen_url && (
+                                                            <div style={{ marginTop: 8 }}>
+                                                                <img src={r.imagen_url} alt="Evidencia" style={{ maxWidth: 260, borderRadius: 8, border: '1px solid var(--color-border)' }} />
+                                                                <div style={{ marginTop: 6 }}>
+                                                                    <a href={r.imagen_url.includes('/upload/') ? r.imagen_url.replace('/upload/', '/upload/fl_attachment/') : r.imagen_url} download={`evidencia-pqrs-${r.id}.jpg`} style={{ display: 'inline-flex', gap: 6, alignItems: 'center', padding: '6px 10px', background: 'var(--color-primary)', color: 'white', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>⬇ Descargar evidencia</a>
+                                                                    <a href={r.imagen_url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 8, fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 600 }}>Ver original</a>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <span>{formatDate(r.created_at)}</span>
                                                     </div>
                                                 ))}

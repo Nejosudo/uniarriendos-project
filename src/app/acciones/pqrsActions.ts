@@ -79,6 +79,25 @@ export async function crearPqrs(input: CrearPqrsInput) {
     return { success: true, pqrsId: data.id };
 }
 
+export async function responderPqrsUsuario(pqrsId: number, mensaje: string, imagenUrl?: string | null) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'No autorizado' };
+    const texto = sanitizeText(mensaje || '', 2000);
+    const eM = validateTextoLargo(texto, 10, 2000, 'Mensaje');
+    if (eM) return { success: false, error: eM };
+    if (imagenUrl && imagenUrl.length > 500) return { success: false, error: 'URL imagen inválida' };
+    const { data: pqrs, error: pqErr } = await supabase.from('pqrs').select('id, usuario_id').eq('id', pqrsId).single();
+    if (pqErr || !pqrs || pqrs.usuario_id !== user.id) return { success: false, error: 'PQRS no encontrada' };
+    const { error } = await supabase.from('pqrs_respuestas').insert({ pqrs_id: pqrsId, usuario_id: user.id, mensaje: texto, imagen_url: imagenUrl || null } as any);
+    if (error) return { success: false, error: 'No se pudo enviar respuesta' };
+    await supabase.from('pqrs').update({ estado: 'en_proceso', updated_at: new Date().toISOString() }).eq('id', pqrsId);
+    await notificarAdmins({ tipo: 'pqrs_respuesta_usuario', titulo: 'Respuesta PQRS usuario', mensaje: `Usuario respondió PQRS #${pqrsId}: «${texto.slice(0, 60)}»`, enlace: '/admin/pqrs', metadata: { pqrs_id: pqrsId } });
+    revalidatePath('/dashboard/pqrs');
+    revalidatePath('/admin/pqrs');
+    return { success: true };
+}
+
 export async function obtenerMisPqrs() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -100,7 +119,10 @@ export async function obtenerMisPqrs() {
             pqrs_respuestas (
                 id,
                 mensaje,
-                created_at
+                imagen_url,
+                created_at,
+                admin_id,
+                usuario_id
             )
         `)
         .eq('usuario_id', user.id)
