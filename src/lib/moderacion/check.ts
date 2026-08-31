@@ -6,9 +6,9 @@ export async function moderarTexto(texto: string): Promise<ModeracionResult> {
   if (containsContactInfo(texto)) return { estado: 'pendiente_revision', motivo: 'contiene datos de contacto' };
   if (process.env.GEMINI_API_KEY && texto.length > 20) {
     try {
-      const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+      const model = (process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite').trim();
       const prompt = `Clasifica toxicidad 0-1 de: "${texto.slice(0,300)}". Responde JSON {"toxic":0.0-1.0}. Solo JSON.`;
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY?.trim()}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 50 } }),
       });
