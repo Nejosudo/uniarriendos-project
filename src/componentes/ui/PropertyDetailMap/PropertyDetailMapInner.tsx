@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet';
-import CotsemLayers from '@/componentes/ui/CotsemLayers/CotsemLayers';
+import dynamic from 'next/dynamic';
+const CotsemLayers = dynamic(() => import('@/componentes/ui/CotsemLayers/CotsemLayers'), { ssr: false, loading: () => null });
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 

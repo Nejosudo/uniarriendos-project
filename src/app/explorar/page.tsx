@@ -56,7 +56,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     if (isSemanticQuery) {
         try {
             const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-            const r = await fetch(`${base}/api/search/semantic?q=${encodeURIComponent(q)}`, { next: { revalidate: 300 } });
+            const r = await fetch(`${base}/api/search/semantic?q=${encodeURIComponent(q)}`, { cache: 'no-store' });
             if (r.ok) {
                 const j = await r.json();
                 if (j.resultados?.length) {
