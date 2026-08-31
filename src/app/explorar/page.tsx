@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilters';
 import ExplorarView from '@/componentes/explorar/ExplorarView';
@@ -55,7 +56,10 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     let useSemantic = false;
     if (isSemanticQuery) {
         try {
-            const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            const h = await headers();
+            const host = h.get('host');
+            const proto = h.get('x-forwarded-proto') || (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+            const base = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
             const r = await fetch(`${base}/api/search/semantic?q=${encodeURIComponent(q)}`, { cache: 'no-store' });
             if (r.ok) {
                 const j = await r.json();
@@ -124,7 +128,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
             {error ? <div className={styles.error}>Ocurrió un error al cargar las propiedades.</div> : !propiedades || propiedades.length === 0 ? (
                 <><div className={styles.empty}><p>No se encontraron propiedades que coincidan con tu búsqueda.</p><span className={styles.emptySub}>Intenta usar filtros más amplios o limpia la búsqueda.</span></div><div className={styles.layout}><aside className={styles.sidebar}><div className={styles.stickyWrapper}><ExplorarFilters /></div></aside></div></>
             ) : (
-                <ExplorarView propiedades={propiedades} favoritosIds={favoritosIds} favoritosDeshabilitados={favoritosDeshabilitados} q={q} useSemantic={useSemantic} filtrosInicial={semanticFiltros} vistaInicial={vista} page={page} params={params} />
+                <ExplorarView propiedades={propiedades} favoritosIds={favoritosIds} favoritosDeshabilitados={favoritosDeshabilitados} q={q} useSemantic={useSemantic} vistaInicial={vista} page={page} params={params} />
             )}
         </div>
     );
