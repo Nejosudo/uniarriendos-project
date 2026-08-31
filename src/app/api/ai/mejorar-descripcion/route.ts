@@ -9,9 +9,9 @@ export async function POST(req: NextRequest) {
   const desc = (descripcion || '').trim();
   if (!desc || desc.length < 20) return NextResponse.json({ error: 'Escribe al menos 20 caracteres antes de mejorar' }, { status: 400 });
   if (desc.length > 2000) return NextResponse.json({ error: 'Descripción muy larga' }, { status: 400 });
-  const key = process.env.GEMINI_API_KEY;
+  const key = process.env.GEMINI_API_KEY?.trim();
   if (!key) return NextResponse.json({ error: 'IA no configurada' }, { status: 500 });
-  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+  const model = (process.env.GEMINI_MODEL || 'gemini-1.5-flash-8b').trim();
   const prompt = `Eres asistente inmobiliario. Reescribe esta descripción de arriendo para hacerla más formal, clara y atractiva, manteniendo datos reales, agregando 2-4 emojis decorativos relevantes (🏠✨📍). No inventes servicios. Máx 900 caracteres. Título: "${titulo || ''}" Precio: ${precio || ''} Ubicación: "${ubicacion_texto || ''}" Servicios: ${(servicios || []).join(', ')}. Descripción original: "${desc}" Responde solo con la descripción mejorada.`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
