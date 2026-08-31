@@ -57,20 +57,20 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     if (isSemanticQuery) {
         try {
             const h = await headers();
-            const host = h.get('host');
-            const proto = h.get('x-forwarded-proto') || (process.env.NODE_ENV === 'production' ? 'https' : 'http');
-            const base = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
-            const r = await fetch(`${base}/api/search/semantic?q=${encodeURIComponent(q)}`, { cache: 'no-store' });
-            if (r.ok) {
-                const j = await r.json();
-                if (j.resultados?.length) {
-                    useSemantic = true;
-                    semanticFiltros = j.filtros;
-                    semanticResultados = j.resultados;
-                }
+            const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+            const { searchSemantic } = await import('@/lib/search/semantic');
+            const j: any = await searchSemantic(q, ip);
+            if (j.resultados?.length) {
+                useSemantic = true;
+                semanticFiltros = j.filtros;
+                semanticResultados = j.resultados;
+            } else if (j.filtros) {
+                semanticFiltros = j.filtros;
+                if (j.filtros.compartida) useSemantic = true;
             }
-        } catch {}
+        } catch (e) { console.error('semantic direct error', e); }
     }
+    const fallbackCompartida = !useSemantic && isSemanticQuery && /compartir|compartida/i.test(q);
 
     // Construir la consulta dinámicamente
     let query = supabase
@@ -86,9 +86,17 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
         `)
         .in('estado', ['disponible', 'ocupado']);
 
-    // Aplicar filtros a la consulta
+    // Si semantic detectó compartida pero no trajo resultados (filtros estrictos), aplica igual
+    const semanticCompartida = semanticFiltros?.compartida === true;
     if (q && !useSemantic) {
-        query = query.or(`titulo.ilike.%${q}%,ubicacion_texto.ilike.%${q}%,descripcion.ilike.%${q}%`);
+        if (fallbackCompartida || semanticCompartida) query = query.eq('vivienda_compartida', true);
+        if ((fallbackCompartida || semanticCompartida) && q.toLowerCase().includes('habitacion')) {
+            query = query.or(`titulo.ilike.%habitacion%,descripcion.ilike.%habitacion%`);
+        } else {
+            query = query.or(`titulo.ilike.%${q}%,ubicacion_texto.ilike.%${q}%,descripcion.ilike.%${q}%`);
+        }
+    } else if (semanticCompartida && !useSemantic) {
+        query = query.eq('vivienda_compartida', true);
     }
     
     if (precio_rango) {
