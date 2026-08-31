@@ -85,7 +85,7 @@ export default function NotificationBell() {
                     }
                 )
                 .subscribe((status: string) => {
-                    if (status === 'CHANNEL_ERROR') console.error('Realtime channel error');
+                    if (status === 'CHANNEL_ERROR') console.warn('Realtime channel error (reintentando)');
                 });
             channelRef.current = channel;
         };

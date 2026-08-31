@@ -21,6 +21,12 @@
 /build
 /supabase/.temp
 /supabase/migrations
+/supabase/.branches
+/tests
+/test-results
+playwright.config.ts
+vitest.config.ts
+
 
 # misc
 .DS_Store
