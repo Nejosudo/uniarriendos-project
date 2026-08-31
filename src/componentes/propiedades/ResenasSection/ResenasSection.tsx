@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
@@ -80,9 +81,10 @@ export default function ResenasSection({
                         <article key={res.id} className={styles.reviewItem}>
                             <div className={styles.reviewHeader}>
                                 {res.usuario?.avatar_url ? (
-                                    <img
+                                    <Image
                                         src={res.usuario.avatar_url}
                                         alt={res.usuario.nombre_completo || 'Usuario'}
+                                        width={40} height={40}
                                         className={styles.reviewAvatar}
                                     />
                                 ) : (

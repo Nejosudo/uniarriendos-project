@@ -18,6 +18,9 @@ export default async function AdminPqrsPage() {
             pqrs_respuestas (
                 id,
                 mensaje,
+                imagen_url,
+                usuario_id,
+                admin_id,
                 created_at
             )
         `)

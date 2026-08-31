@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 import {
@@ -104,7 +105,7 @@ export default function AdminPropiedadesTable({ propiedades: initial }: AdminPro
                                         <div className={styles.propInfo}>
                                             <div className={styles.imgWrapper}>
                                                 {imgUrl ? (
-                                                    <img src={imgUrl} alt={prop.titulo} />
+                                                    <Image src={imgUrl} alt={prop.titulo} width={80} height={60} style={{ objectFit: 'cover' }} />
                                                 ) : (
                                                     <div className={styles.imgPlaceholder}>
                                                         <DynamicIcon name="Image" size={16} />

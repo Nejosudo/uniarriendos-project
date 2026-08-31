@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
@@ -109,7 +110,7 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                                     <div className={styles.propInfo}>
                                         <div className={styles.imgWrapper}>
                                             {imgUrl ? (
-                                                <img src={imgUrl} alt={prop.titulo} />
+                                                <Image src={imgUrl} alt={prop.titulo} width={80} height={60} style={{ objectFit: 'cover' }} />
                                             ) : (
                                                 <div className={styles.imgPlaceholder}><DynamicIcon name="Image" size={16}/></div>
                                             )}
@@ -117,9 +118,16 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                                         <div className={styles.propDetails}>
                                             <h4>{prop.titulo}</h4>
                                             <span className={styles.location}>{prop.ubicacion_texto}</span>
-                                            {prop.prioridad === 'recomendada' && (
-                                                <span className={styles.badgeRecomendada}>Destacada</span>
-                                            )}
+                                            <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                                                {prop.verificada && (
+                                                    <span className={styles.badgeRecomendada} style={{ background: '#dcfce7', color: '#15803d' }} title="Propiedad verificada por el equipo de administración">
+                                                        ✓ Verificada
+                                                    </span>
+                                                )}
+                                                {prop.prioridad === 'recomendada' && (
+                                                    <span className={styles.badgeRecomendada}>Destacada</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </td>

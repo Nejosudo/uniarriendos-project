@@ -8,7 +8,7 @@ import styles from './page.module.css';
 
 export const metadata: Metadata = {
     title: 'UniArriendos - Arriendos para universitarios de UNIPAZ',
-    description: 'Encuentra tu próximo arriendo de forma segura. Plataforma verificada para estudiantes y externos de UNIPAZ en Barrancabermeja con reseñas, fotos y ubicación en tiempo real.',
+    description: 'Encuentra tu próximo arriendo para la comunidad universitaria de UNIPAZ en Barrancabermeja con reseñas, fotos y ubicación en tiempo real.',
     keywords: ['arriendos Barrancabermeja', 'habitaciones universitarios', 'UNIPAZ', 'apartamentos estudiantes'],
     alternates: {
         canonical: 'https://uniarriendos-project.vercel.app',
@@ -63,7 +63,7 @@ export default async function Home() {
             Tu hogar ideal cerca de la <span className={styles.highlight}>UNIPAZ</span>
           </h1>
           <p className={styles.heroSubtitle}>
-            Encuentra habitaciones, apartaestudios y casas verificadas. Sin intermediarios, directo con los dueños.
+            Encuentra habitaciones, apartaestudios y casas. Sin intermediarios, directo con los dueños.
           </p>
           
           <div className={styles.heroActions}>
@@ -89,8 +89,8 @@ export default async function Home() {
             </div>
             <div className={styles.benefitCard}>
               <div className={styles.benefitIcon}>🛡️</div>
-              <h3>Anfitriones Verificados</h3>
-              <p>Protegemos tu seguridad. Solo dueños con identidad comprobada pueden publicar en la plataforma.</p>
+              <h3>Propiedades Verificadas</h3>
+              <p>Fomentamos la transparencia. El equipo admin revisa e identifica las propiedades con badge de verificación.</p>
             </div>
             <div className={styles.benefitCard}>
               <div className={styles.benefitIcon}>⚡</div>
@@ -135,6 +135,7 @@ export default async function Home() {
                       vivienda_compartida={prop.vivienda_compartida}
                       estado={prop.estado}
                       prioridad={prop.prioridad}
+                      verificada={prop.verificada}
                       perfil_arriendo={prop.perfil_arriendo}
                       anfitrion_nombre={anfitrion?.nombre_completo}
                       anfitrion_avatar={anfitrion?.avatar_url}

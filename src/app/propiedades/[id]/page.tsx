@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -15,6 +16,7 @@ import { usuarioYaReseno } from '@/app/acciones/resenasActions';
 import type { PreguntaConUsuario } from '@/app/acciones/preguntasActions';
 import { calcularPromedioResenas, formatearEstrellas } from '@/lib/resenas/utils';
 import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
+import CotsemInfo from '@/componentes/ui/CotsemInfo/CotsemInfo';
 
 // Función para obtener propiedad (reutilizable para metadata y componente)
 async function obtenerPropiedad(id: string) {
@@ -92,6 +94,19 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     };
 }
 
+function jsonLdPropiedad(prop: any, fotos: string[]) {
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://uniarriendos-project.vercel.app';
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Residence',
+    name: prop.titulo,
+    description: prop.descripcion?.slice(0, 300),
+    image: fotos,
+    url: `${base}/propiedades/${prop.id}`,
+    offers: { '@type': 'Offer', price: prop.precio, priceCurrency: 'COP' },
+    address: prop.ubicacion_texto,
+  };
+}
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
     const { id } = await params;
     const { data: propiedad, error } = await obtenerPropiedad(id);
@@ -141,8 +156,10 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
     };
 
+    const jsonLd = jsonLdPropiedad(propiedad, fotos);
     return (
         <main className={styles.container}>
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
             <div className={styles.header}>
                 <div className={styles.titleRow}>
                     <h1 className={styles.title}>{propiedad.titulo}</h1>
@@ -181,6 +198,11 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                     <div className={styles.tagsRow}>
                         {propiedad.estado === 'disponible' && <span className={styles.tagSuccess}>Disponible</span>}
                         {propiedad.estado === 'ocupado' && <span className={styles.tagError}>Ocupado</span>}
+                        {propiedad.verificada && (
+                            <span className={styles.tagSuccess} style={{ background: '#dcfce7', color: '#15803d', borderColor: '#bbf7d0' }} title="Revisada y verificada por el equipo de administración de UniArriendos">
+                                ✓ Propiedad Verificada
+                            </span>
+                        )}
                         {propiedad.vivienda_compartida && <span className={styles.tagDefault}>Vivienda Compartida</span>}
                         {propiedad.perfil_arriendo && propiedad.perfil_arriendo !== 'ambos' && (
                             <span className={styles.tagDefault}>Solo {propiedad.perfil_arriendo}</span>
@@ -212,6 +234,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                     {propiedad.ubicacion_lat && propiedad.ubicacion_lng && (
                         <section className={styles.section}>
                             <h2>Ubicación</h2>
+                            <CotsemInfo lat={propiedad.ubicacion_lat} lng={propiedad.ubicacion_lng} />
                             <PropertyDetailMap 
                                 lat={propiedad.ubicacion_lat} 
                                 lng={propiedad.ubicacion_lng} 
@@ -251,7 +274,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                         <div className={styles.hostCard}>
                             <div className={styles.hostHeader}>
                                 {anfitrion?.avatar_url ? (
-                                    <img src={anfitrion.avatar_url} alt={anfitrion.nombre_completo} className={styles.hostAvatar} />
+                                    <Image src={anfitrion.avatar_url} alt={anfitrion.nombre_completo ? `Avatar de ${anfitrion.nombre_completo}` : 'Avatar anfitrión'} width={48} height={48} className={styles.hostAvatar} />
                                 ) : (
                                     <div className={styles.defaultAvatar}>{anfitrion?.nombre_completo?.charAt(0).toUpperCase() || 'A'}</div>
                                 )}
@@ -260,7 +283,13 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                         {anfitrion?.nombre_completo || 'Anfitrión'}
                                         <UserBadge tipo={anfitrion?.tipo} className={styles.hostBadge} />
                                     </p>
-                                    <p className={styles.hostSubtitle}>Anfitrión verificado</p>
+                                     {propiedad.verificada ? (
+                                         <p className={styles.hostSubtitle} style={{ color: '#16a34a', fontWeight: 600 }} title="Propiedad verificada por el equipo de administración">
+                                             ✓ Propiedad verificada
+                                         </p>
+                                     ) : (
+                                         <p className={styles.hostSubtitle}>Anfitrión registrado</p>
+                                     )}
                                 </div>
                             </div>
 

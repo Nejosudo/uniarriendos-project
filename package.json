@@ -14,19 +14,24 @@
     "cloudinary": "^2.10.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.24.0",
-    "next": "16.2.4",
+    "next": "16.3.3",
+    "nsfwjs": "^4.4.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@testing-library/react": "^16.3.3",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.2.4",
-    "typescript": "^5.9.3"
+    "eslint-config-next": "16.3.3",
+    "jsdom": "^30.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
   }
 }

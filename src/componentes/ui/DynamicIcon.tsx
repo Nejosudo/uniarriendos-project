@@ -35,6 +35,7 @@ import {
   MessageSquare,
   Lightbulb,
   Send,
+  Toilet,
   Inbox,
   ChevronUp,
   ChevronDown,
@@ -90,6 +91,7 @@ const IconMap: Record<string, React.FC<LucideProps>> = {
   MessageSquare,
   Lightbulb,
   Send,
+  Toilet,
   Inbox,
   ChevronUp,
   ChevronDown,
@@ -100,15 +102,25 @@ const IconMap: Record<string, React.FC<LucideProps>> = {
   Bell
 };
 
-export default function DynamicIcon({ name, className, size = 20, color = 'currentColor' }: DynamicIconProps) {
-  // Lucide usa PascalCase
-  const toPascalCase = (str: string) => {
-    if (!str) return '';
-    return str.split(/[-_ ]/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('');
-  };
-  
-  const PascalName = toPascalCase(name || 'check');
-  const LucideIcon = IconMap[PascalName] || IconMap['CheckCircle'];
+const aliases: Record<string, string> = {
+  wifi: 'Wifi',
+  parqueadero: 'Car',
+  parking: 'Car',
+  aire: 'Wind',
+  'aire-acondicionado': 'Snowflake',
+  cocina: 'Utensils',
+  lavanderia: 'WashingMachine',
+  'lavadora': 'WashingMachine',
+  petfriendly: 'Heart',
+};
 
+export default function DynamicIcon({ name, className, size = 20, color = 'currentColor' }: DynamicIconProps) {
+  const raw = (name || 'check').trim().toLowerCase().replace(/\s+/g, '-');
+  const alias = aliases[raw];
+  const normalized = alias || raw;
+  const toPascalCase = (str: string) => str.split(/[-_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+  const pascal = toPascalCase(normalized);
+  const lowerMap: Record<string, React.FC<LucideProps>> = Object.fromEntries(Object.entries(IconMap).map(([k, v]) => [k.toLowerCase(), v]));
+  const LucideIcon = lowerMap[pascal.toLowerCase()] || lowerMap[normalized.toLowerCase()] || IconMap['CheckCircle'];
   return <LucideIcon className={className} size={size} color={color} />;
 }

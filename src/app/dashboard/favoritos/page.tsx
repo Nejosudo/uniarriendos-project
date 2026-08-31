@@ -74,6 +74,7 @@ export default async function FavoritosPage() {
                                 vivienda_compartida={prop.vivienda_compartida}
                                 estado={prop.estado}
                                 prioridad={prop.prioridad}
+                                verificada={prop.verificada}
                                 perfil_arriendo={prop.perfil_arriendo}
                                 anfitrion_nombre={anfitrion?.nombre_completo}
                                 anfitrion_avatar={anfitrion?.avatar_url}

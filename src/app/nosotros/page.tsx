@@ -22,7 +22,7 @@ export default function Nosotros() {
               UniArriendos es una plataforma dedicada a facilitar la búsqueda de vivienda para estudiantes de la Universidad de la Paz (UNIPAZ) y personas externas que buscan opciones cercanas a la universidad.
             </p>
             <p>
-              Nuestra misión es conectar a estudiantes con anfitriones verificados, ofreciendo un proceso transparente, seguro y sin intermediarios.
+              Nuestra misión es conectar a estudiantes con anfitriones y propiedades de calidad, ofreciendo un proceso transparente, seguro y sin intermediarios.
             </p>
           </div>
         </section>
@@ -58,8 +58,8 @@ export default function Nosotros() {
           <h2 className={styles.sectionTitle}>Valores</h2>
           <div className={styles.sectionContent}>
             <ul>
-              <li><strong>Transparencia:</strong> Ofrecemos información clara y verificada sobre cada propiedad.</li>
-              <li><strong>Seguridad:</strong> Todos nuestros anfitriones son verificados para garantizar tu tranquilidad.</li>
+              <li><strong>Transparencia:</strong> Ofrecemos información clara sobre cada propiedad y su estado de verificación.</li>
+              <li><strong>Seguridad:</strong> Fomentamos una comunidad segura mediante la revisión administrativa de publicaciones e identidades.</li>
               <li><strong>Accesibilidad:</strong> Facilitamos el acceso a vivienda de calidad para todos los estudiantes.</li>
               <li><strong>Comunidad:</strong> Fomentamos la conexión entre estudiantes y anfitriones para crear una comunidad universitaria más unida.</li>
             </ul>

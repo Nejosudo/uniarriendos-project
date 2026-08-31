@@ -19,7 +19,14 @@
 
 # production
 /build
+/supabase/.temp
 /supabase/migrations
+/supabase/.branches
+/tests
+/test-results
+playwright.config.ts
+vitest.config.ts
+
 
 # misc
 .DS_Store
@@ -34,7 +41,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 PROJECT_REPORT_es.md
-implementation_plan.md
+/documentacion
 
 # vercel
 .vercel

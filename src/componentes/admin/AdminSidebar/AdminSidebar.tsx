@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
@@ -30,7 +31,7 @@ export default function AdminSidebar({ perfil, email }: AdminSidebarProps) {
             <div className={styles.profileSummary}>
                 <div className={styles.avatarContainer}>
                     {perfil?.avatar_url ? (
-                        <img src={perfil.avatar_url} alt="Avatar" className={styles.avatar} />
+                        <Image src={perfil.avatar_url} alt="Avatar" width={40} height={40} className={styles.avatar} />
                     ) : (
                         <div className={styles.avatarPlaceholder}>
                             {perfil?.nombre_completo?.charAt(0).toUpperCase() || 'A'}

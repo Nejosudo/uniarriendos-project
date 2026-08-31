@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { logoutAction } from '@/app/(auth)/actions';
 import styles from './Navbar.module.css';
@@ -41,8 +42,7 @@ export default function NavbarMobileMenu({ isLoggedIn, isAdmin, avatarUrl, nombr
                             <div className={styles.mobileUserSection}>
                                 <Link href="/dashboard/perfil" className={styles.mobileProfileLink} onClick={() => setIsOpen(false)}>
                                     {avatarUrl ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={avatarUrl} alt={nombre || 'Avatar'} className={styles.mobileAvatar} />
+                                        <Image src={avatarUrl} alt={`Avatar de ${nombre || 'usuario'}`} width={32} height={32} className={styles.mobileAvatar} />
                                     ) : (
                                         <div className={styles.mobileDefaultAvatar}>
                                             {nombre ? nombre.charAt(0).toUpperCase() : 'U'}

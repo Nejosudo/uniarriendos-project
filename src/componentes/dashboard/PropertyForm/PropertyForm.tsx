@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { crearPropiedad, editarPropiedad } from '@/app/acciones/crearPropiedadActions';
@@ -8,6 +8,7 @@ import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import toast from 'react-hot-toast';
 import styles from './PropertyForm.module.css';
+import { checkNsfw, isAllowedMime } from '@/lib/fotos/nsfw';
 
 // Importación dinámica del mapa para evitar errores de SSR con Leaflet
 const MapComponent = dynamic(() => import('./MapComponent'), { 
@@ -85,44 +86,49 @@ export default function PropertyForm({
         );
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            
-            // Validar tamaño máximo 5MB
-            const maxSize = 5 * 1024 * 1024;
-            const validFiles = newFiles.filter(file => {
-                if (file.size > maxSize) {
-                    toast.error(`La imagen "${file.name}" supera el límite de 5MB y no se añadirá.`);
-                    return false;
-                }
-                return true;
-            });
+    const [validatingNsfw, setValidatingNsfw] = useState(false);
 
-            // Limit to 5 max total
-            if (photos.length + validFiles.length > 5) {
-                toast.error('Solo puedes subir hasta 5 fotos en total.');
-                const remainingSlots = 5 - photos.length;
-                if (remainingSlots > 0) {
-                    const newItems: PhotoItem[] = validFiles.slice(0, remainingSlots).map((file, idx) => ({
-                        id: `new-${Date.now()}-${idx}-${Math.random()}`,
-                        url: URL.createObjectURL(file),
-                        file: file,
-                        isExisting: false
-                    }));
-                    setPhotos(prev => [...prev, ...newItems]);
-                }
-                return;
-            }
-            
-            const newItems: PhotoItem[] = validFiles.map((file, idx) => ({
-                id: `new-${Date.now()}-${idx}-${Math.random()}`,
-                url: URL.createObjectURL(file),
-                file: file,
-                isExisting: false
-            }));
-            setPhotos(prev => [...prev, ...newItems]);
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        const newFiles = Array.from(e.target.files);
+        const maxSize = 5 * 1024 * 1024;
+        let validFiles: File[] = [];
+        for (const file of newFiles) {
+            if (file.size > maxSize) { toast.error(`"${file.name}" supera 5MB`); continue; }
+            if (!isAllowedMime(file.type)) { toast.error(`"${file.name}" formato no permitido`); continue; }
+            validFiles.push(file);
         }
+        if (photos.length + validFiles.length > 5) {
+            toast.error('Solo 5 fotos en total.');
+            validFiles = validFiles.slice(0, 5 - photos.length);
+        }
+        if (validFiles.length === 0) return;
+        setValidatingNsfw(true);
+        const safeFiles: File[] = [];
+        for (const file of validFiles) {
+            try {
+                const res = await checkNsfw(file);
+                if (res.blocked) {
+                    toast.error(`"${file.name}" rechazada: contenido no permitido (${res.label} ${(res.score*100).toFixed(0)}%)`);
+                    continue;
+                }
+                if (res.predictions.find(p => p.className === 'Sexy' && p.probability > 0.7)) {
+                    toast(`"${file.name}" marcada para revisión manual`, { icon: '⚠️' });
+                }
+                safeFiles.push(file);
+            } catch {
+                toast.error(`No se pudo validar "${file.name}", se omitirá`);
+            }
+        }
+        setValidatingNsfw(false);
+        if (safeFiles.length === 0) return;
+        const newItems: PhotoItem[] = safeFiles.map((file, idx) => ({
+            id: `new-${Date.now()}-${idx}-${Math.random()}`,
+            url: URL.createObjectURL(file),
+            file,
+            isExisting: false
+        }));
+        setPhotos(prev => [...prev, ...newItems]);
     };
 
     const removePhoto = (id: string) => {
@@ -145,39 +151,33 @@ export default function PropertyForm({
         
         try {
             setUbicacionError(null);
-            
-            // Construir la query completa con la ciudad para mejorar resultados
-            const query = `${ubicacionTexto}, Barrancabermeja, Santander, Colombia`;
-            
-            // viewbox = [left,top,right,bottom] - coordenadas de Barrancabermeja
-            const params = new URLSearchParams({
-                format: 'json',
-                q: query,
-                viewbox: '-73.95,7.19,-73.73,6.95',
-                bounded: '1', // Busca solo dentro del viewbox
-                limit: '1',
-                countrycodes: 'co' // Parámetro correcto de Nominatim
-            });
-            
-            const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-            console.log('Búsqueda en Nominatim:', url);
-            
-            const respuesta = await fetch(url);
-            
-            if (!respuesta.ok) {
-                throw new Error(`Error HTTP: ${respuesta.status}`);
+            const raw = ubicacionTexto.trim();
+            const variants = [
+                `${raw}, Barrancabermeja, Santander, Colombia`,
+                raw.replace(/\s+con\s+/i, ' con ').replace('#', ' ').trim() + ', Barrancabermeja, Colombia',
+                raw.replace(/calle\s*/i, 'Calle ').replace(/carrera\s*/i, 'Carrera ').trim() + ', Barrancabermeja',
+                raw
+            ];
+            let found: any = null;
+            for (const query of variants) {
+                const params = new URLSearchParams({ format: 'json', q: query, limit: '1', countrycodes: 'co', addressdetails: '1' });
+                const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+                const respuesta = await fetch(url);
+                if (!respuesta.ok) continue;
+                const datos = await respuesta.json();
+                if (datos?.length) { found = datos[0]; break; }
             }
-            
-            const datos = await respuesta.json();
-            console.log('Respuesta de Nominatim:', datos);
-
-            if (datos && Array.isArray(datos) && datos.length > 0) {
-                const { lat, lon } = datos[0];
-                setLatitud(parseFloat(lat));
-                setLongitud(parseFloat(lon));
+            if (found) {
+                setLatitud(parseFloat(found.lat));
+                setLongitud(parseFloat(found.lon));
                 setUbicacionError(null);
             } else {
-                setUbicacionError('No se encontró la dirección. Intenta ser más específico o mueve el marcador manualmente.');
+                const fallback = raw.replace(/\s*con\s*/i, ' y ').replace('#', ' ').split(',')[0];
+                const p2 = new URLSearchParams({ format: 'json', q: `${fallback}, Barrancabermeja, Colombia`, limit: '1', countrycodes: 'co' });
+                const r2 = await fetch(`https://nominatim.openstreetmap.org/search?${p2.toString()}`);
+                const d2 = await r2.json();
+                if (d2?.length) { setLatitud(parseFloat(d2[0].lat)); setLongitud(parseFloat(d2[0].lon)); setUbicacionError(null); }
+                else setUbicacionError('No se encontró la dirección. Intenta ser más específico o mueve el marcador manualmente.');
             }
         } catch (e) {
             console.error('Error buscando dirección:', e);
@@ -251,6 +251,44 @@ export default function PropertyForm({
             setIsSubmitting(false);
         }
     };
+
+function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descripcion, propiedadId, onAplicar }: any) {
+    const [loading, setLoading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+    const [usos, setUsos] = useState(0);
+    const key = `ia_mejorar_${propiedadId || 'nuevo'}`;
+    useEffect(() => { setUsos(Number(localStorage.getItem(key) || 0)); }, [key]);
+    const handle = async () => {
+        if (descripcion.trim().length < 20) { toast.error('Escribe al menos 20 caracteres antes de mejorar'); return; }
+        if (usos >= 2) { toast.error('Límite 2 mejoras por propiedad'); return; }
+        setLoading(true);
+        const r = await fetch('/api/ai/mejorar-descripcion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ descripcion, titulo, precio, ubicacion_texto, servicios }) });
+        const j = await r.json();
+        setLoading(false);
+        if (!r.ok) { toast.error(j.error || 'Error IA'); return; }
+        setPreview(j.mejorada);
+        toast('Revisa la sugerencia y decide si aplicarla', { icon: '✨' });
+    };
+    if (preview) {
+        return (
+            <div style={{ marginTop: '0.6rem', padding: '0.8rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.4rem' }}>✨ Sugerencia IA (no se aplica automático):</p>
+                <p style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', background: 'white', padding: '0.6rem', borderRadius: 6, border: '1px solid #e2e8f0' }}>{preview}</p>
+                <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem' }}>Aviso: el texto es sugerencia; tú eres responsable del contenido publicado.</p>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem' }}>
+                    <button type="button" onClick={() => { onAplicar(preview); const n = usos + 1; localStorage.setItem(key, String(n)); setUsos(n); setPreview(null); toast.success('Descripción mejorada aplicada'); }} style={{ padding: '0.5rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600 }}>Aplicar</button>
+                    <button type="button" onClick={() => setPreview(null)} style={{ padding: '0.5rem 1rem', background: 'white', border: '1px solid var(--color-border)', borderRadius: 8 }}>Descartar</button>
+                </div>
+            </div>
+        );
+    }
+    return (
+        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? '#94a3b8' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', color: usos >= 2 ? 'white' : '#1f2937' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
+            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Escribe detalles primero. Límite 2 por propiedad.</span>
+        </div>
+    );
+}
 
     return (
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -326,6 +364,7 @@ export default function PropertyForm({
                         onChange={(e) => setDescripcion(e.target.value)}
                         className={styles.textarea}
                     />
+                    <MejorarDescripcion titulo={titulo} precio={precio} ubicacion_texto={ubicacionTexto} servicios={serviciosSeleccionados.map(id => serviciosDisponibles.find(s=>s.id===id)?.nombre).filter(Boolean) as string[]} descripcion={descripcion} propiedadId={propiedadId} onAplicar={setDescripcion} />
                 </div>
             </section>
 
@@ -355,7 +394,7 @@ export default function PropertyForm({
                             type="text" 
                             required
                             disabled
-                            placeholder="Opción de búsqueda deshabilitada, usa el mapa dinamico."
+                            placeholder="La búsqueda por dirección exacta no esta disponible"
                             value={ubicacionTexto}
                             onChange={(e) => {
                                 setUbicacionTexto(e.target.value);
@@ -364,7 +403,7 @@ export default function PropertyForm({
                             className={styles.input}
                             style={{ flex: 1 }}
                         />
-                        <button type="button" onClick={buscarEnMapa} className={styles.searchMapBtn} title="Buscar en el mapa">
+                        <button type="button" onClick={buscarEnMapa} className={styles.searchMapBtn} title="Buscar en el mapa" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
                             <DynamicIcon name="Search" size={20} />
                         </button>
                     </div>
@@ -399,10 +438,10 @@ export default function PropertyForm({
                         type="button" 
                         className={styles.uploadBtn}
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={photos.length >= 5}
+                        disabled={photos.length >= 5 || validatingNsfw}
                     >
                         <DynamicIcon name="Upload" size={18} />
-                        Subir Fotos
+                        {validatingNsfw ? 'Validando...' : 'Subir Fotos'}
                     </button>
                     <input 
                         type="file" 

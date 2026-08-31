@@ -84,6 +84,8 @@
     width: 100%;
     outline: none;
     transition: border-color 0.2s;
+    background: white;
+    color: var(--color-text-main);
 }
 
 .inputWithSymbol:focus {
@@ -104,6 +106,26 @@
     width: 1.2rem;
     height: 1.2rem;
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background: white;
+    border: 2px solid #1f2937;
+    border-radius: 4px;
+    position: relative;
+}
+.checkboxGroup input[type="checkbox"]:checked {
+    background: white;
+    border-color: #1f2937;
+}
+.checkboxGroup input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #1f2937;
+    font-size: 0.9rem;
+    font-weight: 700;
 }
 
 .checkboxLabel {

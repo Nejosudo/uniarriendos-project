@@ -72,7 +72,7 @@ export default function ShareButton() {
     };
 
     return (
-        <button onClick={handleShare} className={styles.shareBtn} title="Compartir propiedad">
+        <button onClick={handleShare} className={styles.shareBtn} title="Compartir propiedad" aria-label="Compartir propiedad">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
                 <circle cx="18" cy="5" r="3"></circle>
                 <circle cx="6" cy="12" r="3"></circle>

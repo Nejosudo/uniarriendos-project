@@ -2,8 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { assertPuedeGestionarPropiedades } from '@/app/acciones/suspensionesActions';
 import { notificarAdmins } from './notificacionesActions';
+import { sanitizeText, validateTextoLargo } from '@/lib/validation';
+import { checkRateLimit, rateLimitKey } from '@/lib/rateLimit';
 
 export async function crearPropiedad(formData: any) {
     const activo = await assertPuedeGestionarPropiedades();
@@ -17,6 +20,24 @@ export async function crearPropiedad(formData: any) {
     if (!user) {
         return { success: false, error: 'Usuario no autorizado' };
     }
+
+    const ip = (await headers()).get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+    const rl = checkRateLimit(rateLimitKey(ip, user.id, 'crearPropiedad'), 5, 60 * 60 * 1000);
+    if (!rl.ok) return { success: false, error: 'Límite alcanzado: máximo 5 propiedades por hora.' };
+
+    const titulo = sanitizeText(String(formData.titulo || ''), 100);
+    const descripcion = sanitizeText(String(formData.descripcion || ''), 2000);
+    const ubicacion = sanitizeText(String(formData.ubicacion_texto || ''), 150);
+    const et = validateTextoLargo(titulo, 10, 100, 'Título');
+    if (et) return { success: false, error: et };
+    const ed = validateTextoLargo(descripcion, 20, 2000, 'Descripción');
+    if (ed) return { success: false, error: ed };
+    const eu = validateTextoLargo(ubicacion, 5, 150, 'Ubicación');
+    if (eu) return { success: false, error: eu };
+    const precio = Number(formData.precio);
+    if (!Number.isFinite(precio) || precio < 10000 || precio > 100000000) return { success: false, error: 'Precio fuera de rango' };
+    if (!Array.isArray(formData.fotos) || formData.fotos.length < 1) return { success: false, error: 'Sube al menos 1 foto' };
+    if (formData.fotos.length > 10) return { success: false, error: 'Máximo 10 fotos' };
 
     // Verificar si el usuario tiene un número de contacto válido
     const { data: perfil } = await supabase
@@ -35,15 +56,15 @@ export async function crearPropiedad(formData: any) {
             .from('propiedades')
             .insert({
                 propietario_id: user.id,
-                titulo: formData.titulo,
-                descripcion: formData.descripcion,
-                precio: formData.precio,
-                ubicacion_texto: formData.ubicacion_texto,
+                titulo,
+                descripcion,
+                precio,
+                ubicacion_texto: ubicacion,
                 ubicacion_lat: formData.latitud,
                 ubicacion_lng: formData.longitud,
-                estado: 'disponible', // Inicia en revisión o disponible según tu flujo
+                estado: 'disponible',
                 prioridad: 'comun',
-                vivienda_compartida: formData.vivienda_compartida,
+                vivienda_compartida: !!formData.vivienda_compartida,
                 perfil_arriendo: formData.perfil_arriendo
             })
             .select('id')
@@ -95,11 +116,10 @@ export async function crearPropiedad(formData: any) {
         revalidatePath('/');
 
 
-        // Notificar a administradores sobre la nueva propiedad
         await notificarAdmins({
             tipo: 'propiedad_nueva_admin',
             titulo: 'Nueva Propiedad',
-            mensaje: `Se ha publicado una nueva propiedad: «${formData.titulo}».`,
+            mensaje: `Se ha publicado una nueva propiedad: «${titulo}».`,
             enlace: '/admin/propiedades',
             metadata: { propiedad_id: propiedadId }
         });

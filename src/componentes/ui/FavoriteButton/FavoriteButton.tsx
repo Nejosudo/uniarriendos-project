@@ -70,7 +70,7 @@ export default function FavoriteButton({
                 <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                     <div className={styles.modalHeader}>
                         <h3>Inicia sesión</h3>
-                        <button onClick={(e) => { e.preventDefault(); setShowAuthModal(false); }} className={styles.closeBtn}>
+                        <button onClick={(e) => { e.preventDefault(); setShowAuthModal(false); }} className={styles.closeBtn} aria-label="Cerrar">
                             <DynamicIcon name="X" size={20} />
                         </button>
                     </div>
