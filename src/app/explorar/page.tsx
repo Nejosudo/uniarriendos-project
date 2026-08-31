@@ -67,10 +67,16 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                     useSemantic = true;
                     semanticFiltros = j.filtros;
                     semanticResultados = j.resultados;
+                } else if (j.filtros) {
+                    // Gemini ok pero sin resultados (filtros muy estrictos) → usa filtros para query fallback
+                    semanticFiltros = j.filtros;
+                    if (j.filtros.compartida) useSemantic = true;
                 }
             }
-        } catch {}
+        } catch (e) { console.error('semantic fetch error', e); }
     }
+    // Fallback simple sin Gemini: si q contiene "compartir" y no hay semantic, filtra compartida
+    const fallbackCompartida = !useSemantic && isSemanticQuery && /compartir|compartida/i.test(q);
 
     // Construir la consulta dinámicamente
     let query = supabase
@@ -86,9 +92,17 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
         `)
         .in('estado', ['disponible', 'ocupado']);
 
-    // Aplicar filtros a la consulta
+    // Si semantic detectó compartida pero no trajo resultados (filtros estrictos), aplica igual
+    const semanticCompartida = semanticFiltros?.compartida === true;
     if (q && !useSemantic) {
-        query = query.or(`titulo.ilike.%${q}%,ubicacion_texto.ilike.%${q}%,descripcion.ilike.%${q}%`);
+        if (fallbackCompartida || semanticCompartida) query = query.eq('vivienda_compartida', true);
+        if ((fallbackCompartida || semanticCompartida) && q.toLowerCase().includes('habitacion')) {
+            query = query.or(`titulo.ilike.%habitacion%,descripcion.ilike.%habitacion%`);
+        } else {
+            query = query.or(`titulo.ilike.%${q}%,ubicacion_texto.ilike.%${q}%,descripcion.ilike.%${q}%`);
+        }
+    } else if (semanticCompartida && !useSemantic) {
+        query = query.eq('vivienda_compartida', true);
     }
     
     if (precio_rango) {
