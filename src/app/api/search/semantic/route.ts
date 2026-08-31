@@ -13,7 +13,7 @@ async function parseWithGemini(q: string): Promise<Filters | null> {
   const key = process.env.GEMINI_API_KEY?.trim();
   if (!key) return null;
   const prompt = `Extrae JSON estricto de filtros de arriendo. Query: "${q}". Salida JSON: {"precioMax": number|null, "tipo": "hombres"|"mujeres"|"ambos"|null, "compartida": boolean|null, "servicios": string[], "ubicacion": string|null, "textoLibre": string|null}. Servicios: wifi, parqueadero, cocina, lavanderia. Precio en COP. Solo JSON.`;
-  const model = (process.env.GEMINI_MODEL || 'gemini-1.5-flash-8b').trim();
+  const model = (process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite').trim();
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
       method: 'POST',
