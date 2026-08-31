@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Polyline, Marker, Popup } from 'react-leaflet';
+import dynamic from 'next/dynamic';
 import L from 'leaflet';
 
 export default function CotsemLayers({ showRuta, showParadas }: { showRuta: boolean; showParadas: boolean }) {

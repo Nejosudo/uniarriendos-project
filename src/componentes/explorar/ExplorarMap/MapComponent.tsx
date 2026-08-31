@@ -6,7 +6,8 @@ import L from 'leaflet';
 import styles from './ExplorarMap.module.css';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import CotsemLayers from '@/componentes/ui/CotsemLayers/CotsemLayers';
+import dynamic from 'next/dynamic';
+const CotsemLayers = dynamic(() => import('@/componentes/ui/CotsemLayers/CotsemLayers'), { ssr: false, loading: () => null });
 
 const icon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
