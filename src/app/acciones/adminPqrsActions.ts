@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { verifyAdminAction } from '@/lib/admin/auth';
 import type { PqrsEstado } from '@/app/acciones/pqrsActions';
 import { crearNotificacion } from './notificacionesActions';
+import { logAdminAction } from './adminAuditActions';
+import { sanitizeText } from '@/lib/validation';
 
 export async function responderPqrs(
     pqrsId: number,
@@ -14,7 +16,7 @@ export async function responderPqrs(
     const auth = await verifyAdminAction();
     if (!auth.success) return auth;
 
-    const texto = mensaje?.trim();
+    const texto = sanitizeText(mensaje || '', 2000);
     if (!texto || texto.length < 10) {
         return { success: false, error: 'La respuesta debe tener al menos 10 caracteres' };
     }
@@ -60,6 +62,8 @@ export async function responderPqrs(
         });
     }
 
+    await logAdminAction('responder_pqrs', 'pqrs', String(pqrsId), { nuevoEstado });
+
     revalidatePath('/admin/pqrs');
     revalidatePath('/dashboard/pqrs');
     return { success: true };
@@ -84,6 +88,8 @@ export async function cambiarEstadoPqrs(pqrsId: number, nuevoEstado: PqrsEstado)
         console.error('Error cambiando estado PQRS:', error);
         return { success: false, error: 'No se pudo cambiar el estado' };
     }
+
+    await logAdminAction('cambiar_estado_pqrs', 'pqrs', String(pqrsId), { nuevoEstado });
 
     revalidatePath('/admin/pqrs');
     revalidatePath('/dashboard/pqrs');

@@ -21,7 +21,18 @@ async function parseWithGemini(q: string): Promise<Filters | null> {
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) return null;
     const parsed = JSON.parse(m[0]);
-    return { precioMax: typeof parsed.precioMax === 'number' ? parsed.precioMax : undefined, tipo: parsed.tipo || undefined, compartida: typeof parsed.compartida === 'boolean' ? parsed.compartida : undefined, servicios: Array.isArray(parsed.servicios) ? parsed.servicios.slice(0,5):undefined, ubicacion: parsed.ubicacion || undefined, textoLibre: parsed.textoLibre || undefined };
+    const tipo = ['hombres','mujeres','ambos'].includes(parsed.tipo) ? parsed.tipo : undefined;
+    const servicios = Array.isArray(parsed.servicios)
+      ? parsed.servicios.filter((s: unknown): s is string => typeof s === 'string').map((s: string) => s.slice(0,40)).slice(0,5)
+      : undefined;
+    return {
+      precioMax: typeof parsed.precioMax === 'number' && Number.isFinite(parsed.precioMax) && parsed.precioMax > 0 ? parsed.precioMax : undefined,
+      tipo,
+      compartida: typeof parsed.compartida === 'boolean' ? parsed.compartida : undefined,
+      servicios,
+      ubicacion: typeof parsed.ubicacion === 'string' ? parsed.ubicacion.slice(0,100) : undefined,
+      textoLibre: typeof parsed.textoLibre === 'string' ? parsed.textoLibre.slice(0,100) : undefined
+    };
   } catch { return null; }
 }
 
@@ -42,7 +53,10 @@ export async function searchSemantic(q: string, ip: string | null) {
   if (filtros?.tipo) query = query.in('perfil_arriendo', [filtros.tipo, 'ambos']);
   if (filtros?.compartida) query = query.eq('vivienda_compartida', true);
   const { data, error } = await query.order('created_at', { ascending: false }).limit(30);
-  if (error) return { error: error.message, fallback: true } as any;
+  if (error) {
+    console.error('Error búsqueda semántica:', error);
+    return { error: 'No se pudo realizar la búsqueda', fallback: true } as any;
+  }
   const terms = [clean, filtros?.ubicacion, filtros?.textoLibre].filter(Boolean).flatMap(t => t!.toLowerCase().split(/\s+/).filter(w=>w.length>2));
   const ranked = (data||[]).map((prop:any)=>{
     let score=0;
@@ -59,6 +73,7 @@ export async function searchSemantic(q: string, ip: string | null) {
     return {...prop,_score:score};
   }).sort((a:any,b:any)=>b._score-a._score || new Date(b.created_at).getTime()-new Date(a.created_at).getTime()).slice(0,12);
   const payload={filtros, usedGemini, resultados: ranked, q: clean};
+  if (cache.size > 500) cache.clear();
   cache.set(key,{data:payload,exp:Date.now()+CACHE_TTL});
   setTimeout(()=>{if(cache.get(key)?.exp && Date.now()>cache.get(key)!.exp) cache.delete(key);},CACHE_TTL+1000);
   return payload;

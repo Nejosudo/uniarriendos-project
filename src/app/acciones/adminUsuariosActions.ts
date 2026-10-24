@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminAction } from '@/lib/admin/auth';
 import type { RolUsuario } from '@/lib/suspensiones/types';
+import { logAdminAction } from './adminAuditActions';
 
 export async function cambiarRolUsuario(usuarioId: string, nuevoRol: RolUsuario) {
     const auth = await verifyAdminAction();
@@ -25,8 +26,10 @@ export async function cambiarRolUsuario(usuarioId: string, nuevoRol: RolUsuario)
 
     if (error) {
         console.error('Error cambiando rol:', error);
-        return { success: false, error: `No se pudo actualizar el rol: ${error.message}` };
+        return { success: false, error: 'No se pudo actualizar el rol' };
     }
+
+    await logAdminAction('cambiar_rol_usuario', 'perfiles', usuarioId, { nuevoRol });
 
     revalidatePath('/admin/usuarios');
     return { success: true };

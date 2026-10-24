@@ -2,6 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import {
+    sanitizeText,
+    validateNombre,
+    validateTelefonoCO,
+    normalizeTelefonoCO,
+    isAllowedImageUrl
+} from '@/lib/validation';
 
 export async function actualizarPerfil(formData: FormData) {
     const supabase = await createClient();
@@ -11,9 +18,20 @@ export async function actualizarPerfil(formData: FormData) {
         return { error: 'No autorizado' };
     }
 
-    const nombre_completo = formData.get('nombre_completo') as string;
-    const telefono = formData.get('telefono') as string;
-    const avatar_url = formData.get('avatar_url') as string;
+    const nombre_completo = sanitizeText(String(formData.get('nombre_completo') || ''), 60);
+    const errorNombre = validateNombre(nombre_completo);
+    if (errorNombre) return { error: errorNombre };
+
+    const telefonoIngresado = String(formData.get('telefono') || '').trim();
+    const errorTelefono = validateTelefonoCO(telefonoIngresado);
+    if (errorTelefono) return { error: errorTelefono };
+    const telefono = normalizeTelefonoCO(telefonoIngresado);
+
+    const avatarIngresado = String(formData.get('avatar_url') || '').trim();
+    if (avatarIngresado && !isAllowedImageUrl(avatarIngresado)) {
+        return { error: 'La URL del avatar no es válida' };
+    }
+    const avatar_url = avatarIngresado || null;
 
     const { error } = await supabase
         .from('perfiles')

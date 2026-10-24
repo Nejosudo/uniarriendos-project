@@ -1,11 +1,26 @@
 'use server';
 import { createClient } from '@/lib/supabase/server';
-export async function logAdminAction(accion: string, entidad: string, entidadId?: string, detalle?: any) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  await supabase.from('admin_audit_log').insert({ admin_id: user.id, accion, entidad, entidad_id: entidadId || null, detalle: detalle || null });
+import { verifyAdminAction } from '@/lib/admin/auth';
+import { sanitizeText } from '@/lib/validation';
+
+export async function logAdminAction(accion: string, entidad: string, entidadId?: string, detalle?: unknown) {
+  const auth = await verifyAdminAction();
+  if (!auth.success) return;
+
+  try {
+    const supabase = await createClient();
+    await supabase.from('admin_audit_log').insert({
+      admin_id: auth.user.id,
+      accion: sanitizeText(accion || '', 100),
+      entidad: sanitizeText(entidad || '', 100),
+      entidad_id: entidadId ? String(entidadId).slice(0, 100) : null,
+      detalle: detalle ?? null
+    });
+  } catch (error) {
+    console.error('No se pudo registrar la auditoría admin:', error);
+  }
 }
-export async function exportCsvAdmin(tipo: 'usuarios' | 'propiedades') {
+
+export async function exportCsvAdmin(_tipo: 'usuarios' | 'propiedades') {
   return { success: false, error: 'Usa el botón Exportar en el panel admin (client-side CSV sin PII)' };
 }

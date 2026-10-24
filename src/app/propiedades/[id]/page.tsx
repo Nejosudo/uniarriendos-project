@@ -25,7 +25,7 @@ async function obtenerPropiedad(id: string) {
         .from('propiedades')
         .select(`
             *,
-            anfitrion:perfiles!propiedades_propietario_id_fkey(nombre_completo, avatar_url, telefono, created_at, tipo),
+            anfitrion:perfiles!propiedades_propietario_id_fkey(nombre_completo, avatar_url, created_at, tipo),
             propiedades_fotos(url, orden),
             servicios_rel:propiedades_servicios(
                 servicio:servicios(nombre, icono)
@@ -107,6 +107,15 @@ function jsonLdPropiedad(prop: any, fotos: string[]) {
     address: prop.ubicacion_texto,
   };
 }
+
+function serializarJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
 export default async function PropiedadDetalle({ params }: { params: { id: string } }) {
     const { id } = await params;
     const { data: propiedad, error } = await obtenerPropiedad(id);
@@ -122,6 +131,23 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     const puedeVerContacto = isLoggedIn && restricciones.puedeVerContacto;
     const puedeUsarFavoritos = isLoggedIn && restricciones.puedeUsarFavoritos;
     const puedeInteractuar = isLoggedIn && restricciones.puedeInteractuarPublicaciones;
+
+    let telefonoAnfitrion: string | null = null;
+    if (puedeVerContacto) {
+        const { data, error: telefonoError } = await supabase.rpc('get_telefono_propiedad', {
+            p_propiedad_id: propiedad.id
+        });
+        if (!telefonoError) {
+            telefonoAnfitrion = typeof data === 'string' ? data : null;
+        } else {
+            const { data: perfilAnfitrion } = await supabase
+                .from('perfiles')
+                .select('telefono')
+                .eq('id', propiedad.propietario_id)
+                .single();
+            telefonoAnfitrion = perfilAnfitrion?.telefono ?? null;
+        }
+    }
 
     let isFavorite = false;
     if (user) {
@@ -157,9 +183,13 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     };
 
     const jsonLd = jsonLdPropiedad(propiedad, fotos);
+    const telefonoDigitos = telefonoAnfitrion?.replace(/\D/g, '') ?? '';
+    const telefonoWhatsapp = telefonoDigitos
+        ? (telefonoDigitos.startsWith('57') ? telefonoDigitos : `57${telefonoDigitos}`)
+        : '';
     return (
         <main className={styles.container}>
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializarJsonLd(jsonLd) }} />
             <div className={styles.header}>
                 <div className={styles.titleRow}>
                     <h1 className={styles.title}>{propiedad.titulo}</h1>
@@ -296,9 +326,9 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                             {puedeVerContacto ? (
                                 <div className={styles.contactInfo}>
                                     <p className={styles.contactLabel}>Teléfono de contacto:</p>
-                                    <p className={styles.contactPhone}>{anfitrion?.telefono || 'No proporcionado'}</p>
-                                    {anfitrion?.telefono && (
-                                        <a href={`https://wa.me/57${anfitrion.telefono}`} target="_blank" rel="noopener noreferrer" className={styles.btnWhatsapp}>
+                                    <p className={styles.contactPhone}>{telefonoAnfitrion || 'No proporcionado'}</p>
+                                    {telefonoWhatsapp && (
+                                        <a href={`https://wa.me/${telefonoWhatsapp}`} target="_blank" rel="noopener noreferrer" className={styles.btnWhatsapp}>
                                             Contactar por WhatsApp
                                         </a>
                                     )}

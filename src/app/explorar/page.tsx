@@ -5,6 +5,7 @@ import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilters';
 import ExplorarView from '@/componentes/explorar/ExplorarView';
 import styles from './page.module.css';
+import { getClientIp } from '@/lib/rateLimit';
 
 export const metadata: Metadata = {
     title: 'Explorar arriendos - Busca tu próxima vivienda | UniArriendos',
@@ -29,7 +30,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     const restricciones = await getRestriccionesUsuario();
     const favoritosDeshabilitados = !!user && !restricciones.puedeUsarFavoritos;
 
-    let favoritosIds = new Set<string>();
+    const favoritosIds = new Set<string>();
     if (user) {
         const { data: favs } = await supabase
             .from('favoritos')
@@ -57,7 +58,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     if (isSemanticQuery) {
         try {
             const h = await headers();
-            const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+            const ip = getClientIp(h);
             const { searchSemantic } = await import('@/lib/search/semantic');
             const j: any = await searchSemantic(q, ip);
             if (j.resultados?.length) {

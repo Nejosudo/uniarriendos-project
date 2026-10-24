@@ -8,6 +8,7 @@ import { getRestricciones } from '@/lib/suspensiones/permissions';
 import { calcularFechaFinSuspension, getMensajeSuspension } from '@/lib/suspensiones/types';
 import type { NivelSuspension, SuspensionActiva } from '@/lib/suspensiones/types';
 import { crearNotificacion } from './notificacionesActions';
+import { logAdminAction } from './adminAuditActions';
 
 export async function obtenerMiSuspension(): Promise<SuspensionActiva | null> {
     const supabase = await createClient();
@@ -151,7 +152,7 @@ export async function suspenderUsuario(
 
     if (updateError) {
         console.error('Error desactivando suspensiones anteriores:', updateError);
-        return { success: false, error: `Error desactivando suspensiones anteriores: ${updateError.message}` };
+        return { success: false, error: 'No se pudieron desactivar las suspensiones anteriores' };
     }
 
     const { error } = await supabase.from('suspensiones').insert({
@@ -165,7 +166,7 @@ export async function suspenderUsuario(
 
     if (error) {
         console.error('Error suspendiendo usuario:', error);
-        return { success: false, error: `No se pudo aplicar la suspensión: ${error.message}` };
+        return { success: false, error: 'No se pudo aplicar la suspensión' };
     }
 
     await ocultarPropiedadesUsuario(supabase, usuarioId);
@@ -178,6 +179,8 @@ export async function suspenderUsuario(
         enlace: '/dashboard',
         metadata: { nivel: nivelNum }
     });
+
+    await logAdminAction('suspender_usuario', 'suspensiones', usuarioId, { nivel: nivelNum, motivo: motivo || null });
 
     revalidatePath('/admin/usuarios');
     revalidatePath('/dashboard');
@@ -199,7 +202,7 @@ export async function levantarSuspension(usuarioId: string) {
 
     if (error) {
         console.error('Error levantando suspensión:', error);
-        return { success: false, error: `No se pudo levantar la suspensión: ${error.message}` };
+        return { success: false, error: 'No se pudo levantar la suspensión' };
     }
 
     await crearNotificacion({
@@ -209,6 +212,8 @@ export async function levantarSuspension(usuarioId: string) {
         mensaje: 'Tu suspensión fue levantada. Ya puedes usar la plataforma con normalidad.',
         enlace: '/dashboard'
     });
+
+    await logAdminAction('levantar_suspension', 'suspensiones', usuarioId, {});
 
     revalidatePath('/admin/usuarios');
     revalidatePath('/dashboard');

@@ -11,11 +11,16 @@ export default async function PerfilPage() {
         redirect('/login');
     }
 
-    const { data: perfil } = await supabase
-        .from('perfiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+    const { data: perfilRpc, error: perfilRpcError } = await supabase.rpc('get_mi_perfil');
+    let perfil = Array.isArray(perfilRpc) ? perfilRpc[0] : perfilRpc;
+    if (perfilRpcError || !perfil) {
+        const { data } = await supabase
+            .from('perfiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+        perfil = data;
+    }
 
     return (
         <div className={styles.container}>

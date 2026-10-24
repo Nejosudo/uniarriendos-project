@@ -5,6 +5,7 @@ import { responderPqrs, cambiarEstadoPqrs } from '@/app/acciones/adminPqrsAction
 import type { PqrsEstado } from '@/app/acciones/pqrsActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import toast from 'react-hot-toast';
+import { isAllowedImageUrl } from '@/lib/validation';
 import styles from './AdminPqrsPanel.module.css';
 
 interface PqrsItem {
@@ -160,7 +161,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                                 {respuestas.map((r) => (
                                                     <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid #16a34a' }}>
                                                         <p><strong>{r.usuario_id ? 'Usuario:' : 'Equipo:'}</strong> {r.mensaje}</p>
-                                                        {r.imagen_url && (
+                                                        {r.imagen_url && isAllowedImageUrl(r.imagen_url) && (
                                                             <div style={{ marginTop: 8 }}>
                                                                 <img src={r.imagen_url} alt="Evidencia" style={{ maxWidth: 260, borderRadius: 8, border: '1px solid var(--color-border)' }} />
                                                                 <div style={{ marginTop: 6 }}>

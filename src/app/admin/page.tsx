@@ -11,7 +11,7 @@ export default async function AdminDashboardPage() {
         { count: pqrsPendientes },
         { count: pqrsEnProceso },
     ] = await Promise.all([
-        supabase.from('perfiles').select('*', { count: 'exact', head: true }),
+        supabase.from('perfiles').select('id', { count: 'exact', head: true }),
         supabase.from('propiedades').select('*', { count: 'exact', head: true }),
         supabase.from('pqrs').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente'),
         supabase.from('pqrs').select('*', { count: 'exact', head: true }).eq('estado', 'en_proceso'),

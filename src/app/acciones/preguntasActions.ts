@@ -28,14 +28,11 @@ export async function crearPregunta(propiedadId: number, pregunta: string) {
         return { success: false, error: 'Debes iniciar sesión para enviar una pregunta.' };
     }
 
-    let puedeInteractuar = true;
-    try{
+    let puedeInteractuar = false;
+    try {
         const activo = await assertPuedeInteractuarPublicaciones();
-        if (!activo.ok) {
-            puedeInteractuar = false;
-        }
-
-    } catch(error){
+        puedeInteractuar = activo.ok;
+    } catch (error) {
         console.error('Error verificando suspensión:', error);
     }
 

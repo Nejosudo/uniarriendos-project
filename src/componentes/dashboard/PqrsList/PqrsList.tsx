@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PqrsEstado, responderPqrsUsuario } from '@/app/acciones/pqrsActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
+import { isAllowedImageUrl } from '@/lib/validation';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import toast from 'react-hot-toast';
 import styles from './PqrsList.module.css';
@@ -188,7 +189,7 @@ function PqrsResponder({ pqrsId }: { pqrsId: number }) {
                                                 {respuestas.map((r) => (
                                                     <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid #16a34a' }}>
                                                         <p><strong>{r.usuario_id ? 'Tú:' : 'Equipo:'}</strong> {r.mensaje}</p>
-                                                        {r.imagen_url && (
+                                                        {r.imagen_url && isAllowedImageUrl(r.imagen_url) && (
                                                             <>
                                                                 <img src={r.imagen_url} alt="Evidencia" style={{ maxWidth: 260, borderRadius: 8, marginTop: 6, border: '1px solid var(--color-border)' }} />
                                                                 <div style={{ marginTop: 6 }}><a href={r.imagen_url} download target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', padding: '4px 8px', background: '#f1f5f9', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', color: '#1f2937' }}>Ver evidencia</a></div>

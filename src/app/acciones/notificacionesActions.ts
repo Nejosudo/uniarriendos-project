@@ -1,7 +1,6 @@
-'use server';
-
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { sanitizeText } from '@/lib/validation';
 
 export interface NotificacionPayload {
     usuarioId: string;
@@ -9,44 +8,52 @@ export interface NotificacionPayload {
     titulo: string;
     mensaje: string;
     enlace?: string;
-    metadata?: any;
+    metadata?: Record<string, unknown> | null;
+}
+
+function enlaceSeguro(enlace?: string): string | null {
+    if (!enlace) return null;
+    if (!enlace.startsWith('/') || enlace.startsWith('//')) return null;
+    return enlace.slice(0, 300);
 }
 
 export async function crearNotificacion(payload: NotificacionPayload) {
-    const supabase = await createClient();
+    const supabase = createAdminClient() ?? (await createClient());
 
     try {
         const { error } = await supabase
             .from('notificaciones')
             .insert({
                 usuario_id: payload.usuarioId,
-                tipo: payload.tipo,
-                titulo: payload.titulo,
-                mensaje: payload.mensaje,
-                enlace: payload.enlace,
-                metadata: payload.metadata
+                tipo: sanitizeText(payload.tipo || '', 60),
+                titulo: sanitizeText(payload.titulo || '', 120),
+                mensaje: sanitizeText(payload.mensaje || '', 500),
+                enlace: enlaceSeguro(payload.enlace),
+                metadata: payload.metadata ?? null
             });
 
         if (error) {
             console.error('Error insertando notificacion:', error);
-            return { success: false, error: error.message };
+            return { success: false, error: 'No se pudo crear la notificación' };
         }
 
-        // Podríamos hacer revalidatePath aquí, pero para no sobrecargar
-        // lo dejaremos a demanda o usando polling/SWR en el cliente
         return { success: true };
-    } catch (error: any) {
+    } catch (error) {
         console.error('Excepción en crearNotificacion:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: 'No se pudo crear la notificación' };
     }
 }
 
 export async function notificarAdmins(payload: Omit<NotificacionPayload, 'usuarioId'>) {
-    const supabase = await createClient();
+    const admin = createAdminClient();
+
+    if (!admin) {
+        console.error('notificarAdmins requiere SUPABASE_SERVICE_ROLE_KEY');
+        return { success: false, error: 'Servicio de notificaciones no configurado' };
+    }
 
     try {
-        // Obtener todos los admins
-        const { data: admins, error: adminsError } = await supabase
+        const { data: admins, error: adminsError } = await admin
             .from('perfiles')
             .select('id')
             .eq('rol', 'admin');
@@ -55,26 +62,30 @@ export async function notificarAdmins(payload: Omit<NotificacionPayload, 'usuari
             return { success: false, error: 'No se pudieron obtener los admins' };
         }
 
-        const inserts = admins.map(admin => ({
-            usuario_id: admin.id,
-            tipo: payload.tipo,
-            titulo: payload.titulo,
-            mensaje: payload.mensaje,
-            enlace: payload.enlace,
-            metadata: payload.metadata
+        const inserts = admins.map(adminRow => ({
+            usuario_id: adminRow.id,
+            tipo: sanitizeText(payload.tipo || '', 60),
+            titulo: sanitizeText(payload.titulo || '', 120),
+            mensaje: sanitizeText(payload.mensaje || '', 500),
+            enlace: enlaceSeguro(payload.enlace),
+            metadata: payload.metadata ?? null
         }));
 
-        const { error } = await supabase
+        if (inserts.length === 0) return { success: true };
+
+        const { error } = await admin
             .from('notificaciones')
             .insert(inserts);
 
         if (error) {
-            return { success: false, error: error.message };
+            console.error('Error notificando admins:', error);
+            return { success: false, error: 'No se pudo notificar a los administradores' };
         }
 
         return { success: true };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error) {
+        console.error('Excepción en notificarAdmins:', error);
+        return { success: false, error: 'No se pudo notificar a los administradores' };
     }
 }
 
@@ -92,15 +103,15 @@ export async function obtenerNotificaciones() {
             .select('*')
             .eq('usuario_id', user.id)
             .order('created_at', { ascending: false })
-            .limit(50); // Mostrar las últimas 50
+            .limit(50);
 
         if (error) {
-            return { success: false, error: error.message };
+            return { success: false, error: 'No se pudieron cargar las notificaciones' };
         }
 
         return { success: true, notificaciones: data };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch {
+        return { success: false, error: 'No se pudieron cargar las notificaciones' };
     }
 }
 
@@ -124,7 +135,7 @@ export async function contarNoLeidas() {
         }
 
         return { success: true, count: count || 0 };
-    } catch (error: any) {
+    } catch {
         return { success: false, count: 0 };
     }
 }
@@ -143,10 +154,9 @@ export async function marcarLeida(id: number) {
             .eq('usuario_id', user.id);
 
         if (error) return { success: false };
-        
-        revalidatePath('/dashboard/notificaciones');
+
         return { success: true };
-    } catch (error: any) {
+    } catch {
         return { success: false };
     }
 }
@@ -166,9 +176,8 @@ export async function marcarTodasLeidas() {
 
         if (error) return { success: false };
 
-        revalidatePath('/dashboard/notificaciones');
         return { success: true };
-    } catch (error: any) {
+    } catch {
         return { success: false };
     }
 }

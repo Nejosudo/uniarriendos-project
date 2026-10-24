@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { notificarAdmins } from './notificacionesActions';
-import { sanitizeText, validateTextoLargo } from '@/lib/validation';
-import { checkRateLimit, rateLimitKey } from '@/lib/rateLimit';
+import { sanitizeText, validateTextoLargo, isAllowedImageUrl } from '@/lib/validation';
+import { checkRateLimit, rateLimitKey, getClientIp } from '@/lib/rateLimit';
 
 export type PqrsTipo = 'peticion' | 'queja' | 'reclamo' | 'sugerencia';
 export type PqrsEstado = 'pendiente' | 'en_proceso' | 'resuelto';
@@ -26,15 +26,15 @@ export async function crearPqrs(input: CrearPqrsInput) {
         return { success: false, error: 'Usuario no autorizado' };
     }
 
-    const ip = (await headers()).get('x-forwarded-for')?.split(',')[0]?.trim() || null
+    const ip = getClientIp(await headers());
     const rl = checkRateLimit(rateLimitKey(ip, user.id, 'pqrs'), 3, 60 * 60 * 1000)
     if (!rl.ok) return { success: false, error: 'Límite de PQRS alcanzado. Intenta en una hora.' }
 
     const asunto = sanitizeText(input.asunto || '', 150);
     const mensaje = sanitizeText(input.mensaje || '', 2000);
     const { moderarTexto } = await import('@/lib/moderacion/check');
-    const modA = await moderarTexto(asunto);
-    const modM = await moderarTexto(mensaje);
+    const modA = await moderarTexto(asunto, { usarIA: false });
+    const modM = await moderarTexto(mensaje, { usarIA: false });
     const mod = modA.estado !== 'visible' ? modA : modM;
     if (mod.estado === 'oculto') return { success: false, error: 'Contenido no permitido en PQRS.' };
 
@@ -86,7 +86,9 @@ export async function responderPqrsUsuario(pqrsId: number, mensaje: string, imag
     const texto = sanitizeText(mensaje || '', 2000);
     const eM = validateTextoLargo(texto, 10, 2000, 'Mensaje');
     if (eM) return { success: false, error: eM };
-    if (imagenUrl && imagenUrl.length > 500) return { success: false, error: 'URL imagen inválida' };
+    if (imagenUrl && (imagenUrl.length > 500 || !isAllowedImageUrl(imagenUrl))) {
+        return { success: false, error: 'URL imagen inválida' };
+    }
     const { data: pqrs, error: pqErr } = await supabase.from('pqrs').select('id, usuario_id').eq('id', pqrsId).single();
     if (pqErr || !pqrs || pqrs.usuario_id !== user.id) return { success: false, error: 'PQRS no encontrada' };
     const { error } = await supabase.from('pqrs_respuestas').insert({ pqrs_id: pqrsId, usuario_id: user.id, mensaje: texto, imagen_url: imagenUrl || null } as any);

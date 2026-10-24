@@ -4,7 +4,9 @@ export function getSiteUrl(): string {
     if (fromEnv) {
         return fromEnv.replace(/\/$/, '')
     }
-    return 'http://localhost:3000'
+    return process.env.NODE_ENV === 'production'
+        ? 'https://uniarriendos-project.vercel.app'
+        : 'http://localhost:3000'
 }
 
 export function authCallbackUrl(nextPath: string): string {

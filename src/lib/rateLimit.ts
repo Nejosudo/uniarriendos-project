@@ -19,6 +19,16 @@ export function rateLimitKey(ip: string | null, userId: string | null, action: s
   return `${action}:${userId || ip || 'anon'}`;
 }
 
+export function getClientIp(headers: Headers): string | null {
+  const real = headers.get('x-real-ip')?.trim();
+  if (real) return real.slice(0, 64);
+  const cf = headers.get('cf-connecting-ip')?.trim();
+  if (cf) return cf.slice(0, 64);
+  const forwarded = headers.get('x-forwarded-for');
+  const first = forwarded?.split(',')[0]?.trim();
+  return first ? first.slice(0, 64) : null;
+}
+
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
