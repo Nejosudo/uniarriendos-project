@@ -314,7 +314,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                                         <UserBadge tipo={anfitrion?.tipo} className={styles.hostBadge} />
                                     </p>
                                      {propiedad.verificada ? (
-                                         <p className={styles.hostSubtitle} style={{ color: '#16a34a', fontWeight: 600 }} title="Propiedad verificada por el equipo de administración">
+                                         <p className={styles.hostSubtitle} style={{ color: 'var(--color-primary)', fontWeight: 600 }} title="Propiedad verificada por el equipo de administración">
                                              ✓ Propiedad verificada
                                          </p>
                                      ) : (

@@ -23,28 +23,28 @@ export default async function AdminDashboardPage() {
             value: totalUsuarios ?? 0,
             icon: 'Users',
             href: '/admin/usuarios',
-            color: '#3b82f6',
+            color: 'var(--color-secondary)',
         },
         {
             label: 'Propiedades publicadas',
             value: totalPropiedades ?? 0,
             icon: 'Building2',
             href: '/admin/propiedades',
-            color: '#1cc65b',
+            color: 'var(--color-primary)',
         },
         {
             label: 'PQRS pendientes',
             value: pqrsPendientes ?? 0,
             icon: 'Inbox',
             href: '/admin/pqrs',
-            color: '#f59e0b',
+            color: '#b45309',
         },
         {
             label: 'PQRS en proceso',
             value: pqrsEnProceso ?? 0,
             icon: 'MessageSquare',
             href: '/admin/pqrs',
-            color: '#8b5cf6',
+            color: '#7c3aed',
         },
     ];
 

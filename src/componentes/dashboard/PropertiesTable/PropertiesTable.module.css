@@ -91,7 +91,7 @@
 .badgeRecomendada {
     font-size: 0.7rem;
     background: rgba(245, 158, 11, 0.1);
-    color: #d97706;
+    color: #b45309;
     padding: 0.1rem 0.5rem;
     border-radius: 4px;
     font-weight: 700;
@@ -343,11 +343,11 @@
 }
 
 .inputError {
-    border-color: #ef4444 !important;
+    border-color: var(--color-error) !important;
 }
 
 .errorMessage {
-    color: #ef4444;
+    color: var(--color-error);
     font-size: 0.8rem;
     font-weight: 500;
 }

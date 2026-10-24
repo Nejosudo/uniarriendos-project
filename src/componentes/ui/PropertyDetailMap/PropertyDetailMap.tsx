@@ -12,7 +12,7 @@ const PropertyDetailMapInner = dynamic(() => import('./PropertyDetailMapInner'),
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
-            color: '#94a3b8',
+            color: 'var(--color-text-muted)',
             fontWeight: 600 
         }}>
             Cargando mapa...

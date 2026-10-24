@@ -284,7 +284,7 @@ function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descri
     }
     return (
         <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? '#94a3b8' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', color: usos >= 2 ? 'white' : '#1f2937' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
+            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? 'var(--color-text-muted)' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', color: usos >= 2 ? 'white' : '#1f2937' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
             <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Escribe detalles primero. Límite 2 por propiedad.</span>
         </div>
     );
@@ -408,7 +408,7 @@ function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descri
                         </button>
                     </div>
                     {ubicacionError && (
-                        <div style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                        <div style={{ color: 'var(--color-error)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
                             {ubicacionError}
                         </div>
                     )}

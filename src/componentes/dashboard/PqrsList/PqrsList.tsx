@@ -114,7 +114,7 @@ function PqrsResponder({ pqrsId }: { pqrsId: number }) {
             <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={3} placeholder="Responde al equipo o anexa evidencia..." style={{ width: '100%', padding: '0.6rem', borderRadius: 8, border: '1px solid var(--color-border)', background: 'white', color: '#1f2937' }} />
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', alignItems: 'center' }}>
                 <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e => setImagen(e.target.files?.[0] || null)} style={{ fontSize: '0.85rem' }} />
-                {imagen && <span style={{ fontSize: '0.8rem', color: '#16a34a' }}>{imagen.name}</span>}
+                {imagen && <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)' }}>{imagen.name}</span>}
                 <button type="button" onClick={handleSend} disabled={loading} style={{ marginLeft: 'auto', padding: '0.6rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600 }}>{loading ? 'Enviando...' : 'Enviar'}</button>
             </div>
             <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.4rem' }}>Máx 5MB, JPG/PNG/WebP/AVIF.</p>
@@ -187,7 +187,7 @@ function PqrsResponder({ pqrsId }: { pqrsId: number }) {
                                                     Historial ({respuestas.length})
                                                 </h4>
                                                 {respuestas.map((r) => (
-                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid #16a34a' }}>
+                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid var(--color-primary)' }}>
                                                         <p><strong>{r.usuario_id ? 'Tú:' : 'Equipo:'}</strong> {r.mensaje}</p>
                                                         {r.imagen_url && isAllowedImageUrl(r.imagen_url) && (
                                                             <>

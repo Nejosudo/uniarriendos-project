@@ -37,8 +37,8 @@ export default function ExplorarView({ propiedades, favoritosIds, favoritosDesha
                   const resumenResenas = calcularPromedioResenas(prop.resenas);
                   const isTop = useSemantic && idx === 0 && propiedades.length > 1;
                   return (
-                    <div key={prop.id} style={isTop ? { position: 'relative', outline: '2px solid #16a34a', borderRadius: 16, padding: 2 } : undefined}>
-                      {isTop && <div style={{ position: 'absolute', top: -10, left: 12, zIndex: 3, background: '#16a34a', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '4px 8px', borderRadius: 20 }}>⭐ Más compatible con tu búsqueda</div>}
+                    <div key={prop.id} style={isTop ? { position: 'relative', outline: '2px solid var(--color-primary)', borderRadius: 16, padding: 2 } : undefined}>
+                      {isTop && <div style={{ position: 'absolute', top: -10, left: 12, zIndex: 3, background: 'var(--color-primary)', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '4px 8px', borderRadius: 20 }}>⭐ Más compatible con tu búsqueda</div>}
                       <PropertyCard id={prop.id} titulo={prop.titulo} precio={prop.precio} ubicacion_texto={prop.ubicacion_texto} imagen_url={imagenPrincipal} vivienda_compartida={prop.vivienda_compartida} estado={prop.estado} prioridad={prop.prioridad} verificada={prop.verificada} perfil_arriendo={prop.perfil_arriendo} anfitrion_nombre={anfitrion?.nombre_completo} anfitrion_avatar={anfitrion?.avatar_url} servicios={servicios} isFavorite={favoritosIds.has(prop.id.toString())} favoritosDeshabilitados={favoritosDeshabilitados} calificacionPromedio={resumenResenas?.promedio ?? null} totalResenas={resumenResenas?.total ?? 0} />
                     </div>
                   );

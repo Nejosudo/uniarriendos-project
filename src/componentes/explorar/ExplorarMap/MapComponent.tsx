@@ -63,12 +63,12 @@ export default function MapComponent({ propiedades, destacadaId }: { propiedades
                                         <NextImage src={prop.propiedades_fotos[0].url} alt={prop.titulo} width={200} height={120} className={styles.popupImg} style={{ objectFit: 'cover' }} />
                                     )}
                                     <div className={styles.popupInfo}>
-                                        {isDestacada && <div style={{ background: '#16a34a', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '3px 6px', borderRadius: 10, marginBottom: 6, display: 'inline-block' }}>⭐ Más compatible</div>}
+                                        {isDestacada && <div style={{ background: 'var(--color-primary)', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '3px 6px', borderRadius: 10, marginBottom: 6, display: 'inline-block' }}>⭐ Más compatible</div>}
                                         <h3 className={styles.popupTitle}>{prop.titulo}</h3>
                                         <p className={styles.popupPrice}>
                                             {formatPrecio(prop.precio)}
                                             {prop.verificada && (
-                                                <span style={{ marginLeft: '6px', color: '#16a34a', fontWeight: 'bold', fontSize: '0.8rem' }} title="Propiedad verificada por admin">
+                                                <span style={{ marginLeft: '6px', color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '0.8rem' }} title="Propiedad verificada por admin">
                                                     ✓ Verificada
                                                 </span>
                                             )}

@@ -62,7 +62,7 @@
     font-weight: 600;
     text-decoration: none;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(21, 128, 61, 0.28);
 }
 
 .exploreBtn:hover {

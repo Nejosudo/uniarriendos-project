@@ -159,7 +159,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                             <div className={styles.respuestas}>
                                                 <h4>Respuestas anteriores</h4>
                                                 {respuestas.map((r) => (
-                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid #16a34a' }}>
+                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid var(--color-primary)' }}>
                                                         <p><strong>{r.usuario_id ? 'Usuario:' : 'Equipo:'}</strong> {r.mensaje}</p>
                                                         {r.imagen_url && isAllowedImageUrl(r.imagen_url) && (
                                                             <div style={{ marginTop: 8 }}>
