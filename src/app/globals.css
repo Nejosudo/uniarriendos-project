@@ -1,8 +1,8 @@
 :root {
   /* Colores Globales de Uniarriendos (Modificables) */
-  --color-primary: #15803d; /* Verde principal accesible (Botones, logos) */
-  --color-primary-hover: #166534;
-  --color-secondary: #2563eb; /* Azul (Mapa, selección) */
+  --color-primary: #1cc65b; /* Verde principal (Botones, logos) */
+  --color-primary-hover: #17a54b;
+  --color-secondary: #3b82f6; /* Azul (Mapa, selección) */
   --color-background: #f4f7fb; /* Fondo general de la app */
   --color-surface: #ffffff; /* Fondo de tarjetas y formularios */
   --color-text-main: #1e293b; /* Texto oscuro principal */

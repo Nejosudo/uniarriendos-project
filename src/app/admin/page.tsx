@@ -23,14 +23,14 @@ export default async function AdminDashboardPage() {
             value: totalUsuarios ?? 0,
             icon: 'Users',
             href: '/admin/usuarios',
-            color: 'var(--color-secondary)',
+            color: '#3b82f6',
         },
         {
             label: 'Propiedades publicadas',
             value: totalPropiedades ?? 0,
             icon: 'Building2',
             href: '/admin/propiedades',
-            color: 'var(--color-primary)',
+            color: '#1cc65b',
         },
         {
             label: 'PQRS pendientes',

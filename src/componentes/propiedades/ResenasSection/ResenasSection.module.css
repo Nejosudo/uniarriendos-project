@@ -16,7 +16,7 @@
 }
 
 .summaryStars {
-    color: #b45309;
+    color: #f59e0b;
     font-size: 1.25rem;
     letter-spacing: 1px;
 }
@@ -86,7 +86,7 @@
 
 .stars {
     margin-left: auto;
-    color: #b45309;
+    color: #f59e0b;
     font-size: 1.1rem;
 }
 
@@ -137,7 +137,7 @@
 
 .starBtn:hover,
 .starBtnActive {
-    color: #b45309;
+    color: #f59e0b;
     transform: scale(1.05);
 }
 

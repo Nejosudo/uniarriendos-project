@@ -92,8 +92,8 @@
 }
 
 .badgeRecommended {
-    background-color: #b45309;
-    color: #fff;
+    background-color: #f59e0b;
+    color: #422006;
 }
 
 .favoriteBtnWrapper {
@@ -192,7 +192,7 @@
 }
 
 .ratingStars {
-    color: #b45309;
+    color: #f59e0b;
     letter-spacing: 0.5px;
 }
 
