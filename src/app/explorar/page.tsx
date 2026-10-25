@@ -47,9 +47,40 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     // Extraer parámetros de búsqueda de la URL
     const q = params.q as string;
     const precio_rango = params.precio_rango as string;
-    const tipo = params.tipo as string;
-    const compartida = params.compartida === 'true';
+    const compartidaParam = params.compartida as string | undefined;
+    const verificada = params.verificada === 'true';
+    const serviciosSeleccionados = [...new Set(
+        String(params.servicios || '')
+            .split(',')
+            .map(Number)
+            .filter((id) => Number.isInteger(id) && id > 0)
+    )];
     const vista = (params.vista as string) || 'lista';
+
+    const { data: serviciosDisponibles } = await supabase
+        .from('servicios')
+        .select('id, nombre, icono')
+        .order('nombre');
+
+    let idsConServicios: number[] | null = null;
+    if (serviciosSeleccionados.length > 0) {
+        const { data: relaciones, error: serviciosError } = await supabase
+            .from('propiedades_servicios')
+            .select('propiedad_id')
+            .in('servicio_id', serviciosSeleccionados);
+
+        if (serviciosError) {
+            console.error('Error filtrando propiedades por servicios:', serviciosError);
+        } else {
+            const conteo = new Map<number, number>();
+            (relaciones || []).forEach((relacion: any) => {
+                conteo.set(relacion.propiedad_id, (conteo.get(relacion.propiedad_id) || 0) + 1);
+            });
+            idsConServicios = [...conteo.entries()]
+                .filter(([, cantidad]) => cantidad === serviciosSeleccionados.length)
+                .map(([id]) => id);
+        }
+    }
 
     const isSemanticQuery = q && q.trim().split(/\s+/).length >= 2 && q.length >= 6;
     let semanticFiltros: any = null;
@@ -106,19 +137,43 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
         if (maxStr) query = query.lte('precio', parseInt(maxStr, 10));
     }
     
-    if (tipo) {
-        query = query.in('perfil_arriendo', [tipo, 'ambos']);
-    }
-    if (compartida) {
+    if (compartidaParam === 'true') {
         query = query.eq('vivienda_compartida', true);
+    } else if (compartidaParam === 'false') {
+        query = query.eq('vivienda_compartida', false);
+    }
+
+    if (verificada) {
+        query = query.eq('verificada', true);
+    }
+
+    if (idsConServicios && idsConServicios.length > 0) {
+        query = query.in('id', idsConServicios);
     }
 
     const page = Math.max(1, parseInt(params.page as string, 10) || 1);
     const limit = 12;
     let propiedades: any[] | null = null;
     let error: any = null;
-    if (useSemantic && semanticResultados) {
-        propiedades = semanticResultados;
+    const cumpleFiltrosActivos = (prop: any) => {
+        if (compartidaParam === 'true' && !prop.vivienda_compartida) return false;
+        if (compartidaParam === 'false' && prop.vivienda_compartida) return false;
+        if (verificada && !prop.verificada) return false;
+        if (idsConServicios && !idsConServicios.includes(prop.id)) return false;
+        if (precio_rango) {
+            const [minStr, maxStr] = precio_rango.split('-');
+            const min = minStr ? parseInt(minStr, 10) : null;
+            const max = maxStr ? parseInt(maxStr, 10) : null;
+            if (min !== null && prop.precio < min) return false;
+            if (max !== null && prop.precio > max) return false;
+        }
+        return true;
+    };
+
+    if (idsConServicios && idsConServicios.length === 0) {
+        propiedades = [];
+    } else if (useSemantic && semanticResultados) {
+        propiedades = semanticResultados.filter(cumpleFiltrosActivos);
     } else {
         const res = await query.order('created_at', { ascending: false }).range((page - 1) * limit, page * limit - 1);
         propiedades = res.data; error = res.error;
@@ -135,9 +190,21 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
                 <p className={styles.subtitle}>Encuentra el lugar ideal para vivir cerca a la UNIPAZ.</p>
             </div>
             {error ? <div className={styles.error}>Ocurrió un error al cargar las propiedades.</div> : !propiedades || propiedades.length === 0 ? (
-                <><div className={styles.empty}><p>No se encontraron propiedades que coincidan con tu búsqueda.</p><span className={styles.emptySub}>Intenta usar filtros más amplios o limpia la búsqueda.</span></div><div className={styles.layout}><aside className={styles.sidebar}><div className={styles.stickyWrapper}><ExplorarFilters /></div></aside></div></>
+                <div className={styles.layout}>
+                    <div className={styles.mainContent}>
+                        <div className={styles.empty}>
+                            <p>No se encontraron propiedades que coincidan con tu búsqueda.</p>
+                            <span className={styles.emptySub}>Intenta usar filtros más amplios o limpia la búsqueda.</span>
+                        </div>
+                    </div>
+                    <aside className={styles.sidebar}>
+                        <div className={styles.stickyWrapper}>
+                            <ExplorarFilters serviciosDisponibles={serviciosDisponibles || []} />
+                        </div>
+                    </aside>
+                </div>
             ) : (
-                <ExplorarView propiedades={propiedades} favoritosIds={favoritosIds} favoritosDeshabilitados={favoritosDeshabilitados} q={q} useSemantic={useSemantic} vistaInicial={vista} page={page} params={params} />
+                <ExplorarView propiedades={propiedades} favoritosIds={favoritosIds} favoritosDeshabilitados={favoritosDeshabilitados} q={q} useSemantic={useSemantic} vistaInicial={vista} page={page} params={params} serviciosDisponibles={serviciosDisponibles || []} />
             )}
         </div>
     );

@@ -16,6 +16,18 @@
   border: 1px solid var(--color-border);
 }
 
+.authLogo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.authLogoImage {
+  width: 230px;
+  height: auto;
+  max-width: 100%;
+}
+
 .authTitle {
   font-size: 1.5rem;
   color: var(--color-primary);

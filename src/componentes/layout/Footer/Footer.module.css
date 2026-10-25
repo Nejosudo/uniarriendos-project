@@ -16,6 +16,17 @@
     gap: 1rem;
 }
 
+.brand {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.brandImage {
+    width: auto;
+    height: 36px;
+}
+
 .copyright {
     font-size: 0.9rem;
 }
@@ -41,5 +52,9 @@
         flex-direction: column;
         text-align: center;
         justify-content: center;
+    }
+
+    .brandImage {
+        height: 32px;
     }
 }

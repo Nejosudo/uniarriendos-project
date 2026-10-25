@@ -17,8 +17,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://uniarriendos-project.vercel.app"),
   title: "UniArriendos - Busca arriendos para universitarios en Barrancabermeja",
   description: "Plataforma web colaborativa para búsqueda de arriendos de la comunidad UNIPAZ. Encuentra habitaciones, apartamentos y casas para estudiantes y externos en Barrancabermeja.",
+  applicationName: "UniArriendos",
+  icons: {
+    icon: [
+      { url: "/brand/uniarriendos_icono.svg", type: "image/svg+xml" },
+      { url: "/brand/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: "/brand/favicon-32x32.png",
+    apple: "/brand/apple-touch-icon.png",
+  },
   keywords: "arriendos, universitarios, UNIPAZ, Barrancabermeja, habitaciones, apartamentos, casas",
   authors: [{ name: "UniArriendos" }],
   openGraph: {

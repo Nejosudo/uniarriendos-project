@@ -12,10 +12,15 @@
 }
 
 .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--color-primary);
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
     text-decoration: none;
+}
+
+.logoImage {
+    width: auto;
+    height: 44px;
 }
 
 .navLinks {
@@ -237,6 +242,10 @@
 @media (max-width: 900px) {
     .navbar {
         padding: 0.9rem 1rem;
+    }
+
+    .logoImage {
+        height: 38px;
     }
 
     .navLinks,

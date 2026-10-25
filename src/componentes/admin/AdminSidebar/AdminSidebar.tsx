@@ -24,7 +24,13 @@ export default function AdminSidebar({ perfil, email }: AdminSidebarProps) {
     return (
         <aside className={styles.sidebar}>
             <div className={styles.brand}>
-                <DynamicIcon name="Shield" size={22} />
+                <Image
+                    src="/brand/uniarriendos_icono_mono_blanco.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className={styles.brandLogo}
+                />
                 <span>Panel Admin</span>
             </div>
 

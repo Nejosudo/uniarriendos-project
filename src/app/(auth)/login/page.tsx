@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { loginAction } from '../actions'
 import styles from '../auth.module.css'
@@ -15,7 +16,16 @@ export default function LoginPage() {
   return (
     <div className={styles.authContainer}>
       <div className={styles.authCard}>
-        <h1 className={styles.authTitle}>UniArriendos</h1>
+        <div className={styles.authLogo}>
+          <Image
+            src="/brand/uniarriendos_logo_horizontal_claro.png"
+            alt="UniArriendos"
+            width={2020}
+            height={400}
+            className={styles.authLogoImage}
+            priority
+          />
+        </div>
         <p className={styles.authSubtitle}>¡Bienvenido de nuevo!</p>
 
         {resetOk && (

@@ -7,7 +7,7 @@ import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilt
 import { calcularPromedioResenas } from '@/lib/resenas/utils';
 import styles from '@/app/explorar/page.module.css';
 
-export default function ExplorarView({ propiedades, favoritosIds, favoritosDeshabilitados, q, useSemantic, vistaInicial = 'lista', page, params }: any) {
+export default function ExplorarView({ propiedades, favoritosIds, favoritosDeshabilitados, q, useSemantic, vistaInicial = 'lista', page, params, serviciosDisponibles }: any) {
   const [vista, setVista] = useState(vistaInicial);
   const [showBanner, setShowBanner] = useState(!!(useSemantic && propiedades?.length));
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function ExplorarView({ propiedades, favoritosIds, favoritosDesha
             </>
           )}
         </div>
-        <aside className={styles.sidebar}><div className={styles.stickyWrapper}><ExplorarFilters /></div></aside>
+        <aside className={styles.sidebar}><div className={styles.stickyWrapper}><ExplorarFilters serviciosDisponibles={serviciosDisponibles} /></div></aside>
       </div>
     </>
   );
