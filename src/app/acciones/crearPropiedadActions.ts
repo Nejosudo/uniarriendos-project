@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { assertPuedeGestionarPropiedades } from '@/app/acciones/suspensionesActions';
-import { notificarAdmins } from './notificacionesActions';
+import { crearNotificacion, notificarAdmins } from './notificacionesActions';
+import { recalcularEstadoPropiedad, registrarFotosPendientes } from '@/lib/moderacion/fotosPropiedad';
 import { sanitizeText, validateTextoLargo, isAllowedImageUrl } from '@/lib/validation';
 import { checkRateLimit, rateLimitKey, getClientIp } from '@/lib/rateLimit';
 
@@ -113,7 +114,7 @@ export async function crearPropiedad(formData: PropiedadFormData) {
                 ubicacion_texto: ubicacion,
                 ubicacion_lat: lat,
                 ubicacion_lng: lng,
-                estado: 'disponible',
+                estado: 'inactivo',
                 prioridad: 'comun',
                 vivienda_compartida: formData.vivienda_compartida === true,
                 perfil_arriendo: perfilArriendo
@@ -168,7 +169,18 @@ export async function crearPropiedad(formData: PropiedadFormData) {
             if (linkError) {
                 console.error('Error vinculando fotos a la propiedad:', linkError);
             }
+
+            await registrarFotosPendientes(supabase, propiedadId, user.id, fotosValidadas.fotos);
         }
+
+        await crearNotificacion({
+            usuarioId: user.id,
+            tipo: 'propiedad_en_revision',
+            titulo: 'Publicación en revisión',
+            mensaje: `Tu publicación «${titulo}» está en revisión de fotos. Te avisaremos cuando sea visible.`,
+            enlace: '/dashboard/propiedades',
+            metadata: { propiedad_id: propiedadId },
+        });
 
         revalidatePath('/dashboard/propiedades');
         revalidatePath('/explorar');
@@ -177,9 +189,9 @@ export async function crearPropiedad(formData: PropiedadFormData) {
 
         await notificarAdmins({
             tipo: 'propiedad_nueva_admin',
-            titulo: 'Nueva Propiedad',
-            mensaje: `Se ha publicado una nueva propiedad: «${titulo}».`,
-            enlace: '/admin/propiedades',
+            titulo: 'Nueva propiedad por validar',
+            mensaje: `Se ha creado la propiedad «${titulo}» y está pendiente de revisión de fotos.`,
+            enlace: '/admin/fotos',
             metadata: { propiedad_id: propiedadId }
         });
         
@@ -316,12 +328,34 @@ export async function editarPropiedad(propiedadId: number, formData: PropiedadFo
             if (linkError) {
                 console.error('Error vinculando fotos nuevas a la propiedad:', linkError);
             }
+
+            const { insertadas } = await registrarFotosPendientes(
+                supabase,
+                propiedadId,
+                user.id,
+                fotosValidadas.fotos
+            );
+
+            if (insertadas > 0) {
+                await notificarAdmins({
+                    tipo: 'fotos_nuevas_admin',
+                    titulo: 'Fotos por validar',
+                    mensaje: `La propiedad «${titulo}» tiene ${insertadas} foto(s) nueva(s) pendiente(s) de revisión.`,
+                    enlace: '/admin/fotos',
+                    metadata: { propiedad_id: propiedadId },
+                });
+            }
         }
 
+        const { cambio } = await recalcularEstadoPropiedad(supabase, propiedadId);
+
         revalidatePath('/dashboard/propiedades');
+        revalidatePath('/admin/fotos');
         revalidatePath(`/propiedades/${propiedadId}`);
-        revalidatePath('/explorar');
-        revalidatePath('/');
+        if (cambio) {
+            revalidatePath('/explorar');
+            revalidatePath('/');
+        }
 
         return { success: true };
     } catch (error) {

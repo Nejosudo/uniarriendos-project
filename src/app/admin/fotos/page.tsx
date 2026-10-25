@@ -20,7 +20,7 @@ export default async function AdminFotosPage() {
             propiedad:propiedades!propiedad_id(id, titulo)
         `)
         .not('foto_url', 'is', null)
-        .or('propiedad_id.not.is.null,motivo.like.propiedad:*')
+        .not('propiedad_id', 'is', null)
         .order('created_at', { ascending: false });
 
     if (error) {

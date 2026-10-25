@@ -90,13 +90,15 @@ export async function uploadImageToCloudinary(formData: FormData) {
     try {
       const contextoRaw = String(formData.get('contexto') || 'general').toLowerCase();
       const contexto = ['propiedad', 'perfil', 'pqrs'].includes(contextoRaw) ? contextoRaw : 'general';
-      await supabase.from('fotos_validacion').insert({
-        usuario_id: user.id,
-        resultado: 'pendiente',
-        motivo: `${contexto}:pendiente_revision_servidor`,
-        scores: null,
-        foto_url: resultData.secure_url
-      });
+      if (contexto !== 'propiedad') {
+        await supabase.from('fotos_validacion').insert({
+          usuario_id: user.id,
+          resultado: 'pendiente',
+          motivo: `${contexto}:pendiente_revision_servidor`,
+          scores: null,
+          foto_url: resultData.secure_url
+        });
+      }
     } catch {}
 
     return { success: true, url: resultData.secure_url };
