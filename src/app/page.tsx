@@ -5,13 +5,15 @@ import { getRestriccionesUsuario } from '@/lib/suspensiones/guard';
 import { calcularPromedioResenas } from '@/lib/resenas/utils';
 import Link from 'next/link';
 import styles from './page.module.css';
+import { getSiteUrl } from '@/lib/siteUrl';
+import type { PropiedadLista } from '@/lib/tipos';
 
 export const metadata: Metadata = {
     title: 'UniArriendos - Arriendos para universitarios de UNIPAZ',
     description: 'Encuentra tu próximo arriendo para la comunidad universitaria de UNIPAZ en Barrancabermeja con reseñas, fotos y ubicación en tiempo real.',
     keywords: ['arriendos Barrancabermeja', 'habitaciones universitarios', 'UNIPAZ', 'apartamentos estudiantes'],
     alternates: {
-        canonical: 'https://uniarriendos-project.vercel.app',
+        canonical: getSiteUrl(),
     },
 };
 
@@ -22,7 +24,7 @@ export default async function Home() {
   const restricciones = await getRestriccionesUsuario();
   const favoritosDeshabilitados = !!user && !restricciones.puedeUsarFavoritos;
 
-  let favoritosIds = new Set<string>();
+  const favoritosIds = new Set<string>();
   if (user) {
       const { data: favs } = await supabase
           .from('favoritos')
@@ -35,7 +37,7 @@ export default async function Home() {
   }
 
   // Fetch solo 3 propiedades destacadas/recientes para la landing
-  const { data: propiedades, error } = await supabase
+  const { data: propiedadesData, error } = await supabase
     .from('propiedades')
     .select(`
             *,
@@ -50,6 +52,7 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(3);
 
+  const propiedades = propiedadesData as PropiedadLista[] | null;
   if (error) {
     console.error('Error al obtener las propiedades:', error);
   }
@@ -117,11 +120,11 @@ export default async function Home() {
             <p>Aún no hay propiedades publicadas. ¡Sé el primero!</p>
           ) : (
             <div className={styles.propertiesGrid}>
-              {propiedades.map((prop: any) => {
+              {propiedades.map((prop) => {
                 const anfitrion = prop.anfitrion;
                 const fotos = prop.propiedades_fotos;
                 const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
-                const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
+                const servicios = prop.servicios_rel?.map((s) => s.servicio).filter((s): s is NonNullable<typeof s> => !!s) || [];
                 const resumenResenas = calcularPromedioResenas(prop.resenas);
 
                 return (
@@ -132,13 +135,13 @@ export default async function Home() {
                       precio={prop.precio}
                       ubicacion_texto={prop.ubicacion_texto}
                       imagen_url={imagenPrincipal}
-                      vivienda_compartida={prop.vivienda_compartida}
-                      estado={prop.estado}
-                      prioridad={prop.prioridad}
-                      verificada={prop.verificada}
-                      perfil_arriendo={prop.perfil_arriendo}
-                      anfitrion_nombre={anfitrion?.nombre_completo}
-                      anfitrion_avatar={anfitrion?.avatar_url}
+                      vivienda_compartida={prop.vivienda_compartida ?? undefined}
+                      estado={prop.estado ?? undefined}
+                      prioridad={prop.prioridad ?? undefined}
+                      verificada={prop.verificada ?? undefined}
+                      perfil_arriendo={prop.perfil_arriendo ?? undefined}
+                      anfitrion_nombre={anfitrion?.nombre_completo ?? undefined}
+                      anfitrion_avatar={anfitrion?.avatar_url ?? undefined}
                       servicios={servicios}
                       isFavorite={favoritosIds.has(prop.id.toString())}
                       favoritosDeshabilitados={favoritosDeshabilitados}

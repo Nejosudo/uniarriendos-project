@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import type { MapProperty } from './MapComponent';
 
 // Cargar dinámicamente el componente del mapa para evitar errores de "window is not defined"
 const MapComponent = dynamic(() => import('./MapComponent'), {
@@ -11,6 +12,6 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
     )
 });
 
-export default function ExplorarMap({ propiedades, destacadaId }: { propiedades: any[]; destacadaId?: number }) {
+export default function ExplorarMap({ propiedades, destacadaId }: { propiedades: MapProperty[]; destacadaId?: number }) {
     return <MapComponent propiedades={propiedades} destacadaId={destacadaId} />;
 }

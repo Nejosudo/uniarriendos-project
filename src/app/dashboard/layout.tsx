@@ -36,7 +36,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             )}
             <div className={styles.sidebarWrapper}>
                 <DashboardSidebar
-                    perfil={perfil}
+                    perfil={perfil ?? { nombre_completo: null, avatar_url: null }}
                     email={user.email || ''}
                     suspension={suspension}
                 />

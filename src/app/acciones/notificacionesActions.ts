@@ -47,39 +47,55 @@ export async function crearNotificacion(payload: NotificacionPayload) {
 export async function notificarAdmins(payload: Omit<NotificacionPayload, 'usuarioId'>) {
     const admin = createAdminClient();
 
-    if (!admin) {
-        console.error('notificarAdmins requiere SUPABASE_SERVICE_ROLE_KEY');
-        return { success: false, error: 'Servicio de notificaciones no configurado' };
-    }
-
     try {
-        const { data: admins, error: adminsError } = await admin
-            .from('perfiles')
-            .select('id')
-            .eq('rol', 'admin');
+        if (admin) {
+            const { data: admins, error: adminsError } = await admin
+                .from('perfiles')
+                .select('id')
+                .eq('rol', 'admin');
 
-        if (adminsError || !admins) {
-            return { success: false, error: 'No se pudieron obtener los admins' };
+            if (adminsError || !admins) {
+                return { success: false, error: 'No se pudieron obtener los admins' };
+            }
+
+            const inserts = admins.map(adminRow => ({
+                usuario_id: adminRow.id,
+                tipo: sanitizeText(payload.tipo || '', 60),
+                titulo: sanitizeText(payload.titulo || '', 120),
+                mensaje: sanitizeText(payload.mensaje || '', 500),
+                enlace: enlaceSeguro(payload.enlace),
+                metadata: payload.metadata ?? null
+            }));
+
+            if (inserts.length === 0) return { success: true };
+
+            const { error } = await admin
+                .from('notificaciones')
+                .insert(inserts);
+
+            if (error) {
+                console.error('Error notificando admins:', error);
+                return { success: false, error: 'No se pudo notificar a los administradores' };
+            }
+
+            return { success: true };
         }
 
-        const inserts = admins.map(adminRow => ({
-            usuario_id: adminRow.id,
-            tipo: sanitizeText(payload.tipo || '', 60),
-            titulo: sanitizeText(payload.titulo || '', 120),
-            mensaje: sanitizeText(payload.mensaje || '', 500),
-            enlace: enlaceSeguro(payload.enlace),
-            metadata: payload.metadata ?? null
-        }));
-
-        if (inserts.length === 0) return { success: true };
-
-        const { error } = await admin
-            .from('notificaciones')
-            .insert(inserts);
+        const supabase = await createClient();
+        const { error } = await supabase.rpc('notificar_admins', {
+            p_tipo: sanitizeText(payload.tipo || '', 60),
+            p_titulo: sanitizeText(payload.titulo || '', 120),
+            p_mensaje: sanitizeText(payload.mensaje || '', 500),
+            p_enlace: enlaceSeguro(payload.enlace),
+            p_metadata: payload.metadata ?? null,
+        });
 
         if (error) {
-            console.error('Error notificando admins:', error);
-            return { success: false, error: 'No se pudo notificar a los administradores' };
+            console.error('Error notificando admins vía RPC:', error);
+            return {
+                success: false,
+                error: 'No se pudo notificar a los administradores. Ejecuta la migración 015.',
+            };
         }
 
         return { success: true };

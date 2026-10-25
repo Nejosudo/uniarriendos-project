@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
     suspenderUsuario,
     levantarSuspension,
 } from '@/app/acciones/suspensionesActions';
 import { cambiarRolUsuario } from '@/app/acciones/adminUsuariosActions';
 import type { RolUsuario } from '@/lib/suspensiones/types';
+import { suspensionEstaVigente } from '@/lib/suspensiones/types';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 import styles from './AdminUsuariosTable.module.css';
@@ -24,15 +25,21 @@ interface Suspension {
 interface Usuario {
     id: string;
     nombre_completo: string | null;
+    email?: string | null;
     telefono: string | null;
     rol: RolUsuario;
     tipo?: string | null;
     created_at: string;
+    ultimo_admin?: boolean;
+    propiedades_count?: number;
+    pqrs_count?: number;
+    resenas_count?: number;
     suspensiones?: Suspension[];
 }
 
 interface AdminUsuariosTableProps {
     usuarios: Usuario[];
+    currentUserId: string;
 }
 
 const NIVEL_LABELS: Record<NivelSuspension, string> = {
@@ -41,32 +48,65 @@ const NIVEL_LABELS: Record<NivelSuspension, string> = {
     3: 'Ban permanente',
 };
 
-export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosTableProps) {
+const POR_PAGINA = 15;
+
+function fecha(value: string) {
+    return new Date(value).toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+}
+
+export default function AdminUsuariosTable({ usuarios: initial, currentUserId }: AdminUsuariosTableProps) {
     const [usuarios, setUsuarios] = useState(initial);
     const [busqueda, setBusqueda] = useState('');
+    const [filtroRol, setFiltroRol] = useState<'todos' | RolUsuario>('todos');
+    const [filtroEstado, setFiltroEstado] = useState<'todos' | 'activo' | 'suspendido'>('todos');
+    const [pagina, setPagina] = useState(1);
     const [loadingId, setLoadingId] = useState<string | null>(null);
-    const [suspendModal, setSuspendModal] = useState<{ id: string; nombre: string } | null>(null);
+    const [suspendModal, setSuspendModal] = useState<{ id: string; nombre: string; esAdmin: boolean } | null>(null);
+    const [detalle, setDetalle] = useState<Usuario | null>(null);
     const [nivel, setNivel] = useState<NivelSuspension>(1);
     const [motivo, setMotivo] = useState('');
     const [error, setError] = useState('');
 
-    const filtrados = usuarios.filter((u) => {
-        const q = busqueda.toLowerCase();
-        return (
-            u.nombre_completo?.toLowerCase().includes(q) ||
-            u.telefono?.includes(q) ||
-            u.id.toLowerCase().includes(q)
-        );
-    });
+    const suspensionActiva = (usuario: Usuario) =>
+        usuario.suspensiones?.find((suspension) => suspensionEstaVigente(suspension)) ?? null;
 
-    const suspensionActiva = (u: Usuario) =>
-        u.suspensiones?.find((s) => s.activa) ?? null;
+    const filtrados = useMemo(() => {
+        const q = busqueda.trim().toLowerCase();
+        return usuarios.filter((usuario) => {
+            if (filtroRol !== 'todos' && usuario.rol !== filtroRol) return false;
 
-    const handleRolChange = async (id: string, rol: RolUsuario) => {
-        setLoadingId(id);
-        const result = await cambiarRolUsuario(id, rol);
+            const suspendido = !!suspensionActiva(usuario);
+            if (filtroEstado === 'activo' && suspendido) return false;
+            if (filtroEstado === 'suspendido' && !suspendido) return false;
+
+            if (!q) return true;
+            return (
+                usuario.nombre_completo?.toLowerCase().includes(q) ||
+                usuario.email?.toLowerCase().includes(q) ||
+                usuario.telefono?.includes(q) ||
+                usuario.id.toLowerCase().includes(q)
+            );
+        });
+    }, [usuarios, busqueda, filtroRol, filtroEstado]);
+
+    const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
+    const paginaActual = Math.min(pagina, totalPaginas);
+    const visibles = filtrados.slice(
+        (paginaActual - 1) * POR_PAGINA,
+        paginaActual * POR_PAGINA
+    );
+
+    const handleRolChange = async (usuario: Usuario, rol: RolUsuario) => {
+        if (rol === usuario.rol) return;
+
+        setLoadingId(usuario.id);
+        const result = await cambiarRolUsuario(usuario.id, rol);
         if (result.success) {
-            setUsuarios(usuarios.map((u) => (u.id === id ? { ...u, rol } : u)));
+            setUsuarios((prev) => prev.map((item) => (item.id === usuario.id ? { ...item, rol } : item)));
             toast.success('Rol actualizado');
         } else {
             toast.error(result.error || 'No se pudo actualizar el rol');
@@ -91,7 +131,7 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
     };
 
     const handleLevantar = async (id: string) => {
-        if (!confirm('¿Levantar la suspensión de este usuario?')) return;
+        if (!window.confirm('¿Levantar la suspensión de este usuario?')) return;
         setLoadingId(id);
         const result = await levantarSuspension(id);
         if (result.success) {
@@ -103,6 +143,14 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
         setLoadingId(null);
     };
 
+    const abrirSuspension = (usuario: Usuario) => {
+        setSuspendModal({
+            id: usuario.id,
+            nombre: usuario.nombre_completo || 'Usuario',
+            esAdmin: usuario.rol === 'admin',
+        });
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.toolbar}>
@@ -110,13 +158,42 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                     <DynamicIcon name="Search" size={18} />
                     <input
                         type="text"
-                        placeholder="Buscar por nombre, teléfono o ID..."
+                        placeholder="Buscar por nombre, email, teléfono o ID..."
                         value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
+                        onChange={(event) => {
+                            setBusqueda(event.target.value);
+                            setPagina(1);
+                        }}
                         className={styles.searchInput}
                     />
                 </div>
-                <span className={styles.count}>{filtrados.length} usuarios</span>
+                <div className={styles.filters}>
+                    <select
+                        value={filtroRol}
+                        onChange={(event) => {
+                            setFiltroRol(event.target.value as 'todos' | RolUsuario);
+                            setPagina(1);
+                        }}
+                        className={styles.select}
+                    >
+                        <option value="todos">Todos los roles</option>
+                        <option value="usuario">Usuarios</option>
+                        <option value="admin">Administradores</option>
+                    </select>
+                    <select
+                        value={filtroEstado}
+                        onChange={(event) => {
+                            setFiltroEstado(event.target.value as 'todos' | 'activo' | 'suspendido');
+                            setPagina(1);
+                        }}
+                        className={styles.select}
+                    >
+                        <option value="todos">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="suspendido">Suspendidos</option>
+                    </select>
+                    <span className={styles.count}>{filtrados.length} usuarios</span>
+                </div>
             </div>
 
             <div className={styles.tableContainer}>
@@ -133,51 +210,87 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                         </tr>
                     </thead>
                     <tbody>
-                        {filtrados.map((u) => {
-                            const susp = suspensionActiva(u);
+                        {visibles.map((usuario) => {
+                            const suspension = suspensionActiva(usuario);
+                            const esPropioUsuario = usuario.id === currentUserId;
                             return (
-                                <tr key={u.id} className={loadingId === u.id ? styles.rowLoading : ''}>
+                                <tr key={usuario.id} className={loadingId === usuario.id ? styles.rowLoading : ''}>
                                     <td>
                                         <div className={styles.userInfo}>
-                                            <strong>{u.nombre_completo || 'Sin nombre'}</strong>
-                                            <span className={styles.userId}>{u.id.slice(0, 8)}…</span>
+                                            <strong>{usuario.nombre_completo || 'Sin nombre'}</strong>
+                                            <span className={styles.userEmail}>{usuario.email || 'Sin email'}</span>
+                                            <span className={styles.userId}>{usuario.id.slice(0, 8)}…</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <UserBadge tipo={u.tipo} />
+                                        <UserBadge tipo={usuario.tipo} />
                                     </td>
-                                    <td>{u.telefono || '—'}</td>
+                                    <td>{usuario.telefono || '—'}</td>
                                     <td>
                                         <select
-                                            value={u.rol}
-                                            onChange={(e) => handleRolChange(u.id, e.target.value as RolUsuario)}
-                                            disabled={loadingId === u.id}
+                                            value={usuario.rol}
+                                            onChange={(event) => {
+                                                const nuevoRol = event.target.value as RolUsuario;
+                                                if (nuevoRol === usuario.rol) return;
+
+                                                if (nuevoRol === 'usuario' && usuario.ultimo_admin) {
+                                                    toast.error('No puedes quitar el rol al último administrador');
+                                                    event.target.value = usuario.rol;
+                                                    return;
+                                                }
+
+                                                if (
+                                                    nuevoRol === 'usuario'
+                                                    && !window.confirm(`¿Quitar el rol de administrador a ${usuario.nombre_completo || 'este usuario'}?`)
+                                                ) {
+                                                    event.target.value = usuario.rol;
+                                                    return;
+                                                }
+
+                                                void handleRolChange(usuario, nuevoRol);
+                                            }}
+                                            disabled={loadingId === usuario.id || esPropioUsuario || usuario.ultimo_admin}
                                             className={styles.select}
+                                            title={
+                                                esPropioUsuario
+                                                    ? 'No puedes cambiar tu propio rol'
+                                                    : usuario.ultimo_admin
+                                                        ? 'No puedes quitar el rol al último administrador'
+                                                        : undefined
+                                            }
                                         >
                                             <option value="usuario">Usuario</option>
                                             <option value="admin">Admin</option>
                                         </select>
+                                        {usuario.ultimo_admin && (
+                                            <span className={styles.lastAdmin}>Último admin</span>
+                                        )}
                                     </td>
                                     <td>
-                                        {susp ? (
+                                        {suspension ? (
                                             <span className={styles.badgeSuspended}>
-                                                Suspendido ({NIVEL_LABELS[susp.nivel as NivelSuspension] ?? `Nivel ${susp.nivel}`})
+                                                Suspendido ({NIVEL_LABELS[suspension.nivel as NivelSuspension] ?? `Nivel ${suspension.nivel}`})
                                             </span>
                                         ) : (
                                             <span className={styles.badgeActive}>Activo</span>
                                         )}
                                     </td>
-                                    <td className={styles.dateCell}>
-                                        {new Date(u.created_at).toLocaleDateString('es-CO')}
-                                    </td>
+                                    <td className={styles.dateCell}>{fecha(usuario.created_at)}</td>
                                     <td>
                                         <div className={styles.actions}>
-                                            {susp ? (
+                                            <button
+                                                type="button"
+                                                className={styles.btnDetail}
+                                                onClick={() => setDetalle(usuario)}
+                                            >
+                                                Detalle
+                                            </button>
+                                            {suspension ? (
                                                 <button
                                                     type="button"
                                                     className={styles.btnLift}
-                                                    onClick={() => handleLevantar(u.id)}
-                                                    disabled={loadingId === u.id}
+                                                    onClick={() => void handleLevantar(usuario.id)}
+                                                    disabled={loadingId === usuario.id}
                                                 >
                                                     Levantar
                                                 </button>
@@ -185,13 +298,8 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                                                 <button
                                                     type="button"
                                                     className={styles.btnSuspend}
-                                                    onClick={() =>
-                                                        setSuspendModal({
-                                                            id: u.id,
-                                                            nombre: u.nombre_completo || 'Usuario',
-                                                        })
-                                                    }
-                                                    disabled={loadingId === u.id}
+                                                    onClick={() => abrirSuspension(usuario)}
+                                                    disabled={loadingId === usuario.id || esPropioUsuario}
                                                 >
                                                     <DynamicIcon name="Ban" size={16} />
                                                     Suspender
@@ -210,16 +318,110 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                 )}
             </div>
 
+            {totalPaginas > 1 && (
+                <div className={styles.pagination}>
+                    <button
+                        type="button"
+                        onClick={() => setPagina((value) => Math.max(1, value - 1))}
+                        disabled={paginaActual === 1}
+                    >
+                        Anterior
+                    </button>
+                    <span>Página {paginaActual} de {totalPaginas}</span>
+                    <button
+                        type="button"
+                        onClick={() => setPagina((value) => Math.min(totalPaginas, value + 1))}
+                        disabled={paginaActual === totalPaginas}
+                    >
+                        Siguiente
+                    </button>
+                </div>
+            )}
+
+            {detalle && (
+                <div className={styles.modalOverlay} onClick={() => setDetalle(null)}>
+                    <div className={`${styles.modal} ${styles.detailModal}`} onClick={(event) => event.stopPropagation()}>
+                        <div className={styles.detailHeader}>
+                            <div>
+                                <h3>{detalle.nombre_completo || 'Sin nombre'}</h3>
+                                <p>{detalle.email || 'Sin email registrado'}</p>
+                            </div>
+                            <button type="button" className={styles.closeBtn} onClick={() => setDetalle(null)}>
+                                <DynamicIcon name="X" size={20} />
+                            </button>
+                        </div>
+
+                        <dl className={styles.detailGrid}>
+                            <div><dt>ID</dt><dd className={styles.mono}>{detalle.id}</dd></div>
+                            <div><dt>Teléfono</dt><dd>{detalle.telefono || '—'}</dd></div>
+                            <div><dt>Tipo</dt><dd><UserBadge tipo={detalle.tipo} /></dd></div>
+                            <div><dt>Rol</dt><dd>{detalle.rol === 'admin' ? 'Administrador' : 'Usuario'}</dd></div>
+                            <div><dt>Registro</dt><dd>{fecha(detalle.created_at)}</dd></div>
+                            <div><dt>Estado</dt><dd>{suspensionActiva(detalle) ? 'Suspendido' : 'Activo'}</dd></div>
+                        </dl>
+
+                        <div className={styles.resumenGrid}>
+                            <div>
+                                <strong>{detalle.propiedades_count ?? '—'}</strong>
+                                <span>Propiedades</span>
+                            </div>
+                            <div>
+                                <strong>{detalle.pqrs_count ?? '—'}</strong>
+                                <span>PQRS</span>
+                            </div>
+                            <div>
+                                <strong>{detalle.resenas_count ?? '—'}</strong>
+                                <span>Reseñas</span>
+                            </div>
+                        </div>
+
+                        <h4 className={styles.detailSubtitle}>Historial de suspensiones</h4>
+                        {(!detalle.suspensiones || detalle.suspensiones.length === 0) ? (
+                            <p className={styles.detailEmpty}>Sin suspensiones registradas.</p>
+                        ) : (
+                            <ul className={styles.suspensionList}>
+                                {detalle.suspensiones.map((suspension) => {
+                                    const vigente = suspensionEstaVigente(suspension);
+                                    return (
+                                        <li key={suspension.id}>
+                                            <div>
+                                                <strong>{NIVEL_LABELS[suspension.nivel as NivelSuspension] ?? `Nivel ${suspension.nivel}`}</strong>
+                                                <span>{suspension.motivo || 'Sin motivo registrado'}</span>
+                                            </div>
+                                            <div className={styles.suspensionMeta}>
+                                                <span className={vigente ? styles.badgeSuspended : styles.badgeActive}>
+                                                    {vigente ? 'Vigente' : 'Finalizada'}
+                                                </span>
+                                                <small>
+                                                    {suspension.fecha_fin
+                                                        ? `Hasta ${fecha(suspension.fecha_fin)}`
+                                                        : 'Permanente'}
+                                                </small>
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {suspendModal && (
                 <div className={styles.modalOverlay} onClick={() => setSuspendModal(null)}>
-                    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+                    <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
                         <h3>Suspender a {suspendModal.nombre}</h3>
+                        {suspendModal.esAdmin && (
+                            <p className={styles.warning}>
+                                Este usuario es administrador. La suspensión no le quita el acceso al panel.
+                            </p>
+                        )}
                         {error && <p className={styles.error}>{error}</p>}
                         <div className={styles.formGroup}>
                             <label>Nivel de suspensión</label>
                             <select
                                 value={nivel}
-                                onChange={(e) => setNivel(Number(e.target.value) as NivelSuspension)}
+                                onChange={(event) => setNivel(Number(event.target.value) as NivelSuspension)}
                                 className={styles.select}
                             >
                                 <option value={1}>Nivel 1 — 1 mes</option>
@@ -231,7 +433,7 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                             <label>Motivo (opcional)</label>
                             <textarea
                                 value={motivo}
-                                onChange={(e) => setMotivo(e.target.value)}
+                                onChange={(event) => setMotivo(event.target.value)}
                                 rows={3}
                                 placeholder="Motivo de la suspensión..."
                                 className={styles.textarea}
@@ -241,7 +443,7 @@ export default function AdminUsuariosTable({ usuarios: initial }: AdminUsuariosT
                             <button type="button" onClick={() => setSuspendModal(null)} className={styles.btnCancel}>
                                 Cancelar
                             </button>
-                            <button type="button" onClick={handleSuspender} className={styles.btnConfirm} disabled={!!loadingId}>
+                            <button type="button" onClick={() => void handleSuspender()} className={styles.btnConfirm} disabled={!!loadingId}>
                                 Confirmar suspensión
                             </button>
                         </div>

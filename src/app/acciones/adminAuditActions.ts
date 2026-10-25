@@ -21,6 +21,6 @@ export async function logAdminAction(accion: string, entidad: string, entidadId?
   }
 }
 
-export async function exportCsvAdmin(_tipo: 'usuarios' | 'propiedades') {
+export async function exportCsvAdmin() {
   return { success: false, error: 'Usa el botón Exportar en el panel admin (client-side CSV sin PII)' };
 }

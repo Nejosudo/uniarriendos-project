@@ -4,6 +4,7 @@ import PropertyCard from '@/componentes/ui/PropertyCard/PropertyCard';
 import { redirectSiNoPuedeUsarFavoritos } from '@/lib/suspensiones/guard';
 import styles from './page.module.css';
 import Link from 'next/link';
+import type { PropiedadLista } from '@/lib/tipos';
 
 export default async function FavoritosPage() {
     const supabase = await createClient();
@@ -16,7 +17,7 @@ export default async function FavoritosPage() {
     await redirectSiNoPuedeUsarFavoritos();
 
     // Obtener los favoritos del usuario con las propiedades
-    const { data: favoritos, error } = await supabase
+    const { data: favoritosData, error } = await supabase
         .from('favoritos')
         .select(`
             id,
@@ -32,6 +33,7 @@ export default async function FavoritosPage() {
         .eq('usuario_id', user.id)
         .order('created_at', { ascending: false });
 
+    const favoritos = (favoritosData ?? []) as unknown as { propiedad: PropiedadLista | null }[];
     if (error) {
         console.error('Error al obtener favoritos:', error);
     }
@@ -54,14 +56,14 @@ export default async function FavoritosPage() {
                 </div>
             ) : (
                 <div className={styles.grid}>
-                    {favoritos.map((fav: any) => {
+                    {favoritos.map((fav) => {
                         const prop = fav.propiedad;
                         if (!prop) return null; // Si la propiedad fue borrada
 
                         const anfitrion = prop.anfitrion;
                         const fotos = prop.propiedades_fotos;
                         const imagenPrincipal = fotos && fotos.length > 0 ? fotos[0].url : undefined;
-                        const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
+                        const servicios = prop.servicios_rel?.map((s) => s.servicio).filter((s): s is NonNullable<typeof s> => !!s) || [];
 
                         return (
                             <PropertyCard 
@@ -71,13 +73,13 @@ export default async function FavoritosPage() {
                                 precio={prop.precio}
                                 ubicacion_texto={prop.ubicacion_texto}
                                 imagen_url={imagenPrincipal}
-                                vivienda_compartida={prop.vivienda_compartida}
-                                estado={prop.estado}
-                                prioridad={prop.prioridad}
-                                verificada={prop.verificada}
-                                perfil_arriendo={prop.perfil_arriendo}
-                                anfitrion_nombre={anfitrion?.nombre_completo}
-                                anfitrion_avatar={anfitrion?.avatar_url}
+                                vivienda_compartida={prop.vivienda_compartida ?? undefined}
+                                estado={prop.estado ?? undefined}
+                                prioridad={prop.prioridad ?? undefined}
+                                verificada={prop.verificada ?? undefined}
+                                perfil_arriendo={prop.perfil_arriendo ?? undefined}
+                                anfitrion_nombre={anfitrion?.nombre_completo ?? undefined}
+                                anfitrion_avatar={anfitrion?.avatar_url ?? undefined}
                                 servicios={servicios}
                                 isFavorite={true} // Por definición, si está aquí es favorito
                             />

@@ -28,13 +28,17 @@ export async function responderPqrs(
 
     const supabase = await createClient();
 
-    const { error: respError } = await supabase.from('pqrs_respuestas').insert({
-        pqrs_id: pqrsId,
-        admin_id: auth.user.id,
-        mensaje: texto,
-    });
+    const { data: respuesta, error: respError } = await supabase
+        .from('pqrs_respuestas')
+        .insert({
+            pqrs_id: pqrsId,
+            admin_id: auth.user.id,
+            mensaje: texto,
+        })
+        .select('id, pqrs_id, mensaje, imagen_url, usuario_id, admin_id, created_at')
+        .single();
 
-    if (respError) {
+    if (respError || !respuesta) {
         console.error('Error respondiendo PQRS:', respError);
         return { success: false, error: 'No se pudo guardar la respuesta' };
     }
@@ -66,7 +70,7 @@ export async function responderPqrs(
 
     revalidatePath('/admin/pqrs');
     revalidatePath('/dashboard/pqrs');
-    return { success: true };
+    return { success: true, respuesta, estado: nuevoEstado };
 }
 
 export async function cambiarEstadoPqrs(pqrsId: number, nuevoEstado: PqrsEstado) {

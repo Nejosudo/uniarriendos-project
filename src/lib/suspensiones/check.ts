@@ -42,8 +42,8 @@ async function obtenerViaRpc(
         }
 
         return normalizarSuspension(data);
-    } catch (error:any) {
-        console.error('[suspensiones] RPC get_suspension_activa exception:', error.message);
+    } catch (error) {
+        console.error('[suspensiones] RPC get_suspension_activa exception:', error instanceof Error ? error.message : error);
         return null;
     }
 }

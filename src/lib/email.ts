@@ -1,3 +1,5 @@
+import { getSiteUrl } from '@/lib/siteUrl';
+
 type EmailOpts = { to: string; subject: string; html: string; text?: string };
 
 function escapeHtml(value: string): string {
@@ -46,7 +48,7 @@ export async function sendEmail(opts: EmailOpts): Promise<{ ok: boolean; error?:
 }
 
 export function emailTemplate(titulo: string, mensaje: string, enlace?: string) {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://uniarriendos-project.vercel.app';
+  const base = getSiteUrl();
   const safeEnlace = enlaceSeguro(enlace);
   const href = safeEnlace ? `${base.replace(/\/$/, '')}${safeEnlace}` : null;
 

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -12,14 +13,17 @@ import PropertyDetailMap from '@/componentes/ui/PropertyDetailMap/PropertyDetail
 import ResenasSection from '@/componentes/propiedades/ResenasSection/ResenasSection';
 import PreguntasSection from '@/componentes/propiedades/PreguntasSection/PreguntasSection';
 import Link from 'next/link';
-import { usuarioYaReseno } from '@/app/acciones/resenasActions';
+import { usuarioYaReseno, type ResenaConUsuario } from '@/app/acciones/resenasActions';
 import type { PreguntaConUsuario } from '@/app/acciones/preguntasActions';
 import { calcularPromedioResenas, formatearEstrellas } from '@/lib/resenas/utils';
 import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 import CotsemInfo from '@/componentes/ui/CotsemInfo/CotsemInfo';
+import { getSiteUrl } from '@/lib/siteUrl';
+
+import type { PropiedadLista } from '@/lib/tipos';
 
 // Función para obtener propiedad (reutilizable para metadata y componente)
-async function obtenerPropiedad(id: string) {
+const obtenerPropiedad = cache(async (id: string): Promise<{ data: PropiedadDetalle | null; error: unknown }> => {
     const supabase = await createClient();
     const { data: propiedad, error } = await supabase
         .from('propiedades')
@@ -42,8 +46,17 @@ async function obtenerPropiedad(id: string) {
         .eq('id', id)
         .single();
     
-    return { data: propiedad, error };
-}
+    return { data: (propiedad ?? null) as PropiedadDetalle | null, error };
+});
+
+type PropiedadDetalle = Omit<PropiedadLista, 'resenas' | 'preguntas'> & {
+    estado: 'disponible' | 'ocupado' | 'inactivo';
+    verificada: boolean;
+    vivienda_compartida: boolean;
+    propietario_id: string;
+    resenas: ResenaConUsuario[] | null;
+    preguntas: PreguntaConUsuario[] | null;
+};
 
 // Metadata dinámica para cada propiedad
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -51,13 +64,18 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     const { data: propiedad } = await obtenerPropiedad(id);
 
     if (!propiedad) {
+        notFound();
+    }
+
+    if (propiedad.estado === 'inactivo') {
         return {
             title: "Propiedad no encontrada",
-            description: "La propiedad que buscas no existe en UniArriendos.",
+            description: "La propiedad que buscas no está disponible en UniArriendos.",
         };
     }
 
-    const imagenPrincipal = propiedad.propiedades_fotos?.[0]?.url || 'https://uniarriendos-project.vercel.app/default-property.png';
+    const base = getSiteUrl();
+    const imagenPrincipal = propiedad.propiedades_fotos?.[0]?.url || `${base}/og-image.png`;
     const titulo = `${propiedad.titulo} - $${propiedad.precio?.toLocaleString('es-CO')} | UniArriendos`;
     const descripcion = propiedad.descripcion?.substring(0, 160) || `Arriendo en ${propiedad.ubicacion_texto} - ${propiedad.titulo}`;
 
@@ -68,7 +86,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         openGraph: {
             type: 'website',
             locale: 'es_CO',
-            url: `https://uniarriendos-project.vercel.app/propiedades/${id}`,
+            url: `${base}/propiedades/${id}`,
             title: propiedad.titulo,
             description: descripcion,
             siteName: 'UniArriendos',
@@ -78,7 +96,6 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
                     width: 1200,
                     height: 630,
                     alt: propiedad.titulo,
-                    type: 'image/jpeg',
                 },
             ],
         },
@@ -89,19 +106,19 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
             images: [imagenPrincipal],
         },
         alternates: {
-            canonical: `https://uniarriendos-project.vercel.app/propiedades/${id}`,
+            canonical: `${base}/propiedades/${id}`,
         },
     };
 }
 
-function jsonLdPropiedad(prop: any, fotos: string[]) {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://uniarriendos-project.vercel.app';
+function jsonLdPropiedad(prop: PropiedadDetalle, fotos: string[]) {
+  const base = getSiteUrl();
   return {
     '@context': 'https://schema.org',
     '@type': 'Residence',
     name: prop.titulo,
     description: prop.descripcion?.slice(0, 300),
-    image: fotos,
+    image: fotos.length > 0 ? fotos : [`${base}/og-image.png`],
     url: `${base}/propiedades/${prop.id}`,
     offers: { '@type': 'Offer', price: prop.precio, priceCurrency: 'COP' },
     address: prop.ubicacion_texto,
@@ -126,6 +143,23 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+
+    if (propiedad.estado === 'inactivo') {
+        let esAdmin = false;
+        if (user) {
+            const { data: perfil } = await supabase
+                .from('perfiles')
+                .select('rol')
+                .eq('id', user.id)
+                .maybeSingle();
+            esAdmin = perfil?.rol === 'admin';
+        }
+
+        if (!user || (user.id !== propiedad.propietario_id && !esAdmin)) {
+            return notFound();
+        }
+    }
+
     const isLoggedIn = !!user;
     const restricciones = await getRestriccionesUsuario();
     const puedeVerContacto = isLoggedIn && restricciones.puedeVerContacto;
@@ -161,11 +195,11 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
     }
 
     // Normalizar datos
-    const fotos = propiedad.propiedades_fotos?.sort((a: any, b: any) => a.orden - b.orden).map((f: any) => f.url) || [];
-    const servicios = propiedad.servicios_rel?.map((s: any) => s.servicio) || [];
+    const fotos = propiedad.propiedades_fotos?.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0)).map((f) => f.url) || [];
+    const servicios = (propiedad.servicios_rel?.map((s) => s.servicio).filter((s): s is NonNullable<typeof s> => !!s)) || [];
     const anfitrion = propiedad.anfitrion;
     const resenasVisibles = (propiedad.resenas || [])
-        .filter((r: { reportada?: boolean }) => !r.reportada)
+        .filter((r) => !r.reportada)
         .sort(
             (a: { created_at: string }, b: { created_at: string }) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -248,7 +282,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                         <h2>Servicios incluidos</h2>
                         {servicios.length > 0 ? (
                             <ul className={styles.servicesList}>
-                                {servicios.map((srv: any, idx: number) => (
+                                {servicios.map((srv, idx) => (
                                     <li key={idx} className={styles.serviceItem}>
                                         <DynamicIcon name={srv.icono} size={20} color="var(--color-primary)" />
                                         {srv.nombre}
@@ -268,8 +302,7 @@ export default async function PropiedadDetalle({ params }: { params: { id: strin
                             <PropertyDetailMap 
                                 lat={propiedad.ubicacion_lat} 
                                 lng={propiedad.ubicacion_lng} 
-                                direccion={propiedad.ubicacion_texto}
-                            />
+                                                            />
                         </section>
                     )}
 

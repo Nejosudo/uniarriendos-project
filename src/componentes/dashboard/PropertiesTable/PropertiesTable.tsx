@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { cambiarEstadoPropiedad, eliminarPropiedad } from '@/app/acciones/propiedadesDashboardActions';
@@ -9,15 +9,29 @@ import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import toast from 'react-hot-toast';
 import styles from './PropertiesTable.module.css';
 
+const noopSubscribe = () => () => {};
+
+interface PropiedadesRow {
+    id: number;
+    titulo: string;
+    precio: number;
+    ubicacion_texto: string | null;
+    estado: string | null;
+    prioridad: string | null;
+    verificada: boolean | null;
+    propiedades_fotos: { url: string; orden?: number | null }[] | null;
+    favoritos_count?: { count: number }[];
+}
+
 interface PropertiesTableProps {
-    propiedades: any[];
+    propiedades: PropiedadesRow[];
     accionesBloqueadas?: boolean;
 }
 
 export default function PropertiesTable({ propiedades: initialPropiedades, accionesBloqueadas = false }: PropertiesTableProps) {
     const [propiedades, setPropiedades] = useState(initialPropiedades);
     const [isLoading, setIsLoading] = useState<number | null>(null);
-    const [mounted, setMounted] = useState(false);
+    const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
     
     // Estados para el modal de borrado
     const [deleteModal, setDeleteModal] = useState<{show: boolean, id: number | null, titulo: string}>({
@@ -27,10 +41,6 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
     });
     const [password, setPassword] = useState('');
     const [deleteError, setDeleteError] = useState('');
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const handleEstadoChange = async (id: number, nuevoEstado: string) => {
         setIsLoading(id);
@@ -136,13 +146,13 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                                 </td>
                                 <td>
                                     {accionesBloqueadas ? (
-                                        <span className={`${styles.statusBadge} ${styles[`status_${prop.estado}`]}`}>
+                                        <span className={`${styles.statusBadge} ${styles[`status_${prop.estado ?? ''}`]}`}>
                                             {prop.estado === 'disponible' ? 'Disponible' : prop.estado === 'ocupado' ? 'Ocupado' : 'Oculto'}
                                         </span>
                                     ) : (
                                         <select 
-                                            className={`${styles.statusSelect} ${styles[`status_${prop.estado}`]}`}
-                                            value={prop.estado}
+                                            className={`${styles.statusSelect} ${styles[`status_${prop.estado ?? ''}`]}`}
+                                            value={prop.estado ?? ''}
                                             onChange={(e) => handleEstadoChange(prop.id, e.target.value)}
                                             disabled={isLoading === prop.id}
                                         >
@@ -200,7 +210,7 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                         
                         <div className={styles.modalBody}>
                             <p className={styles.warningText}>
-                                ¿Estás seguro de que deseas eliminar <strong>"{deleteModal.titulo}"</strong>?
+                                ¿Estás seguro de que deseas eliminar <strong>{'"'}{deleteModal.titulo}{'"'}</strong>?
                             </p>
                             <p className={styles.infoText}>
                                 Esta acción es permanente y no se puede deshacer. Se eliminarán todas las fotos y registros asociados.

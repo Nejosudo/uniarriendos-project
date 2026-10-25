@@ -72,3 +72,13 @@ export function getRestriccionesResumidas(nivel: NivelSuspension): string[] {
     }
     return base;
 }
+
+export function suspensionEstaVigente(suspension: {
+    activa: boolean;
+    nivel: number;
+    fecha_fin?: string | null;
+}): boolean {
+    if (!suspension.activa) return false;
+    if (Number(suspension.nivel) === 3) return true;
+    return !!suspension.fecha_fin && new Date(suspension.fecha_fin).getTime() > Date.now();
+}

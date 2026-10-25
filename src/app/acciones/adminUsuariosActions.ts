@@ -19,6 +19,34 @@ export async function cambiarRolUsuario(usuarioId: string, nuevoRol: RolUsuario)
     }
 
     const supabase = await createClient();
+
+    if (nuevoRol === 'usuario') {
+        const { data: objetivo, error: objetivoError } = await supabase
+            .from('perfiles')
+            .select('rol')
+            .eq('id', usuarioId)
+            .single();
+
+        if (objetivoError || !objetivo) {
+            return { success: false, error: 'Usuario no encontrado' };
+        }
+
+        if (objetivo.rol === 'admin') {
+            const { count, error: countError } = await supabase
+                .from('perfiles')
+                .select('id', { count: 'exact', head: true })
+                .eq('rol', 'admin');
+
+            if (countError) {
+                return { success: false, error: 'No se pudo verificar la cantidad de administradores' };
+            }
+
+            if ((count ?? 0) <= 1) {
+                return { success: false, error: 'No puedes quitar el rol al último administrador' };
+            }
+        }
+    }
+
     const { error } = await supabase
         .from('perfiles')
         .update({ rol: nuevoRol })

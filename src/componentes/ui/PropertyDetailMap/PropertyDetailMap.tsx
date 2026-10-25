@@ -23,10 +23,9 @@ const PropertyDetailMapInner = dynamic(() => import('./PropertyDetailMapInner'),
 interface PropertyDetailMapProps {
     lat: number;
     lng: number;
-    direccion: string;
 }
 
-export default function PropertyDetailMap({ lat, lng, direccion }: PropertyDetailMapProps) {
+export default function PropertyDetailMap({ lat, lng }: PropertyDetailMapProps) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             <PropertyDetailMapInner lat={lat} lng={lng} />

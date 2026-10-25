@@ -41,9 +41,11 @@ export async function POST(req: NextRequest) {
   const prompt = `Eres asistente inmobiliario. Reescribe esta descripción de arriendo para hacerla más formal, clara y atractiva, manteniendo datos reales, agregando 2-4 emojis decorativos relevantes (🏠✨📍). No inventes servicios. Máx 900 caracteres. Título: "${titulo}" Precio: ${precio} Ubicación: "${ubicacion}" Servicios: ${servicios.join(', ')}. Descripción original: "${desc}" Responde solo con la descripción mejorada.`;
 
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 500 } }),
+      signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) {
       console.error('Error Gemini mejorar-descripcion:', res.status, (await res.text()).slice(0, 300));

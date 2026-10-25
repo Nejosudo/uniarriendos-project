@@ -6,6 +6,9 @@ import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilt
 import ExplorarView from '@/componentes/explorar/ExplorarView';
 import styles from './page.module.css';
 import { getClientIp } from '@/lib/rateLimit';
+import { getSiteUrl } from '@/lib/siteUrl';
+import type { PropiedadLista } from '@/lib/tipos';
+import type { SemanticFilters, SemanticResult } from '@/lib/search/semantic';
 
 export const metadata: Metadata = {
     title: 'Explorar arriendos - Busca tu próxima vivienda | UniArriendos',
@@ -14,17 +17,19 @@ export const metadata: Metadata = {
     openGraph: {
         type: 'website',
         locale: 'es_CO',
-        url: 'https://uniarriendos-project.vercel.app/explorar',
+        url: `${getSiteUrl()}/explorar`,
         title: 'Explorar arriendos disponibles',
         description: 'Cientos de opciones de arriendo para estudiantes y externos en Barrancabermeja',
         siteName: 'UniArriendos',
     },
     alternates: {
-        canonical: 'https://uniarriendos-project.vercel.app/explorar',
+        canonical: `${getSiteUrl()}/explorar`,
     },
 };
 
-export default async function Explorar({ searchParams }: { searchParams: any }) {
+type ExplorarSearch = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function Explorar({ searchParams }: { searchParams: ExplorarSearch }) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const restricciones = await getRestriccionesUsuario();
@@ -42,7 +47,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
         }
     }
 
-    const params = await searchParams;
+    const params: Record<string, string | string[] | undefined> = await searchParams;
     
     // Extraer parámetros de búsqueda de la URL
     const q = params.q as string;
@@ -73,7 +78,7 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
             console.error('Error filtrando propiedades por servicios:', serviciosError);
         } else {
             const conteo = new Map<number, number>();
-            (relaciones || []).forEach((relacion: any) => {
+            (relaciones || []).forEach((relacion: { propiedad_id: number }) => {
                 conteo.set(relacion.propiedad_id, (conteo.get(relacion.propiedad_id) || 0) + 1);
             });
             idsConServicios = [...conteo.entries()]
@@ -83,16 +88,18 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
     }
 
     const isSemanticQuery = q && q.trim().split(/\s+/).length >= 2 && q.length >= 6;
-    let semanticFiltros: any = null;
-    let semanticResultados: any[] | null = null;
+    let semanticFiltros: SemanticFilters | null = null;
+    let semanticResultados: PropiedadLista[] | null = null;
     let useSemantic = false;
     if (isSemanticQuery) {
         try {
             const h = await headers();
             const ip = getClientIp(h);
             const { searchSemantic } = await import('@/lib/search/semantic');
-            const j: any = await searchSemantic(q, ip);
-            if (j.resultados?.length) {
+            const j: SemanticResult = await searchSemantic(q, ip);
+            if ('error' in j) {
+                console.error('Error búsqueda semántica:', j.error);
+            } else if (j.resultados?.length) {
                 useSemantic = true;
                 semanticFiltros = j.filtros;
                 semanticResultados = j.resultados;
@@ -153,9 +160,9 @@ export default async function Explorar({ searchParams }: { searchParams: any }) 
 
     const page = Math.max(1, parseInt(params.page as string, 10) || 1);
     const limit = 12;
-    let propiedades: any[] | null = null;
-    let error: any = null;
-    const cumpleFiltrosActivos = (prop: any) => {
+    let propiedades: PropiedadLista[] | null = null;
+    let error: unknown = null;
+    const cumpleFiltrosActivos = (prop: PropiedadLista) => {
         if (compartidaParam === 'true' && !prop.vivienda_compartida) return false;
         if (compartidaParam === 'false' && prop.vivienda_compartida) return false;
         if (verificada && !prop.verificada) return false;

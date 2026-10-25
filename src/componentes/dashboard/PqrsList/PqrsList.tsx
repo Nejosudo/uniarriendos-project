@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { PqrsEstado, responderPqrsUsuario } from '@/app/acciones/pqrsActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import { isAllowedImageUrl } from '@/lib/validation';
@@ -98,7 +97,7 @@ function PqrsResponder({ pqrsId }: { pqrsId: number }) {
         if (imagen) {
             if (imagen.size > 5 * 1024 * 1024) { toast.error('Imagen máx 5MB'); setLoading(false); return; }
             if (!['image/jpeg','image/png','image/webp','image/avif'].includes(imagen.type)) { toast.error('Formato no permitido'); setLoading(false); return; }
-            const fd = new FormData(); fd.append('file', imagen);
+            const fd = new FormData(); fd.append('file', imagen); fd.append('contexto', 'pqrs');
             const up = await uploadImageToCloudinary(fd);
             if (!up.success) { toast.error(up.error || 'Error subiendo imagen'); setLoading(false); return; }
             imagenUrl = up.url || null;

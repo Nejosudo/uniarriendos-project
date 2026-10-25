@@ -1,12 +1,12 @@
 import type { NextConfig } from "next";
 
 const isProduction = process.env.NODE_ENV === 'production';
-const scriptSrc = `'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://unpkg.com https://*.cloudinary.com https://cdnjs.cloudflare.com https://vercel.live https://*.vercel.live`;
+const scriptSrc = `'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://vercel.live https://*.vercel.live`;
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src ${scriptSrc}`,
-  "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com",
-  "img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co https://unpkg.com https://cdnjs.cloudflare.com https://raw.githubusercontent.com https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.openstreetmap.org",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.openstreetmap.org",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.resend.com https://*.tile.openstreetmap.org https://nominatim.openstreetmap.org https://vercel.live wss://*.vercel.live",
   "font-src 'self' data:",
   "worker-src 'self' blob:",
@@ -18,6 +18,7 @@ const contentSecurityPolicy = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   experimental: {
     serverActions: {
       bodySizeLimit: '5mb',

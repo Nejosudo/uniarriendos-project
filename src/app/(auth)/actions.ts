@@ -9,7 +9,9 @@ import { authCallbackUrl } from '@/lib/auth/siteUrl'
 import { validateNombre, validatePassword, sanitizeText } from '@/lib/validation'
 import { checkRateLimit, rateLimitKey, getClientIp } from '@/lib/rateLimit'
 
-export async function loginAction(prevState: any, formData: FormData) {
+export type FormState = { error?: string; success?: boolean; message?: string }
+
+export async function loginAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
   const ip = getClientIp(await headers())
   const rl = checkRateLimit(rateLimitKey(ip, null, 'login'), 5, 60_000)
   if (!rl.ok) return { error: 'Demasiados intentos. Intenta en unos segundos.' }
@@ -39,7 +41,7 @@ export async function loginAction(prevState: any, formData: FormData) {
   redirect('/explorar')
 }
 
-export async function registerAction(prevState: any, formData: FormData) {
+export async function registerAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
   const ip = getClientIp(await headers())
   const rl = checkRateLimit(rateLimitKey(ip, null, 'registro'), 3, 60_000)
   if (!rl.ok) return { error: 'Demasiados intentos de registro. Espera un momento.' }
@@ -100,7 +102,7 @@ export async function registerAction(prevState: any, formData: FormData) {
   redirect(`/registro/confirmar?email=${encodeURIComponent(email)}`)
 }
 
-export async function forgotPasswordAction(prevState: any, formData: FormData) {
+export async function forgotPasswordAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
   const ip = getClientIp(await headers())
   const rl = checkRateLimit(rateLimitKey(ip, null, 'forgot'), 3, 15 * 60_000)
   if (!rl.ok) return { error: 'Demasiadas solicitudes. Intenta más tarde.' }
@@ -129,7 +131,7 @@ export async function forgotPasswordAction(prevState: any, formData: FormData) {
   }
 }
 
-export async function resetPasswordAction(prevState: any, formData: FormData) {
+export async function resetPasswordAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
   const ip = getClientIp(await headers())
   const rl = checkRateLimit(rateLimitKey(ip, null, 'reset'), 5, 15 * 60_000)
   if (!rl.ok) return { error: 'Demasiados intentos. Intenta más tarde.' }

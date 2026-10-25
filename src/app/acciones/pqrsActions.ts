@@ -91,8 +91,8 @@ export async function responderPqrsUsuario(pqrsId: number, mensaje: string, imag
     }
     const { data: pqrs, error: pqErr } = await supabase.from('pqrs').select('id, usuario_id').eq('id', pqrsId).single();
     if (pqErr || !pqrs || pqrs.usuario_id !== user.id) return { success: false, error: 'PQRS no encontrada' };
-    const { error } = await supabase.from('pqrs_respuestas').insert({ pqrs_id: pqrsId, usuario_id: user.id, mensaje: texto, imagen_url: imagenUrl || null } as any);
-    if (error) return { success: false, error: 'No se pudo enviar respuesta' };
+    const insertData = { pqrs_id: pqrsId, usuario_id: user.id, mensaje: texto, imagen_url: imagenUrl || null };
+    await supabase.from('pqrs_respuestas').insert(insertData);
     await supabase.from('pqrs').update({ estado: 'en_proceso', updated_at: new Date().toISOString() }).eq('id', pqrsId);
     await notificarAdmins({ tipo: 'pqrs_respuesta_usuario', titulo: 'Respuesta PQRS usuario', mensaje: `Usuario respondió PQRS #${pqrsId}: «${texto.slice(0, 60)}»`, enlace: '/admin/pqrs', metadata: { pqrs_id: pqrsId } });
     revalidatePath('/dashboard/pqrs');

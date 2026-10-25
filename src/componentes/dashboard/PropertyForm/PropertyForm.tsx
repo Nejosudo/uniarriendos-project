@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useSyncExternalStore } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { crearPropiedad, editarPropiedad } from '@/app/acciones/crearPropiedadActions';
@@ -29,12 +29,82 @@ interface PhotoItem {
     isExisting: boolean;
 }
 
+interface PropiedadFormInitial {
+    titulo?: string | null;
+    precio?: number | null;
+    descripcion?: string | null;
+    ubicacion_texto?: string | null;
+    vivienda_compartida?: boolean | null;
+    perfil_arriendo?: string | null;
+    ubicacion_lat?: number | null;
+    ubicacion_lng?: number | null;
+    propiedades_servicios?: { servicio_id: number }[] | null;
+    propiedades_fotos?: { url: string; orden?: number | null }[] | null;
+}
+
+interface MejorarDescripcionProps {
+    titulo: string;
+    precio: string;
+    ubicacion_texto: string;
+    servicios: string[];
+    descripcion: string;
+    propiedadId?: number;
+    onAplicar: (texto: string) => void;
+}
+
 interface PropertyFormProps {
     serviciosDisponibles: Servicio[];
-    initialData?: any;
+    initialData?: PropiedadFormInitial;
     isEditing?: boolean;
     propiedadId?: number;
 }
+
+function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descripcion, propiedadId, onAplicar }: MejorarDescripcionProps) {
+    const [loading, setLoading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+    const key = `ia_mejorar_${propiedadId || 'nuevo'}`;
+    const usos = Number(
+        useSyncExternalStore(
+            (cb) => {
+                window.addEventListener('storage', cb);
+                return () => window.removeEventListener('storage', cb);
+            },
+            () => localStorage.getItem(key),
+            () => null
+        ) || 0
+    );
+    const handle = async () => {
+        if (descripcion.trim().length < 20) { toast.error('Escribe al menos 20 caracteres antes de mejorar'); return; }
+        if (usos >= 2) { toast.error('Límite 2 mejoras por propiedad'); return; }
+        setLoading(true);
+        const r = await fetch('/api/ai/mejorar-descripcion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ descripcion, titulo, precio, ubicacion_texto, servicios }) });
+        const j = await r.json();
+        setLoading(false);
+        if (!r.ok) { toast.error(j.error || 'Error IA'); return; }
+        setPreview(j.mejorada);
+        toast('Revisa la sugerencia y decide si aplicarla', { icon: '✨' });
+    };
+    if (preview) {
+        return (
+            <div style={{ marginTop: '0.6rem', padding: '0.8rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.4rem' }}>✨ Sugerencia IA (no se aplica automático):</p>
+                <p style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', background: 'white', padding: '0.6rem', borderRadius: 6, border: '1px solid #e2e8f0' }}>{preview}</p>
+                <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem' }}>Aviso: el texto es sugerencia; tú eres responsable del contenido publicado.</p>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem' }}>
+                    <button type="button" onClick={() => { onAplicar(preview); localStorage.setItem(key, String(usos + 1)); window.dispatchEvent(new Event('storage')); setPreview(null); toast.success('Descripción mejorada aplicada'); }} style={{ padding: '0.5rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600 }}>Aplicar</button>
+                    <button type="button" onClick={() => setPreview(null)} style={{ padding: '0.5rem 1rem', background: 'white', border: '1px solid var(--color-border)', borderRadius: 8 }}>Descartar</button>
+                </div>
+            </div>
+        );
+    }
+    return (
+        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? 'var(--color-text-muted)' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', color: usos >= 2 ? 'white' : '#1f2937' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
+            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Escribe detalles primero. Límite 2 por propiedad.</span>
+        </div>
+    );
+}
+
 
 export default function PropertyForm({ 
     serviciosDisponibles, 
@@ -57,7 +127,7 @@ export default function PropertyForm({
     const [longitud, setLongitud] = useState(initialData?.ubicacion_lng || -73.8427);
     const [serviciosSeleccionados, setServiciosSeleccionados] = useState<number[]>(() => {
         if (initialData?.propiedades_servicios) {
-            return initialData.propiedades_servicios.map((s: any) => s.servicio_id);
+            return initialData.propiedades_servicios.map((s) => s.servicio_id);
         }
         return [];
     });
@@ -66,8 +136,8 @@ export default function PropertyForm({
     const [photos, setPhotos] = useState<PhotoItem[]>(() => {
         if (initialData?.propiedades_fotos) {
             // Sort by order ascending
-            const sorted = [...initialData.propiedades_fotos].sort((a: any, b: any) => a.orden - b.orden);
-            return sorted.map((foto: any, idx: number) => ({
+            const sorted = [...initialData.propiedades_fotos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+            return sorted.map((foto, idx) => ({
                 id: `existing-${idx}-${foto.url}`,
                 url: foto.url,
                 isExisting: true
@@ -158,7 +228,7 @@ export default function PropertyForm({
                 raw.replace(/calle\s*/i, 'Calle ').replace(/carrera\s*/i, 'Carrera ').trim() + ', Barrancabermeja',
                 raw
             ];
-            let found: any = null;
+            let found: { lat: string; lon: string } | null = null;
             for (const query of variants) {
                 const params = new URLSearchParams({ format: 'json', q: query, limit: '1', countrycodes: 'co', addressdetails: '1' });
                 const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
@@ -214,6 +284,7 @@ export default function PropertyForm({
                 } else if (photo.file) {
                     const imgData = new FormData();
                     imgData.append('file', photo.file);
+                    imgData.append('contexto', 'propiedad');
                     const res = await uploadImageToCloudinary(imgData);
                     if (!res.success) {
                         throw new Error(`Error subiendo foto: ${res.error}`);
@@ -245,50 +316,12 @@ export default function PropertyForm({
             } else {
                 setError(result.error || 'Error al guardar la propiedad.');
             }
-        } catch (err: any) {
-            setError(err.message || 'Error inesperado');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {
             setIsSubmitting(false);
         }
     };
-
-function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descripcion, propiedadId, onAplicar }: any) {
-    const [loading, setLoading] = useState(false);
-    const [preview, setPreview] = useState<string | null>(null);
-    const [usos, setUsos] = useState(0);
-    const key = `ia_mejorar_${propiedadId || 'nuevo'}`;
-    useEffect(() => { setUsos(Number(localStorage.getItem(key) || 0)); }, [key]);
-    const handle = async () => {
-        if (descripcion.trim().length < 20) { toast.error('Escribe al menos 20 caracteres antes de mejorar'); return; }
-        if (usos >= 2) { toast.error('Límite 2 mejoras por propiedad'); return; }
-        setLoading(true);
-        const r = await fetch('/api/ai/mejorar-descripcion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ descripcion, titulo, precio, ubicacion_texto, servicios }) });
-        const j = await r.json();
-        setLoading(false);
-        if (!r.ok) { toast.error(j.error || 'Error IA'); return; }
-        setPreview(j.mejorada);
-        toast('Revisa la sugerencia y decide si aplicarla', { icon: '✨' });
-    };
-    if (preview) {
-        return (
-            <div style={{ marginTop: '0.6rem', padding: '0.8rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.4rem' }}>✨ Sugerencia IA (no se aplica automático):</p>
-                <p style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', background: 'white', padding: '0.6rem', borderRadius: 6, border: '1px solid #e2e8f0' }}>{preview}</p>
-                <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem' }}>Aviso: el texto es sugerencia; tú eres responsable del contenido publicado.</p>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem' }}>
-                    <button type="button" onClick={() => { onAplicar(preview); const n = usos + 1; localStorage.setItem(key, String(n)); setUsos(n); setPreview(null); toast.success('Descripción mejorada aplicada'); }} style={{ padding: '0.5rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600 }}>Aplicar</button>
-                    <button type="button" onClick={() => setPreview(null)} style={{ padding: '0.5rem 1rem', background: 'white', border: '1px solid var(--color-border)', borderRadius: 8 }}>Descartar</button>
-                </div>
-            </div>
-        );
-    }
-    return (
-        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <button type="button" onClick={handle} disabled={loading || usos >= 2} style={{ padding: '0.5rem 0.8rem', background: usos >= 2 ? 'var(--color-text-muted)' : 'white', border: '1px solid var(--color-border)', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', color: usos >= 2 ? 'white' : '#1f2937' }}>{loading ? 'Mejorando...' : `✨ Mejorar con IA (${2 - usos} restantes)`}</button>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Escribe detalles primero. Límite 2 por propiedad.</span>
-        </div>
-    );
-}
 
     return (
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -452,7 +485,7 @@ function MejorarDescripcion({ titulo, precio, ubicacion_texto, servicios, descri
                         onChange={handleFileSelect}
                     />
                 </div>
-                <p className={styles.photoHelp}>Sube hasta 5 fotos (Máx 5MB por foto). La primera foto seleccionada será la portada. Haz clic en "Establecer Portada" en cualquier foto para cambiarla.</p>
+                <p className={styles.photoHelp}>Sube hasta 5 fotos (Máx 5MB por foto). La primera foto seleccionada será la portada. Haz clic en {'"'}Establecer Portada{'"'} en cualquier foto para cambiarla.</p>
 
                 {photos.length > 0 && (
                     <div className={styles.photosGrid}>

@@ -17,7 +17,7 @@ export default function DashboardSuspensionGuard({ suspension }: DashboardSuspen
     useEffect(() => {
         if (esRutaDashboardPermitida(pathname, restricciones)) return;
         router.replace('/dashboard/perfil');
-    }, [pathname, suspension, router]);
+    }, [pathname, restricciones, router]);
 
     return null;
 }

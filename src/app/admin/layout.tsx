@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import AdminSidebar from '@/componentes/admin/AdminSidebar/AdminSidebar';
+import NotificationBell from '@/componentes/ui/NotificationBell/NotificationBell';
 import { requireAdmin } from '@/lib/admin/auth';
 import styles from './admin.module.css';
 
@@ -17,7 +19,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <div className={styles.sidebarWrapper}>
                 <AdminSidebar perfil={perfil} email={user.email || ''} />
             </div>
-            <main className={styles.mainContent}>{children}</main>
+            <div className={styles.contentWrapper}>
+                <header className={styles.topbar}>
+                    <Link href="/admin" className={styles.topbarBrand}>
+                        Administración
+                    </Link>
+                    <NotificationBell notificacionesHref="/admin/notificaciones" />
+                </header>
+                <main className={styles.mainContent}>{children}</main>
+            </div>
         </div>
     );
 }

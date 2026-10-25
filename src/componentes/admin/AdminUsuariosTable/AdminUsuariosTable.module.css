@@ -251,3 +251,244 @@
         min-width: 700px;
     }
 }
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.userEmail {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}
+
+.userId {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-family: monospace;
+}
+
+.lastAdmin {
+    display: inline-block;
+    margin-top: 0.25rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.btnDetail {
+    padding: 0.4rem 0.7rem;
+    background: #f1f5f9;
+    color: var(--color-text-main);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btnDetail:hover {
+    background: #e2e8f0;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.pagination button {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.detailModal {
+    max-width: 620px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.detailHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detailHeader h3 {
+    margin: 0 0 0.2rem;
+}
+
+.detailHeader p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.closeBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem;
+    border: none;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: var(--color-text-main);
+    cursor: pointer;
+}
+
+.detailGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem 1.2rem;
+    margin: 0 0 1.25rem;
+}
+
+.detailGrid div {
+    min-width: 0;
+}
+
+.detailGrid dt {
+    margin-bottom: 0.15rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+}
+
+.detailGrid dd {
+    margin: 0;
+    color: var(--color-text-main);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.mono {
+    font-family: monospace;
+    font-size: 0.8rem !important;
+}
+
+.detailSubtitle {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+}
+
+.detailEmpty {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.suspensionList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.suspensionList li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.suspensionList li > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.suspensionList strong {
+    font-size: 0.9rem;
+}
+
+.suspensionList span,
+.suspensionList small {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.suspensionMeta {
+    align-items: flex-end;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.warning {
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 6px;
+    background: rgba(245, 158, 11, 0.1);
+    color: #92400e;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+    .detailGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .suspensionList li {
+        flex-direction: column;
+    }
+
+    .suspensionMeta {
+        align-items: flex-start;
+        text-align: left;
+    }
+}
+
+.resumenGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.resumenGrid div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.8rem 0.5rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+}
+
+.resumenGrid strong {
+    font-size: 1.25rem;
+    color: var(--color-text-main);
+}
+
+.resumenGrid span {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+}

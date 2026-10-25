@@ -13,8 +13,13 @@ type SuspensionAdmin = {
 type UsuarioAdmin = {
     id: string;
     nombre_completo: string | null;
+    email?: string | null;
     telefono: string | null;
     rol: 'usuario' | 'admin';
+    ultimo_admin?: boolean;
+    propiedades_count?: number;
+    pqrs_count?: number;
+    resenas_count?: number;
     tipo?: string | null;
     created_at: string;
     suspensiones?: SuspensionAdmin[];
@@ -40,6 +45,7 @@ function normalizarLista(data: unknown): UsuarioAdmin[] {
 
 export default async function AdminUsuariosPage() {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     const { data: usuariosRpc, error: rpcError } = await supabase.rpc('admin_listar_usuarios');
     let usuarios = normalizarLista(usuariosRpc);
@@ -93,9 +99,10 @@ export default async function AdminUsuariosPage() {
         }
     }
 
-    const usuariosConSuspensionActiva = usuarios.map((u) => ({
-        ...u,
-        suspensiones: u.suspensiones?.filter((s) => s.activa) || [],
+    const totalAdmins = usuarios.filter((usuario) => usuario.rol === 'admin').length;
+    const usuariosNormalizados = usuarios.map((usuario) => ({
+        ...usuario,
+        ultimo_admin: usuario.rol === 'admin' && totalAdmins <= 1,
     }));
 
     return (
@@ -107,7 +114,7 @@ export default async function AdminUsuariosPage() {
                 </p>
                 {aviso && <p className={styles.subtitle}>{aviso}</p>}
             </header>
-            <AdminUsuariosTable usuarios={usuariosConSuspensionActiva} />
+            <AdminUsuariosTable usuarios={usuariosNormalizados} currentUserId={user?.id ?? ''} />
         </div>
     );
 }

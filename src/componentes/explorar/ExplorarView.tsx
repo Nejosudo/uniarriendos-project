@@ -5,9 +5,22 @@ import ExplorarMap from '@/componentes/explorar/ExplorarMap/ExplorarMap';
 import TopSearchBar from '@/componentes/explorar/TopSearchBar/TopSearchBar';
 import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilters';
 import { calcularPromedioResenas } from '@/lib/resenas/utils';
+import type { PropiedadLista } from '@/lib/tipos';
 import styles from '@/app/explorar/page.module.css';
 
-export default function ExplorarView({ propiedades, favoritosIds, favoritosDeshabilitados, q, useSemantic, vistaInicial = 'lista', page, params, serviciosDisponibles }: any) {
+interface ExplorarViewProps {
+    propiedades: PropiedadLista[];
+    favoritosIds: Set<string>;
+    favoritosDeshabilitados: boolean;
+    q: string;
+    useSemantic: boolean;
+    vistaInicial?: string;
+    page: number;
+    params: Record<string, string | string[] | undefined>;
+    serviciosDisponibles: { id: number; nombre: string; icono: string | null }[];
+}
+
+export default function ExplorarView({ propiedades, favoritosIds, favoritosDeshabilitados, q, useSemantic, vistaInicial = 'lista', page, params, serviciosDisponibles }: ExplorarViewProps) {
   const [vista, setVista] = useState(vistaInicial);
   const [showBanner, setShowBanner] = useState(!!(useSemantic && propiedades?.length));
   useEffect(() => {
@@ -15,7 +28,11 @@ export default function ExplorarView({ propiedades, favoritosIds, favoritosDesha
     const t = setTimeout(() => setShowBanner(false), 3000);
     return () => clearTimeout(t);
   }, [q, showBanner]);
-  useEffect(() => { if (useSemantic && propiedades?.length) setShowBanner(true); }, [q]);
+  useEffect(() => {
+    if (!useSemantic || !propiedades?.length) return;
+    const show = setTimeout(() => setShowBanner(true), 0);
+    return () => clearTimeout(show);
+  }, [q, useSemantic, propiedades?.length]);
   return (
     <>
       <TopSearchBar vista={vista} onVistaChange={setVista} />
@@ -29,11 +46,11 @@ export default function ExplorarView({ propiedades, favoritosIds, favoritosDesha
           {vista === 'mapa' ? <ExplorarMap propiedades={propiedades} destacadaId={useSemantic ? propiedades[0]?.id : undefined} /> : (
             <>
               <div className={styles.grid}>
-                {propiedades.map((prop: any, idx: number) => {
+                {propiedades.map((prop, idx) => {
                   const anfitrion = prop.anfitrion;
                   const fotos = prop.propiedades_fotos;
                   const imagenPrincipal = fotos?.[0]?.url;
-                  const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
+                  const servicios = prop.servicios_rel?.map((s) => s.servicio).filter((s): s is NonNullable<typeof s> => !!s) || [];
                   const resumenResenas = calcularPromedioResenas(prop.resenas);
                   const isTop = useSemantic && idx === 0 && propiedades.length > 1;
                   return (

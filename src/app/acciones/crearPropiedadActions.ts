@@ -37,7 +37,20 @@ function perfilArriendoValido(value: unknown): string | null {
     return value === 'hombres' || value === 'mujeres' || value === 'ambos' ? value : null;
 }
 
-export async function crearPropiedad(formData: any) {
+type PropiedadFormData = {
+    titulo: string;
+    precio: number;
+    descripcion: string;
+    ubicacion_texto: string;
+    vivienda_compartida: boolean;
+    perfil_arriendo: string;
+    latitud: number;
+    longitud: number;
+    servicios: number[];
+    fotos: string[];
+};
+
+export async function crearPropiedad(formData: PropiedadFormData) {
     const activo = await assertPuedeGestionarPropiedades();
     if (!activo.ok) {
         return { success: false, error: activo.error };
@@ -147,6 +160,14 @@ export async function crearPropiedad(formData: any) {
             if (fotosError) {
                 console.error('Error insertando fotos:', fotosError);
             }
+
+            const { error: linkError } = await supabase.rpc('vincular_fotos_validacion', {
+                p_propiedad_id: propiedadId,
+                p_urls: fotosValidadas.fotos,
+            });
+            if (linkError) {
+                console.error('Error vinculando fotos a la propiedad:', linkError);
+            }
         }
 
         revalidatePath('/dashboard/propiedades');
@@ -169,7 +190,7 @@ export async function crearPropiedad(formData: any) {
     }
 }
 
-export async function editarPropiedad(propiedadId: number, formData: any) {
+export async function editarPropiedad(propiedadId: number, formData: PropiedadFormData) {
     const activo = await assertPuedeGestionarPropiedades();
     if (!activo.ok) {
         return { success: false, error: activo.error };
@@ -286,6 +307,14 @@ export async function editarPropiedad(propiedadId: number, formData: any) {
 
             if (fotosError) {
                 console.error('Error insertando fotos nuevas:', fotosError);
+            }
+
+            const { error: linkError } = await supabase.rpc('vincular_fotos_validacion', {
+                p_propiedad_id: propiedadId,
+                p_urls: fotosValidadas.fotos,
+            });
+            if (linkError) {
+                console.error('Error vinculando fotos nuevas a la propiedad:', linkError);
             }
         }
 
