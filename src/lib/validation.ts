@@ -40,3 +40,21 @@ export function validateTextoLargo(texto: string, min: number, max: number, camp
   if (s.length > max) return `${campo} no puede superar ${max} caracteres`;
   return null;
 }
+
+export function isSafeHttpUrl(value: string): boolean {
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+export function isAllowedImageUrl(value: string): boolean {
+  if (!isSafeHttpUrl(value)) return false;
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    return host === 'res.cloudinary.com' || host.endsWith('.supabase.co');
+  } catch {
+    return false;
+  }
+}

@@ -23,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     const { data: perfil } = await supabase
         .from('perfiles')
-        .select('*')
+        .select('id, nombre_completo, avatar_url, rol, tipo')
         .eq('id', user.id)
         .single();
 
@@ -36,7 +36,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             )}
             <div className={styles.sidebarWrapper}>
                 <DashboardSidebar
-                    perfil={perfil}
+                    perfil={perfil ?? { nombre_completo: null, avatar_url: null }}
                     email={user.email || ''}
                     suspension={suspension}
                 />

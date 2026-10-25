@@ -28,7 +28,16 @@ export default async function Navbar() {
 
     return (
         <nav className={styles.navbar}>
-            <Link href="/" className={styles.logo}>Uniarriendos</Link>
+            <Link href="/" className={styles.logo} aria-label="UniArriendos, ir al inicio">
+                <Image
+                    src="/brand/uniarriendos_navbar.png"
+                    alt="UniArriendos"
+                    width={1010}
+                    height={200}
+                    className={styles.logoImage}
+                    priority
+                />
+            </Link>
 
             <ul className={styles.navLinks}>
                 <li><Link href="/">Inicio</Link></li>

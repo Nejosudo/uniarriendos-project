@@ -1,4 +1,8 @@
+packages:
+  - "."
 allowBuilds:
   core-js: false
   sharp: true
   unrs-resolver: false
+overrides:
+  source-map-js: ^1.2.2

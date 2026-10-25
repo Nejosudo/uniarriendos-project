@@ -43,6 +43,9 @@ import {
   LayoutDashboard,
   Building2,
   Ban,
+  Star,
+  History,
+  ClipboardList,
   LucideProps,
   Bell
 } from 'lucide-react';
@@ -99,6 +102,9 @@ const IconMap: Record<string, React.FC<LucideProps>> = {
   LayoutDashboard,
   Building2,
   Ban,
+  Star,
+  History,
+  ClipboardList,
   Bell
 };
 

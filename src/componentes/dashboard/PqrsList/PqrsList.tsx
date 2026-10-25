@@ -2,9 +2,9 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { PqrsEstado, responderPqrsUsuario } from '@/app/acciones/pqrsActions';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
+import { isAllowedImageUrl } from '@/lib/validation';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import toast from 'react-hot-toast';
 import styles from './PqrsList.module.css';
@@ -97,7 +97,7 @@ function PqrsResponder({ pqrsId }: { pqrsId: number }) {
         if (imagen) {
             if (imagen.size > 5 * 1024 * 1024) { toast.error('Imagen máx 5MB'); setLoading(false); return; }
             if (!['image/jpeg','image/png','image/webp','image/avif'].includes(imagen.type)) { toast.error('Formato no permitido'); setLoading(false); return; }
-            const fd = new FormData(); fd.append('file', imagen);
+            const fd = new FormData(); fd.append('file', imagen); fd.append('contexto', 'pqrs');
             const up = await uploadImageToCloudinary(fd);
             if (!up.success) { toast.error(up.error || 'Error subiendo imagen'); setLoading(false); return; }
             imagenUrl = up.url || null;
@@ -113,7 +113,7 @@ function PqrsResponder({ pqrsId }: { pqrsId: number }) {
             <textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={3} placeholder="Responde al equipo o anexa evidencia..." style={{ width: '100%', padding: '0.6rem', borderRadius: 8, border: '1px solid var(--color-border)', background: 'white', color: '#1f2937' }} />
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', alignItems: 'center' }}>
                 <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e => setImagen(e.target.files?.[0] || null)} style={{ fontSize: '0.85rem' }} />
-                {imagen && <span style={{ fontSize: '0.8rem', color: '#16a34a' }}>{imagen.name}</span>}
+                {imagen && <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)' }}>{imagen.name}</span>}
                 <button type="button" onClick={handleSend} disabled={loading} style={{ marginLeft: 'auto', padding: '0.6rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600 }}>{loading ? 'Enviando...' : 'Enviar'}</button>
             </div>
             <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.4rem' }}>Máx 5MB, JPG/PNG/WebP/AVIF.</p>
@@ -186,9 +186,9 @@ function PqrsResponder({ pqrsId }: { pqrsId: number }) {
                                                     Historial ({respuestas.length})
                                                 </h4>
                                                 {respuestas.map((r) => (
-                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid #16a34a' }}>
+                                                    <div key={r.id} className={styles.respuesta} style={{ borderLeft: r.usuario_id ? '3px solid var(--color-primary)' : '3px solid var(--color-primary)' }}>
                                                         <p><strong>{r.usuario_id ? 'Tú:' : 'Equipo:'}</strong> {r.mensaje}</p>
-                                                        {r.imagen_url && (
+                                                        {r.imagen_url && isAllowedImageUrl(r.imagen_url) && (
                                                             <>
                                                                 <img src={r.imagen_url} alt="Evidencia" style={{ maxWidth: 260, borderRadius: 8, marginTop: 6, border: '1px solid var(--color-border)' }} />
                                                                 <div style={{ marginTop: 6 }}><a href={r.imagen_url} download target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', padding: '4px 8px', background: '#f1f5f9', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', color: '#1f2937' }}>Ver evidencia</a></div>

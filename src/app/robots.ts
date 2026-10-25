@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
+import { getSiteUrl } from '@/lib/siteUrl';
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://uniarriendos-project.vercel.app';
+  const base = getSiteUrl();
   return {
     rules: [{ userAgent: '*', allow: ['/', '/explorar', '/propiedades/'], disallow: ['/dashboard', '/admin', '/api/'] }],
     sitemap: `${base}/sitemap.xml`,

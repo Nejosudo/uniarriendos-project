@@ -6,10 +6,11 @@ import { usePathname } from 'next/navigation';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import { getRestricciones } from '@/lib/suspensiones/permissions';
 import type { SuspensionActiva } from '@/lib/suspensiones/types';
+import type { PerfilBasico } from '@/lib/tipos';
 import styles from './DashboardSidebar.module.css';
 
 interface DashboardSidebarProps {
-    perfil: any;
+    perfil: PerfilBasico;
     email: string;
     suspension?: SuspensionActiva | null;
 }

@@ -22,7 +22,7 @@
 
 .layout {
     display: grid;
-    grid-template-columns: 1fr 280px;
+    grid-template-columns: 1fr 300px;
     gap: 2rem;
     align-items: start;
 }
@@ -37,7 +37,7 @@
 
 .stickyWrapper {
     position: sticky;
-    top: 2rem;
+    top: 5.5rem;
 }
 
 .grid {

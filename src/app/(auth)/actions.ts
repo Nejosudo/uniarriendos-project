@@ -7,10 +7,12 @@ import { createClient } from '@/lib/supabase/server'
 import { inferTipoUsuario } from '@/lib/usuarios/tipoUsuario'
 import { authCallbackUrl } from '@/lib/auth/siteUrl'
 import { validateNombre, validatePassword, sanitizeText } from '@/lib/validation'
-import { checkRateLimit, rateLimitKey } from '@/lib/rateLimit'
+import { checkRateLimit, rateLimitKey, getClientIp } from '@/lib/rateLimit'
 
-export async function loginAction(prevState: any, formData: FormData) {
-  const ip = (await headers()).get('x-forwarded-for')?.split(',')[0]?.trim() || null
+export type FormState = { error?: string; success?: boolean; message?: string }
+
+export async function loginAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
+  const ip = getClientIp(await headers())
   const rl = checkRateLimit(rateLimitKey(ip, null, 'login'), 5, 60_000)
   if (!rl.ok) return { error: 'Demasiados intentos. Intenta en unos segundos.' }
 
@@ -39,8 +41,8 @@ export async function loginAction(prevState: any, formData: FormData) {
   redirect('/explorar')
 }
 
-export async function registerAction(prevState: any, formData: FormData) {
-  const ip = (await headers()).get('x-forwarded-for')?.split(',')[0]?.trim() || null
+export async function registerAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
+  const ip = getClientIp(await headers())
   const rl = checkRateLimit(rateLimitKey(ip, null, 'registro'), 3, 60_000)
   if (!rl.ok) return { error: 'Demasiados intentos de registro. Espera un momento.' }
 
@@ -80,16 +82,16 @@ export async function registerAction(prevState: any, formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    console.error('Error en registro:', error.message)
+    return { error: 'No se pudo completar el registro. Verifica los datos e intenta de nuevo.' }
   }
 
   if (data.session && data.user) {
-    await supabase.from('perfiles').update({ tipo }).eq('id', data.user.id)
     try {
       const h = await headers()
       const ua = h.get('user-agent') || null
-      const fwd = h.get('x-forwarded-for') || null
-      const ipHash = fwd ? await crypto.subtle.digest('SHA-256', new TextEncoder().encode(fwd.split(',')[0].trim())).then(b => Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('').slice(0,16)) : null
+      const ip = getClientIp(h)
+      const ipHash = ip ? await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ip)).then(b => Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('').slice(0,16)) : null
       await supabase.from('consentimientos').insert({ usuario_id: data.user.id, tipo: 'terminos', version: '2026-08-28', ip_hash: ipHash, user_agent: ua?.slice(0,256) })
       await supabase.from('consentimientos').insert({ usuario_id: data.user.id, tipo: 'privacidad', version: '2026-08-28', ip_hash: ipHash, user_agent: ua?.slice(0,256) })
     } catch {}
@@ -100,12 +102,19 @@ export async function registerAction(prevState: any, formData: FormData) {
   redirect(`/registro/confirmar?email=${encodeURIComponent(email)}`)
 }
 
-export async function forgotPasswordAction(prevState: any, formData: FormData) {
+export async function forgotPasswordAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
+  const ip = getClientIp(await headers())
+  const rl = checkRateLimit(rateLimitKey(ip, null, 'forgot'), 3, 15 * 60_000)
+  if (!rl.ok) return { error: 'Demasiadas solicitudes. Intenta más tarde.' }
+
   const supabase = await createClient()
   const email = (formData.get('email') as string)?.trim()
 
   if (!email) {
     return { error: 'Ingresa tu correo electrónico.' }
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: 'Correo inválido' }
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -122,7 +131,11 @@ export async function forgotPasswordAction(prevState: any, formData: FormData) {
   }
 }
 
-export async function resetPasswordAction(prevState: any, formData: FormData) {
+export async function resetPasswordAction(prevState: FormState | undefined | null, formData: FormData): Promise<FormState | undefined | null> {
+  const ip = getClientIp(await headers())
+  const rl = checkRateLimit(rateLimitKey(ip, null, 'reset'), 5, 15 * 60_000)
+  if (!rl.ok) return { error: 'Demasiados intentos. Intenta más tarde.' }
+
   const supabase = await createClient()
   const password = formData.get('password') as string
   const confirmPassword = formData.get('confirmPassword') as string

@@ -17,7 +17,7 @@ export default function Loading() {
                 </div>
                 <aside className={styles.sidebar}>
                     <div className={styles.stickyWrapper}>
-                        <ExplorarFilters />
+                        <ExplorarFilters serviciosDisponibles={[]} />
                     </div>
                 </aside>
             </div>

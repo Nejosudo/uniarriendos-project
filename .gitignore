@@ -26,6 +26,7 @@
 /test-results
 playwright.config.ts
 vitest.config.ts
+/.opencode
 
 
 # misc
@@ -42,7 +43,7 @@ yarn-error.log*
 .env*
 PROJECT_REPORT_es.md
 /documentacion
-
+/documentacion-copy
 # vercel
 .vercel
 

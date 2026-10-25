@@ -10,22 +10,32 @@ import dynamic from 'next/dynamic';
 const CotsemLayers = dynamic(() => import('@/componentes/ui/CotsemLayers/CotsemLayers'), { ssr: false, loading: () => null });
 
 const icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconUrl: '/leaflet/marker-icon.png',
+  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+  shadowUrl: '/leaflet/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
 const iconDestacada = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconUrl: '/leaflet/marker-icon-2x-green.png',
+  shadowUrl: '/leaflet/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
 
-export default function MapComponent({ propiedades, destacadaId }: { propiedades: any[]; destacadaId?: number }) {
+export type MapProperty = {
+  id: number;
+  titulo: string;
+  precio: number;
+  ubicacion_lat: number | null;
+  ubicacion_lng: number | null;
+  verificada?: boolean | null;
+  propiedades_fotos?: { url: string }[] | null;
+};
+
+export default function MapComponent({ propiedades, destacadaId }: { propiedades: MapProperty[]; destacadaId?: number }) {
     const [showRuta, setShowRuta] = useState(true);
     const [showParadas, setShowParadas] = useState(true);
     const center: [number, number] = [7.0653, -73.8547]; 
@@ -43,7 +53,7 @@ export default function MapComponent({ propiedades, destacadaId }: { propiedades
                 />
                 
                 <CotsemLayers showRuta={showRuta} showParadas={showParadas} />
-                {propiedades.map((prop, idx) => {
+                {propiedades.map((prop) => {
                     // Usar coordenadas reales, si no existen, no renderizar el marcador
                     if (!prop.ubicacion_lat || !prop.ubicacion_lng) return null;
 
@@ -63,12 +73,12 @@ export default function MapComponent({ propiedades, destacadaId }: { propiedades
                                         <NextImage src={prop.propiedades_fotos[0].url} alt={prop.titulo} width={200} height={120} className={styles.popupImg} style={{ objectFit: 'cover' }} />
                                     )}
                                     <div className={styles.popupInfo}>
-                                        {isDestacada && <div style={{ background: '#16a34a', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '3px 6px', borderRadius: 10, marginBottom: 6, display: 'inline-block' }}>⭐ Más compatible</div>}
+                                        {isDestacada && <div style={{ background: 'var(--color-primary)', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '3px 6px', borderRadius: 10, marginBottom: 6, display: 'inline-block' }}>⭐ Más compatible</div>}
                                         <h3 className={styles.popupTitle}>{prop.titulo}</h3>
                                         <p className={styles.popupPrice}>
                                             {formatPrecio(prop.precio)}
                                             {prop.verificada && (
-                                                <span style={{ marginLeft: '6px', color: '#16a34a', fontWeight: 'bold', fontSize: '0.8rem' }} title="Propiedad verificada por admin">
+                                                <span style={{ marginLeft: '6px', color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '0.8rem' }} title="Propiedad verificada por admin">
                                                     ✓ Verificada
                                                 </span>
                                             )}

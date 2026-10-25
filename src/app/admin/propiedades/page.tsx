@@ -12,6 +12,7 @@ export default async function AdminPropiedadesPage() {
             propiedades_fotos (url, orden),
             propietario:perfiles!propiedades_propietario_id_fkey (nombre_completo)
         `)
+        .order('orden', { referencedTable: 'propiedades_fotos', ascending: true })
         .order('created_at', { ascending: false });
 
     if (error) {

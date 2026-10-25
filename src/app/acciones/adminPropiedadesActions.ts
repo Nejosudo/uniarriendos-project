@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminAction } from '@/lib/admin/auth';
 import { crearNotificacion } from './notificacionesActions';
+import { logAdminAction } from './adminAuditActions';
 
 export async function adminCambiarEstadoPropiedad(propiedadId: number, nuevoEstado: string) {
     const auth = await verifyAdminAction();
@@ -24,6 +25,8 @@ export async function adminCambiarEstadoPropiedad(propiedadId: number, nuevoEsta
         console.error('Error admin cambiando estado:', error);
         return { success: false, error: 'No se pudo cambiar el estado' };
     }
+
+    await logAdminAction('cambiar_estado_propiedad', 'propiedades', String(propiedadId), { nuevoEstado });
 
     revalidatePath('/admin/propiedades');
     revalidatePath(`/propiedades/${propiedadId}`);
@@ -51,6 +54,8 @@ export async function adminCambiarPrioridad(propiedadId: number, prioridad: stri
         console.error('Error admin cambiando prioridad:', error);
         return { success: false, error: 'No se pudo cambiar la prioridad' };
     }
+
+    await logAdminAction('cambiar_prioridad_propiedad', 'propiedades', String(propiedadId), { prioridad });
 
     revalidatePath('/admin/propiedades');
     revalidatePath('/explorar');
@@ -86,6 +91,8 @@ export async function adminToggleVerificada(propiedadId: number, verificada: boo
             });
         }
     }
+
+    await logAdminAction('verificar_propiedad', 'propiedades', String(propiedadId), { verificada });
 
     revalidatePath('/admin/propiedades');
     revalidatePath(`/propiedades/${propiedadId}`);

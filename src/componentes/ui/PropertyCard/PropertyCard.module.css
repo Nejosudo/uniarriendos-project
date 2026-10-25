@@ -80,20 +80,20 @@
 }
 
 .badgeSuccess {
-    background-color: rgba(28, 198, 91, 0.9);
+    background-color: var(--color-primary);
 }
 
 .badgeError {
-    background-color: rgba(239, 68, 68, 0.9);
+    background-color: var(--color-error);
 }
 
 .badgeVerified {
-    background-color: rgba(59, 130, 246, 0.9);
+    background-color: var(--color-secondary);
 }
 
 .badgeRecommended {
-    background-color: rgba(245, 158, 11, 0.9);
-    color: #fff;
+    background-color: #f59e0b;
+    color: #422006;
 }
 
 .favoriteBtnWrapper {

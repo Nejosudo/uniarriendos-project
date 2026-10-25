@@ -15,7 +15,10 @@ const navItems = [
     { name: 'Dashboard', path: '/admin', icon: 'LayoutDashboard', exact: true },
     { name: 'Usuarios', path: '/admin/usuarios', icon: 'Users' },
     { name: 'Propiedades', path: '/admin/propiedades', icon: 'Building2' },
+    { name: 'Reseñas', path: '/admin/resenas', icon: 'Star' },
+    { name: 'Fotos', path: '/admin/fotos', icon: 'Image' },
     { name: 'PQRS', path: '/admin/pqrs', icon: 'MessageSquare' },
+    { name: 'Auditoría', path: '/admin/auditoria', icon: 'ClipboardList' },
 ];
 
 export default function AdminSidebar({ perfil, email }: AdminSidebarProps) {
@@ -24,7 +27,13 @@ export default function AdminSidebar({ perfil, email }: AdminSidebarProps) {
     return (
         <aside className={styles.sidebar}>
             <div className={styles.brand}>
-                <DynamicIcon name="Shield" size={22} />
+                <Image
+                    src="/brand/uniarriendos_icono_mono_blanco.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className={styles.brandLogo}
+                />
                 <span>Panel Admin</span>
             </div>
 

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { assertPuedeInteractuarPublicaciones } from '@/app/acciones/suspensionesActions';
 import { crearNotificacion } from './notificacionesActions';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { sanitizeText, validateTextoLargo } from '@/lib/validation';
 
 export interface ResenaConUsuario {
@@ -102,20 +103,22 @@ export async function crearResena(
         metadata: { propiedad_id: propiedadId }
     });
     try {
-      const { data: ownerPerfil } = await supabase.from('perfiles').select('id').eq('id', propiedad.propietario_id).single();
-      if (ownerPerfil) {
-        const { data: authUser } = await supabase.auth.admin.getUserById(propiedad.propietario_id);
-        const email = (authUser as any)?.user?.email || (authUser as any)?.data?.user?.email;
+      const admin = createAdminClient();
+      if (admin) {
+        const { data: authUser } = await admin.auth.admin.getUserById(propiedad.propietario_id);
+        const email = authUser?.user?.email;
         if (email) {
           const { sendEmail, emailTemplate } = await import('@/lib/email');
           await sendEmail({ to: email, subject: 'Nueva reseña en tu propiedad', html: emailTemplate('Nueva Reseña', `${nombreAutor} dejó una reseña de ${cal}★ en «${propData?.titulo || 'tu propiedad'}».`, `/propiedades/${propiedadId}`) });
         }
       }
-    } catch {}
+    } catch (emailError) {
+      console.error('No se pudo enviar el email de nueva reseña:', emailError);
+    }
 
     if (mod.estado === 'pendiente_revision') {
-        try { await supabase.from('fotos_validacion').insert({ usuario_id: user.id, resultado: 'pendiente', motivo: `resena_moderacion:${mod.motivo}`, foto_url: null } as any); } catch {}
-        try { const { sendEmail, emailTemplate } = await import('@/lib/email'); const { data: auth } = await supabase.auth.getUser(); const email = (auth as any)?.user?.email; if (email) await sendEmail({ to: email, subject: 'Tu reseña está en revisión', html: emailTemplate('Reseña en revisión', 'Tu reseña contiene datos de contacto o fue marcada para revisión manual. Un admin la revisará pronto.', `/propiedades/${propiedadId}`) }); } catch {}
+        try { await supabase.from('fotos_validacion').insert({ usuario_id: user.id, resultado: 'pendiente', motivo: `resena_moderacion:${mod.motivo}`, foto_url: null }); } catch {}
+        try { const { sendEmail, emailTemplate } = await import('@/lib/email'); const { data: auth } = await supabase.auth.getUser(); const email = auth.user?.email; if (email) await sendEmail({ to: email, subject: 'Tu reseña está en revisión', html: emailTemplate('Reseña en revisión', 'Tu reseña contiene datos de contacto o fue marcada para revisión manual. Un admin la revisará pronto.', `/propiedades/${propiedadId}`) }); } catch {}
         revalidatePath(`/propiedades/${propiedadId}`);
         return { success: true, pending: true };
     }

@@ -53,7 +53,7 @@
 }
 
 .emptyState p {
-    color: #888;
+    color: var(--color-text-muted);
     margin: 0;
 }
 
@@ -83,7 +83,7 @@
 
 .cardUnread {
     background-color: #f8fbff;
-    border-left: 4px solid #3498db;
+    border-left: 4px solid var(--color-secondary);
 }
 
 .cardContent {
@@ -106,7 +106,7 @@
 
 .cardTime {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--color-text-muted);
 }
 
 .cardMessage {
@@ -122,7 +122,7 @@
 .markReadBtn {
     background: none;
     border: none;
-    color: #aaa;
+    color: var(--color-text-muted);
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
@@ -134,5 +134,5 @@
 
 .markReadBtn:hover {
     background-color: #f0f0f0;
-    color: #3498db;
+    color: var(--color-secondary);
 }

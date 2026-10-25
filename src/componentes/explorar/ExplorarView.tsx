@@ -5,9 +5,22 @@ import ExplorarMap from '@/componentes/explorar/ExplorarMap/ExplorarMap';
 import TopSearchBar from '@/componentes/explorar/TopSearchBar/TopSearchBar';
 import ExplorarFilters from '@/componentes/explorar/ExplorarFilters/ExplorarFilters';
 import { calcularPromedioResenas } from '@/lib/resenas/utils';
+import type { PropiedadLista } from '@/lib/tipos';
 import styles from '@/app/explorar/page.module.css';
 
-export default function ExplorarView({ propiedades, favoritosIds, favoritosDeshabilitados, q, useSemantic, vistaInicial = 'lista', page, params }: any) {
+interface ExplorarViewProps {
+    propiedades: PropiedadLista[];
+    favoritosIds: Set<string>;
+    favoritosDeshabilitados: boolean;
+    q: string;
+    useSemantic: boolean;
+    vistaInicial?: string;
+    page: number;
+    params: Record<string, string | string[] | undefined>;
+    serviciosDisponibles: { id: number; nombre: string; icono: string | null }[];
+}
+
+export default function ExplorarView({ propiedades, favoritosIds, favoritosDeshabilitados, q, useSemantic, vistaInicial = 'lista', page, params, serviciosDisponibles }: ExplorarViewProps) {
   const [vista, setVista] = useState(vistaInicial);
   const [showBanner, setShowBanner] = useState(!!(useSemantic && propiedades?.length));
   useEffect(() => {
@@ -15,7 +28,11 @@ export default function ExplorarView({ propiedades, favoritosIds, favoritosDesha
     const t = setTimeout(() => setShowBanner(false), 3000);
     return () => clearTimeout(t);
   }, [q, showBanner]);
-  useEffect(() => { if (useSemantic && propiedades?.length) setShowBanner(true); }, [q]);
+  useEffect(() => {
+    if (!useSemantic || !propiedades?.length) return;
+    const show = setTimeout(() => setShowBanner(true), 0);
+    return () => clearTimeout(show);
+  }, [q, useSemantic, propiedades?.length]);
   return (
     <>
       <TopSearchBar vista={vista} onVistaChange={setVista} />
@@ -29,16 +46,16 @@ export default function ExplorarView({ propiedades, favoritosIds, favoritosDesha
           {vista === 'mapa' ? <ExplorarMap propiedades={propiedades} destacadaId={useSemantic ? propiedades[0]?.id : undefined} /> : (
             <>
               <div className={styles.grid}>
-                {propiedades.map((prop: any, idx: number) => {
+                {propiedades.map((prop, idx) => {
                   const anfitrion = prop.anfitrion;
                   const fotos = prop.propiedades_fotos;
                   const imagenPrincipal = fotos?.[0]?.url;
-                  const servicios = prop.servicios_rel?.map((s: any) => s.servicio) || [];
+                  const servicios = prop.servicios_rel?.map((s) => s.servicio).filter((s): s is NonNullable<typeof s> => !!s) || [];
                   const resumenResenas = calcularPromedioResenas(prop.resenas);
                   const isTop = useSemantic && idx === 0 && propiedades.length > 1;
                   return (
-                    <div key={prop.id} style={isTop ? { position: 'relative', outline: '2px solid #16a34a', borderRadius: 16, padding: 2 } : undefined}>
-                      {isTop && <div style={{ position: 'absolute', top: -10, left: 12, zIndex: 3, background: '#16a34a', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '4px 8px', borderRadius: 20 }}>⭐ Más compatible con tu búsqueda</div>}
+                    <div key={prop.id} style={isTop ? { position: 'relative', outline: '2px solid var(--color-primary)', borderRadius: 16, padding: 2 } : undefined}>
+                      {isTop && <div style={{ position: 'absolute', top: -10, left: 12, zIndex: 3, background: 'var(--color-primary)', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '4px 8px', borderRadius: 20 }}>⭐ Más compatible con tu búsqueda</div>}
                       <PropertyCard id={prop.id} titulo={prop.titulo} precio={prop.precio} ubicacion_texto={prop.ubicacion_texto} imagen_url={imagenPrincipal} vivienda_compartida={prop.vivienda_compartida} estado={prop.estado} prioridad={prop.prioridad} verificada={prop.verificada} perfil_arriendo={prop.perfil_arriendo} anfitrion_nombre={anfitrion?.nombre_completo} anfitrion_avatar={anfitrion?.avatar_url} servicios={servicios} isFavorite={favoritosIds.has(prop.id.toString())} favoritosDeshabilitados={favoritosDeshabilitados} calificacionPromedio={resumenResenas?.promedio ?? null} totalResenas={resumenResenas?.total ?? 0} />
                     </div>
                   );
@@ -51,7 +68,7 @@ export default function ExplorarView({ propiedades, favoritosIds, favoritosDesha
             </>
           )}
         </div>
-        <aside className={styles.sidebar}><div className={styles.stickyWrapper}><ExplorarFilters /></div></aside>
+        <aside className={styles.sidebar}><div className={styles.stickyWrapper}><ExplorarFilters serviciosDisponibles={serviciosDisponibles} /></div></aside>
       </div>
     </>
   );

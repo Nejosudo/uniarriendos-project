@@ -12,10 +12,15 @@
 }
 
 .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #1ae840;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
     text-decoration: none;
+}
+
+.logoImage {
+    width: auto;
+    height: 44px;
 }
 
 .navLinks {
@@ -26,13 +31,13 @@
 
 .navLinks a {
     text-decoration: none;
-    color: #555;
+    color: var(--color-text-muted);
     font-weight: 500;
     transition: color 0.2s;
 }
 
 .navLinks a:hover {
-    color: #1a73e8;
+    color: var(--color-secondary);
 }
 
 .authButton {
@@ -237,6 +242,10 @@
 @media (max-width: 900px) {
     .navbar {
         padding: 0.9rem 1rem;
+    }
+
+    .logoImage {
+        height: 38px;
     }
 
     .navLinks,

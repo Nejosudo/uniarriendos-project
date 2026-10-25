@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
@@ -9,12 +8,18 @@ import styles from './PhoneBanner.module.css';
 export default function PhoneBanner() {
     const [hasPhone, setHasPhone] = useState<boolean | null>(null);
     const [isVisible, setIsVisible] = useState<boolean>(true);
-    const supabase = createClient();
 
     useEffect(() => {
         const checkPhone = async () => {
+            const supabase = createClient();
             const { data: {user} } = await supabase.auth.getUser();
             if (!user) return;
+
+            const { data, error } = await supabase.rpc('tiene_telefono');
+            if (!error) {
+                setHasPhone(data === true);
+                return;
+            }
 
             const { data: perfil } = await supabase
                 .from('perfiles')

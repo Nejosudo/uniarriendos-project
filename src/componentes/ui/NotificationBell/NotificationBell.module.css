@@ -7,7 +7,7 @@
 .bellButton {
     background: none;
     border: none;
-    color: var(--text-color, #333);
+    color: var(--text-color, var(--color-text-main));
     cursor: pointer;
     position: relative;
     display: flex;
@@ -26,7 +26,7 @@
     position: absolute;
     top: 2px;
     right: 2px;
-    background-color: #e74c3c;
+    background-color: var(--color-error);
     color: white;
     font-size: 0.65rem;
     font-weight: bold;
@@ -71,7 +71,7 @@
 
 .markAllRead {
     font-size: 0.8rem;
-    color: #3498db;
+    color: var(--color-secondary);
     text-decoration: none;
 }
 
@@ -87,7 +87,7 @@
 .empty {
     padding: 24px;
     text-align: center;
-    color: #888;
+    color: var(--color-text-muted);
     font-size: 0.9rem;
 }
 
@@ -127,7 +127,7 @@
 
 .itemTime {
     font-size: 0.7rem;
-    color: #888;
+    color: var(--color-text-muted);
 }
 
 .itemMessage {
@@ -144,7 +144,7 @@
 .unreadDot {
     width: 8px;
     height: 8px;
-    background-color: #3498db;
+    background-color: var(--color-secondary);
     border-radius: 50%;
     margin-left: 12px;
     margin-top: 6px;
@@ -160,7 +160,7 @@
 
 .viewAll {
     font-size: 0.85rem;
-    color: #3498db;
+    color: var(--color-secondary);
     text-decoration: none;
     font-weight: 500;
 }

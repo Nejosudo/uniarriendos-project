@@ -6,9 +6,9 @@
   --color-background: #f4f7fb; /* Fondo general de la app */
   --color-surface: #ffffff; /* Fondo de tarjetas y formularios */
   --color-text-main: #1e293b; /* Texto oscuro principal */
-  --color-text-muted: #64748b; /* Texto gris/secundario */
+  --color-text-muted: #5b6b7f; /* Texto gris/secundario */
   --color-border: #e2e8f0; /* Bordes sutiles */
-  --color-error: #ef4444; /* Mensajes de error */
+  --color-error: #dc2626; /* Mensajes de error */
 
   --background: var(--color-background);
   --foreground: var(--color-text-main);
@@ -16,6 +16,7 @@
 
 html {
   height: 100%;
+  color-scheme: light;
 }
 
 html,
@@ -46,8 +47,21 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+select,
+option,
+input,
+textarea,
+button {
+  color-scheme: light;
+}
+
+select option {
+  background-color: var(--color-surface);
+  color: var(--color-text-main);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
 }

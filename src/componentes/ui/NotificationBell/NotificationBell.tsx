@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -17,7 +17,11 @@ interface Notificacion {
     created_at: string;
 }
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+    notificacionesHref?: string;
+}
+
+export default function NotificationBell({ notificacionesHref = '/dashboard/notificaciones' }: NotificationBellProps) {
     const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
     const [noLeidasCount, setNoLeidasCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +30,7 @@ export default function NotificationBell() {
     const router = useRouter();
     const supabase = createClient();
 
-    const fetchNotificaciones = async () => {
+    const fetchNotificaciones = useCallback(async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -58,17 +62,16 @@ export default function NotificationBell() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [supabase]);
 
-    const channelRef = useRef<any>(null);
+    const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
     useEffect(() => {
-        fetchNotificaciones();
-
-        const setupSubscription = async () => {
+        const setup = async () => {
+            await fetchNotificaciones();
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-            const existing = (supabase as any).getChannels?.()?.find((c: any) => c.topic === `realtime:notificaciones-${user.id}`);
+            const existing = supabase.getChannels?.().find((c) => c.topic === `realtime:notificaciones-${user.id}`);
             if (existing || channelRef.current) return;
             const channel = supabase
                 .channel(`notificaciones-${user.id}`)
@@ -90,7 +93,8 @@ export default function NotificationBell() {
             channelRef.current = channel;
         };
 
-        setupSubscription();
+        void setup();
+
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
@@ -104,7 +108,7 @@ export default function NotificationBell() {
                 channelRef.current = null;
             }
         };
-    }, []);
+    }, [fetchNotificaciones, supabase]);
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
@@ -161,7 +165,7 @@ export default function NotificationBell() {
                     <div className={styles.header}>
                         <h3>Notificaciones</h3>
                         {noLeidasCount > 0 && (
-                            <Link href="/dashboard/notificaciones" className={styles.markAllRead} onClick={() => setIsOpen(false)}>
+                            <Link href={notificacionesHref} className={styles.markAllRead} onClick={() => setIsOpen(false)}>
                                 Ver todas
                             </Link>
                         )}
@@ -193,7 +197,7 @@ export default function NotificationBell() {
                     </div>
                     
                     <div className={styles.footer}>
-                        <Link href="/dashboard/notificaciones" className={styles.viewAll} onClick={() => setIsOpen(false)}>
+                        <Link href={notificacionesHref} className={styles.viewAll} onClick={() => setIsOpen(false)}>
                             Ver todas las notificaciones
                         </Link>
                     </div>

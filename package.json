@@ -14,7 +14,7 @@
     "cloudinary": "^2.10.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.24.0",
-    "next": "16.3.3",
+    "next": "16.4.3",
     "nsfwjs": "^4.4.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -29,7 +29,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "16.4.3",
     "jsdom": "^30.0.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"

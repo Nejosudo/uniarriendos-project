@@ -1,0 +1,245 @@
+.container {
+    width: 100%;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.filterBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 50px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.filterBtnActive {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.badge {
+    padding: 0.1rem 0.45rem;
+    border-radius: 50px;
+    background: #f1f5f9;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+}
+
+.filterBtnActive .badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.searchWrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 240px;
+    max-width: 420px;
+    padding: 0.6rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-muted);
+}
+
+.searchInput {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+    outline: none;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.imageLink {
+    display: block;
+    background: #f1f5f9;
+}
+
+.image {
+    display: block;
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+
+.status {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status_pendiente {
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+}
+
+.status_aprobada {
+    background: rgba(34, 197, 94, 0.15);
+    color: #15803d;
+}
+
+.status_rechazada {
+    background: rgba(239, 68, 68, 0.15);
+    color: #b91c1c;
+}
+
+.date {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-align: right;
+}
+
+.meta {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: var(--color-text-main);
+}
+
+.meta a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.meta a:hover {
+    text-decoration: underline;
+}
+
+.reason {
+    margin: 0 0 0.75rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.btnApprove,
+.btnReject {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    flex: 1;
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btnApprove {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #15803d;
+}
+
+.btnReject {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #b91c1c;
+}
+
+.btnApprove:disabled,
+.btnReject:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty {
+    padding: 3rem;
+    text-align: center;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.pagination button {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

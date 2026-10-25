@@ -2,13 +2,14 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { actualizarPerfil } from '@/app/acciones/perfilActions';
+import type { PerfilBasico } from '@/lib/tipos';
 import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
 import UserBadge from '@/componentes/ui/UserBadge/UserBadge';
 import styles from './PerfilForm.module.css';
 
 interface PerfilFormProps {
-    initialPerfil: any;
+    initialPerfil?: PerfilBasico;
     email: string;
 }
 
@@ -32,6 +33,7 @@ export default function PerfilForm({ initialPerfil, email }: PerfilFormProps) {
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('contexto', 'perfil');
 
         const result = await uploadImageToCloudinary(formData);
         

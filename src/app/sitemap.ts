@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
+import { getSiteUrl } from '@/lib/siteUrl';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://uniarriendos-project.vercel.app';
+  const base = getSiteUrl();
   const supabase = await createClient();
   const { data } = await supabase.from('propiedades').select('id, updated_at').in('estado', ['disponible', 'ocupado']).order('updated_at', { ascending: false }).limit(1000);
   const statics: MetadataRoute.Sitemap = [

@@ -4,7 +4,7 @@ function haversine(lat1:number,lng1:number,lat2:number,lng2:number){const R=6371
 export default function CotsemInfo({ lat, lng }: { lat:number; lng:number }) {
   const [info,setInfo]=useState<{nombre:string;dist:number;min:number}|null>(null);
   useEffect(()=>{fetch('/api/cotsem/routes').then(r=>r.json()).then(d=>{
-    let best:any=null;let bestDist=Infinity;
+    let best:{nombre:string;lat:number;lng:number}|null=null;let bestDist=Infinity;
     for(const p of d.paradas){const dist=haversine(lat,lng,p.lat,p.lng);if(dist<bestDist){bestDist=dist;best=p;}}
     if(best){setInfo({nombre:best.nombre,dist:bestDist,min:Math.round(bestDist*12)});}
   }).catch(()=>{});},[lat,lng]);
