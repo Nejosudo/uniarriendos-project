@@ -263,14 +263,26 @@ export default function AdminPropiedadesTable({ propiedades: initial }: AdminPro
                                         </label>
                                     </td>
                                     <td>
-                                        <Link
-                                            href={`/propiedades/${propiedad.id}`}
-                                            target="_blank"
-                                            className={styles.viewBtn}
-                                            title={propiedad.estado === 'inactivo' ? 'Previsualizar propiedad oculta' : 'Ver pública'}
-                                        >
-                                            <DynamicIcon name="ExternalLink" size={18} />
-                                        </Link>
+                                        <div className={styles.actions}>
+                                            <button
+                                                type="button"
+                                                className={`${styles.actionBtn} ${propiedad.verificada ? styles.actionBtnActive : ''}`}
+                                                onClick={() => void handleVerificada(propiedad.id, !propiedad.verificada)}
+                                                disabled={loadingId === propiedad.id}
+                                                title={propiedad.verificada ? 'Quitar verificación' : 'Verificar propiedad'}
+                                            >
+                                                <DynamicIcon name="BadgeCheck" size={16} />
+                                                {propiedad.verificada ? 'Verificada' : 'Verificar'}
+                                            </button>
+                                            <Link
+                                                href={`/propiedades/${propiedad.id}`}
+                                                target="_blank"
+                                                className={styles.viewBtn}
+                                                title={propiedad.estado === 'inactivo' ? 'Previsualizar propiedad oculta' : 'Ver pública'}
+                                            >
+                                                <DynamicIcon name="ExternalLink" size={18} />
+                                            </Link>
+                                        </div>
                                     </td>
                                 </tr>
                             );

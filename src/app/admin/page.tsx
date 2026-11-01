@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import PrecioVerificacionForm from '@/componentes/admin/PrecioVerificacionForm/PrecioVerificacionForm';
+import FeedbackToggleForm from '@/componentes/admin/FeedbackToggleForm/FeedbackToggleForm';
+import { CLAVE_FEEDBACK_ACTIVO, CLAVE_PRECIO_VERIFICACION, PRECIO_VERIFICACION_POR_DEFECTO, parseFeedbackActivo } from '@/lib/configuracion';
 import styles from './page.module.css';
 
 const ACCIONES: Record<string, string> = {
@@ -16,6 +19,7 @@ const ACCIONES: Record<string, string> = {
     ocultar_resena: 'Ocultó una reseña',
     eliminar_resena: 'Eliminó una reseña',
     revisar_foto: 'Revisó una foto',
+    actualizar_configuracion: 'Actualizó la configuración',
 };
 
 function formatFecha(value: string) {
@@ -49,13 +53,32 @@ export default async function AdminDashboardPage() {
             .select('id', { count: 'exact', head: true })
             .eq('resultado', 'pendiente')
             .not('foto_url', 'is', null)
-            .or('propiedad_id.not.is.null,motivo.like.propiedad:*'),
+            .not('propiedad_id', 'is', null),
         supabase
             .from('admin_audit_log')
             .select('id, accion, entidad, entidad_id, detalle, created_at, admin:perfiles!admin_id(nombre_completo)')
             .order('created_at', { ascending: false })
             .limit(6),
     ]);
+
+    const [{ data: configVerificacion }, { data: configFeedback }] = await Promise.all([
+        supabase
+            .from('configuracion')
+            .select('valor')
+            .eq('clave', CLAVE_PRECIO_VERIFICACION)
+            .maybeSingle(),
+        supabase
+            .from('configuracion')
+            .select('valor')
+            .eq('clave', CLAVE_FEEDBACK_ACTIVO)
+            .maybeSingle(),
+    ]);
+
+    const feedbackActivo = parseFeedbackActivo(configFeedback?.valor);
+    const precioVerificacionConfig = Number(configVerificacion?.valor);
+    const precioVerificacion = Number.isInteger(precioVerificacionConfig) && precioVerificacionConfig > 0
+        ? precioVerificacionConfig
+        : PRECIO_VERIFICACION_POR_DEFECTO;
 
     const errores = [
         usuarios.error && `usuarios: ${usuarios.error.message}`,
@@ -156,7 +179,8 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className={styles.bottomGrid}>
-                <section className={styles.quickLinks}>
+                <div className={styles.leftColumn}>
+                    <section className={styles.quickLinks}>
                     <h2>Accesos rápidos</h2>
                     <div className={styles.linksGrid}>
                         <Link href="/admin/usuarios" className={styles.quickLink}>
@@ -184,7 +208,11 @@ export default async function AdminDashboardPage() {
                             Ver auditoría
                         </Link>
                     </div>
-                </section>
+                    </section>
+
+                    <PrecioVerificacionForm valorInicial={precioVerificacion} />
+                    <FeedbackToggleForm activoInicial={feedbackActivo} />
+                </div>
 
                 <section className={styles.activity}>
                     <div className={styles.activityHeader}>

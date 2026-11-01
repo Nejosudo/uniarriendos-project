@@ -46,6 +46,7 @@ import {
   Star,
   History,
   ClipboardList,
+  BadgeCheck,
   LucideProps,
   Bell
 } from 'lucide-react';
@@ -105,6 +106,7 @@ const IconMap: Record<string, React.FC<LucideProps>> = {
   Star,
   History,
   ClipboardList,
+  BadgeCheck,
   Bell
 };
 

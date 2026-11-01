@@ -19,9 +19,13 @@ export async function uploadImageToCloudinary(formData: FormData) {
     if (!user) {
       return { success: false, error: 'Debes iniciar sesión para subir imágenes' };
     }
+    const contextoRaw = String(formData.get('contexto') || 'general').toLowerCase();
+    const contexto = ['propiedad', 'perfil', 'pqrs'].includes(contextoRaw) ? contextoRaw : 'general';
+    const limiteSubidas = contexto === 'pqrs' ? 30 : 10;
+
     const ip = getClientIp(await headers());
-    const rl = checkRateLimit(rateLimitKey(ip, user.id, 'upload'), 10, 60 * 60 * 1000);
-    if (!rl.ok) return { success: false, error: 'Límite de subidas alcanzado (10/h). Intenta más tarde.' };
+    const rl = checkRateLimit(rateLimitKey(ip, user.id, `upload:${contexto}`), limiteSubidas, 60 * 60 * 1000);
+    if (!rl.ok) return { success: false, error: `Límite de subidas alcanzado (${limiteSubidas}/h). Intenta más tarde.` };
 
     const file = formData.get('file') as File;
     
@@ -88,8 +92,6 @@ export async function uploadImageToCloudinary(formData: FormData) {
     });
 
     try {
-      const contextoRaw = String(formData.get('contexto') || 'general').toLowerCase();
-      const contexto = ['propiedad', 'perfil', 'pqrs'].includes(contextoRaw) ? contextoRaw : 'general';
       if (contexto !== 'propiedad') {
         await supabase.from('fotos_validacion').insert({
           usuario_id: user.id,

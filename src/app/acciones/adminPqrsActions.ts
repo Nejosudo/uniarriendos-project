@@ -6,25 +6,35 @@ import { verifyAdminAction } from '@/lib/admin/auth';
 import type { PqrsEstado } from '@/app/acciones/pqrsActions';
 import { crearNotificacion } from './notificacionesActions';
 import { logAdminAction } from './adminAuditActions';
-import { sanitizeText } from '@/lib/validation';
+import { isAllowedImageUrl, sanitizeText } from '@/lib/validation';
 
 export async function responderPqrs(
     pqrsId: number,
     mensaje: string,
-    nuevoEstado: PqrsEstado = 'resuelto'
+    nuevoEstado: PqrsEstado = 'resuelto',
+    imagenes: string[] = []
 ) {
     const auth = await verifyAdminAction();
     if (!auth.success) return auth;
-
-    const texto = sanitizeText(mensaje || '', 2000);
-    if (!texto || texto.length < 10) {
-        return { success: false, error: 'La respuesta debe tener al menos 10 caracteres' };
-    }
 
     const estadosValidos: PqrsEstado[] = ['pendiente', 'en_proceso', 'resuelto'];
     if (!estadosValidos.includes(nuevoEstado)) {
         return { success: false, error: 'Estado no válido' };
     }
+
+    if (!Array.isArray(imagenes) || imagenes.length > 3) {
+        return { success: false, error: 'Puedes adjuntar máximo 3 fotos de evidencia' };
+    }
+    const urls = imagenes.filter((url): url is string => typeof url === 'string');
+    if (urls.some((url) => url.length > 500 || !isAllowedImageUrl(url))) {
+        return { success: false, error: 'URL imagen inválida' };
+    }
+
+    const texto = sanitizeText(mensaje || '', 2000);
+    if (urls.length === 0 && (!texto || texto.length < 10)) {
+        return { success: false, error: 'La respuesta debe tener al menos 10 caracteres o incluir una evidencia' };
+    }
+    const mensajeFinal = texto.trim().length > 0 ? texto : 'Evidencia adjunta';
 
     const supabase = await createClient();
 
@@ -33,9 +43,11 @@ export async function responderPqrs(
         .insert({
             pqrs_id: pqrsId,
             admin_id: auth.user.id,
-            mensaje: texto,
+            mensaje: mensajeFinal,
+            imagen_url: urls[0] ?? null,
+            imagenes_url: urls,
         })
-        .select('id, pqrs_id, mensaje, imagen_url, usuario_id, admin_id, created_at')
+        .select('id, pqrs_id, mensaje, imagen_url, imagenes_url, usuario_id, admin_id, created_at')
         .single();
 
     if (respError || !respuesta) {

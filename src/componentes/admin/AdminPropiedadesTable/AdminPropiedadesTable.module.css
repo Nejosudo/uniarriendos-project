@@ -117,6 +117,50 @@
     cursor: pointer;
 }
 
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.actionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.38rem 0.55rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.actionBtn:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.actionBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.actionBtnActive {
+    color: #15803d;
+    border-color: rgba(28, 198, 91, 0.35);
+    background: rgba(28, 198, 91, 0.08);
+}
+
+.actionBtnActive:hover {
+    color: #166534;
+    border-color: rgba(28, 198, 91, 0.5);
+}
+
 .viewBtn {
     display: inline-flex;
     padding: 0.4rem;

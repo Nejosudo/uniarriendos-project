@@ -19,6 +19,7 @@ export default async function AdminPqrsPage() {
                 id,
                 mensaje,
                 imagen_url,
+                imagenes_url,
                 usuario_id,
                 admin_id,
                 created_at

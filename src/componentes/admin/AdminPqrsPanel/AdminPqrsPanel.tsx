@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import { responderPqrs, cambiarEstadoPqrs } from '@/app/acciones/adminPqrsActions';
+import { uploadImageToCloudinary } from '@/app/acciones/uploadActions';
 import type { PqrsEstado } from '@/app/acciones/pqrsActions';
 import DynamicIcon from '@/componentes/ui/DynamicIcon';
+import EvidenciaUploader from '@/componentes/ui/EvidenciaUploader/EvidenciaUploader';
 import toast from 'react-hot-toast';
 import { isAllowedImageUrl } from '@/lib/validation';
 import styles from './AdminPqrsPanel.module.css';
@@ -20,6 +22,7 @@ interface PqrsItem {
         id: number;
         mensaje: string;
         imagen_url?: string | null;
+        imagenes_url?: string[] | null;
         usuario_id?: string | null;
         admin_id?: string | null;
         created_at: string;
@@ -46,6 +49,15 @@ const ESTADOS: { value: PqrsEstado | 'todos'; label: string }[] = [
 
 const POR_PAGINA = 10;
 
+function imagenesDeRespuesta(respuesta: {
+    imagen_url?: string | null;
+    imagenes_url?: string[] | null;
+}): string[] {
+    const urls = Array.isArray(respuesta.imagenes_url) ? respuesta.imagenes_url : [];
+    const combinadas = respuesta.imagen_url ? [...urls, respuesta.imagen_url] : urls;
+    return Array.from(new Set(combinadas.filter((url) => typeof url === 'string' && url.length > 0)));
+}
+
 function formatDate(d: string) {
     return new Date(d).toLocaleDateString('es-CO', {
         day: 'numeric',
@@ -64,6 +76,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
     const [pagina, setPagina] = useState(1);
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [respuesta, setRespuesta] = useState('');
+    const [archivos, setArchivos] = useState<File[]>([]);
     const [nuevoEstado, setNuevoEstado] = useState<PqrsEstado>('resuelto');
     const [loadingId, setLoadingId] = useState<number | null>(null);
     const [error, setError] = useState('');
@@ -92,11 +105,27 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
     const handleResponder = async (id: number) => {
         setLoadingId(id);
         setError('');
-        const result = await responderPqrs(id, respuesta, nuevoEstado);
+
+        const urls: string[] = [];
+        for (const archivo of archivos) {
+            const fd = new FormData();
+            fd.append('file', archivo);
+            fd.append('contexto', 'pqrs');
+            const up = await uploadImageToCloudinary(fd);
+            if (!up.success) {
+                setError(up.error || 'Error subiendo imagen');
+                setLoadingId(null);
+                return;
+            }
+            if (up.url) urls.push(up.url);
+        }
+
+        const result = await responderPqrs(id, respuesta, nuevoEstado, urls);
         if (result.success) {
             const respuestaGuardada = result.respuesta;
             if (!respuestaGuardada) {
                 toast.error('La respuesta se guardó, pero no se pudo actualizar la vista. Recarga la página.');
+                setLoadingId(null);
                 return;
             }
 
@@ -110,6 +139,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                     : item
             )));
             setRespuesta('');
+            setArchivos([]);
             setExpandedId(null);
             toast.success('Respuesta enviada');
         } else {
@@ -205,6 +235,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                             setExpandedId(isOpen ? null : item.id);
                                             setError('');
                                             setRespuesta('');
+                                            setArchivos([]);
                                             setNuevoEstado('resuelto');
                                         }}
                                         aria-expanded={isOpen}
@@ -236,6 +267,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                                 setExpandedId(isOpen ? null : item.id);
                                                 setError('');
                                                 setRespuesta('');
+                                                setArchivos([]);
                                                 setNuevoEstado('resuelto');
                                             }}
                                             aria-label={isOpen ? 'Contraer PQRS' : 'Expandir PQRS'}
@@ -258,20 +290,20 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                                             <strong>{respuestaItem.usuario_id ? 'Usuario:' : 'Equipo:'}</strong>{' '}
                                                             {respuestaItem.mensaje}
                                                         </p>
-                                                        {respuestaItem.imagen_url && isAllowedImageUrl(respuestaItem.imagen_url) && (
-                                                            <div className={styles.evidencia}>
-                                                                <img src={respuestaItem.imagen_url} alt="Evidencia" />
+                                                        {imagenesDeRespuesta(respuestaItem).filter((url) => isAllowedImageUrl(url)).map((url) => (
+                                                            <div key={url} className={styles.evidencia}>
+                                                                <img src={url} alt="Evidencia" />
                                                                 <div className={styles.evidenciaActions}>
                                                                     <a
-                                                                        href={respuestaItem.imagen_url.includes('/upload/')
-                                                                            ? respuestaItem.imagen_url.replace('/upload/', '/upload/fl_attachment/')
-                                                                            : respuestaItem.imagen_url}
+                                                                        href={url.includes('/upload/')
+                                                                            ? url.replace('/upload/', '/upload/fl_attachment/')
+                                                                            : url}
                                                                         download={`evidencia-pqrs-${respuestaItem.id}.jpg`}
                                                                     >
                                                                         ⬇ Descargar evidencia
                                                                     </a>
                                                                     <a
-                                                                        href={respuestaItem.imagen_url}
+                                                                        href={url}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                     >
@@ -279,7 +311,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                                                     </a>
                                                                 </div>
                                                             </div>
-                                                        )}
+                                                        ))}
                                                         <span>{formatDate(respuestaItem.created_at)}</span>
                                                     </div>
                                                 ))}
@@ -296,6 +328,11 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                                 placeholder="Escribe tu respuesta al usuario..."
                                                 className={styles.textarea}
                                             />
+                                            <EvidenciaUploader
+                                                archivos={archivos}
+                                                onChange={setArchivos}
+                                                disabled={loadingId === item.id}
+                                            />
                                             <div className={styles.replyActions}>
                                                 <select
                                                     value={nuevoEstado}
@@ -310,7 +347,7 @@ export default function AdminPqrsPanel({ pqrs: initial }: AdminPqrsPanelProps) {
                                                     type="button"
                                                     className={styles.sendBtn}
                                                     onClick={() => void handleResponder(item.id)}
-                                                    disabled={loadingId === item.id || respuesta.trim().length < 10}
+                                                    disabled={loadingId === item.id || (respuesta.trim().length < 10 && archivos.length === 0)}
                                                 >
                                                     <DynamicIcon name="Send" size={16} />
                                                     Enviar respuesta

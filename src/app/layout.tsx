@@ -4,6 +4,8 @@ import Navbar from "@/componentes/layout/Navbar/Navbar";
 import Footer from "@/componentes/layout/Footer/Footer";
 import GlobalSuspensionBanner from "@/componentes/layout/GlobalSuspensionBanner/GlobalSuspensionBanner";
 import ToastProvider from "@/componentes/ui/ToastProvider/ToastProvider";
+import FeedbackFlotante from "@/componentes/layout/FeedbackFlotante/FeedbackFlotante";
+import { obtenerFeedbackActivo } from "@/lib/configuracion";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
@@ -52,11 +54,13 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const feedbackActivo = await obtenerFeedbackActivo();
+
   return (
     <html lang="es">
       <body suppressHydrationWarning style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -66,6 +70,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        {feedbackActivo && <FeedbackFlotante />}
         <ToastProvider />
       </body>
     </html>

@@ -48,6 +48,7 @@ export type PqrsRespuesta = {
     pqrs_id: number;
     mensaje: string;
     imagen_url: string | null;
+    imagenes_url?: string[] | null;
     created_at: string;
     admin_id: string | null;
     usuario_id: string | null;

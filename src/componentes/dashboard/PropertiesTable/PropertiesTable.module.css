@@ -407,3 +407,20 @@
     from { opacity: 0; transform: translateY(20px) scale(0.98); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+.verifyBtn {
+    width: auto;
+    gap: 0.35rem;
+    padding: 0 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #15803d;
+    border: 1px solid rgba(28, 198, 91, 0.35);
+    background: rgba(28, 198, 91, 0.08);
+}
+
+.verifyBtn:hover {
+    background: rgba(28, 198, 91, 0.16);
+    color: #166534;
+}
