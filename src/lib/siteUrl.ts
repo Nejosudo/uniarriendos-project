@@ -1,4 +1,4 @@
-const PRODUCTION_FALLBACK = 'https://uniarriendos-project.vercel.app';
+const PRODUCTION_FALLBACK = 'https://www.uniarriendos.online';
 const DEVELOPMENT_FALLBACK = 'http://localhost:3000';
 
 function parseHttpUrl(value: string): URL | null {
