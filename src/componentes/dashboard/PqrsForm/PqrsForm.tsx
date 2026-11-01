@@ -13,11 +13,19 @@ const TIPOS: { value: PqrsTipo; label: string; description: string; icon: string
     { value: 'sugerencia', label: 'Sugerencia', description: 'Idea para mejorar la plataforma', icon: 'Lightbulb' },
 ];
 
-export default function PqrsForm() {
+interface PqrsFormProps {
+    initialValues?: {
+        tipo?: PqrsTipo;
+        asunto?: string;
+        mensaje?: string;
+    };
+}
+
+export default function PqrsForm({ initialValues }: PqrsFormProps) {
     const router = useRouter();
-    const [tipo, setTipo] = useState<PqrsTipo>('peticion');
-    const [asunto, setAsunto] = useState('');
-    const [mensaje, setMensaje] = useState('');
+    const [tipo, setTipo] = useState<PqrsTipo>(initialValues?.tipo ?? 'peticion');
+    const [asunto, setAsunto] = useState(initialValues?.asunto ?? '');
+    const [mensaje, setMensaje] = useState(initialValues?.mensaje ?? '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

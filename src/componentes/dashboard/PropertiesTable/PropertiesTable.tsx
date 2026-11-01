@@ -177,6 +177,17 @@ export default function PropertiesTable({ propiedades: initialPropiedades, accio
                                                 <Link href={`/dashboard/propiedades/${prop.id}/editar`} className={styles.actionBtn} title="Editar">
                                                     <DynamicIcon name="Edit" size={18} />
                                                 </Link>
+                                                {!prop.verificada && (
+                                                    <Link
+                                                        href={`/dashboard/pqrs/nueva?verificacion=${prop.id}`}
+                                                        className={`${styles.actionBtn} ${styles.verifyBtn}`}
+                                                        title="Solicitar verificación"
+                                                        aria-label="Solicitar verificación"
+                                                    >
+                                                        <DynamicIcon name="BadgeCheck" size={17} />
+                                                        <span>Verificar</span>
+                                                    </Link>
+                                                )}
                                                 <button 
                                                     className={`${styles.actionBtn} ${styles.deleteBtn}`} 
                                                     title="Eliminar"
