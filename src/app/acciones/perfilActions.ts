@@ -33,15 +33,32 @@ export async function actualizarPerfil(formData: FormData) {
     }
     const avatar_url = avatarIngresado || null;
 
-    const { error } = await supabase
-        .from('perfiles')
-        .update({
-            nombre_completo,
-            telefono,
-            avatar_url,
-            updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+    // Ruta principal: RPC SECURITY DEFINER (no depende de grants por columna
+    // ni del trigger anti-escalada). Si aún no se aplicó la migración 020,
+    // se usa el update directo como respaldo.
+    const { error: rpcError } = await supabase.rpc('actualizar_mi_perfil', {
+        p_nombre_completo: nombre_completo,
+        p_telefono: telefono,
+        p_avatar_url: avatar_url,
+    });
+
+    let error = rpcError;
+    const rpcNoDisponible =
+        rpcError?.code === 'PGRST202' ||
+        /could not find the function|does not exist/i.test(rpcError?.message || '');
+
+    if (rpcNoDisponible) {
+        const { error: directError } = await supabase
+            .from('perfiles')
+            .update({
+                nombre_completo,
+                telefono,
+                avatar_url,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id);
+        error = directError;
+    }
 
     if (error) {
         console.error('Error actualizando perfil:', error);
